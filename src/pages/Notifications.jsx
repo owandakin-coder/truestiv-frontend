@@ -2,6 +2,14 @@ import { useState, useEffect } from 'react'
 import { Bell, AlertTriangle, CheckCircle, Shield, Globe, X, Filter, Check } from 'lucide-react'
 import axios from 'axios'
 
+useEffect(() => {
+  const fetchNotifications = async () => {
+    const res = await api().get('/api/notifications')
+    setNotifications(res.data)
+  }
+  fetchNotifications()
+}, [])
+
 const api = () => axios.create({
   baseURL: 'https://trustiveai.onrender.com',
   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }

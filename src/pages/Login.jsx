@@ -26,7 +26,7 @@ export default function Login() {
     setLoading(true)
     setError('')
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/login', form)
+      const res = await axios.post('https://trustiveai.onrender.com', form)
       localStorage.setItem('token', res.data.access_token)
       navigate('/')
     } catch (err) {

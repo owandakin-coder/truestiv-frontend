@@ -17,7 +17,7 @@ import Layout from './components/Layout'
 import Toast from './components/Toast'
 import Onboarding from './components/Onboarding'
 import LoadingScreen from './components/LoadingScreen'
-import { AlertsToaster, useRealTimeAlerts } from './components/RealTimeAlerts'
+// RealTimeAlerts הוסר - אין יותר התראות מדומות
 
 const isAuthenticated = () => !!localStorage.getItem('token')
 
@@ -28,7 +28,6 @@ function PrivateRoute({ children }) {
 function AppContent() {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [loading, setLoading] = useState(!sessionStorage.getItem('loaded'))
-  useRealTimeAlerts()
 
   useEffect(() => {
     const done = localStorage.getItem('onboarding_done')
@@ -46,7 +45,7 @@ function AppContent() {
   return (
     <>
       <Toast />
-      <AlertsToaster />
+      {/* AlertsToaster NO ALERT ANY MORE */}
       {showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}
       <Routes>
         <Route path="/" element={isAuthenticated() ? <Navigate to="/dashboard" /> : <Landing />} />

@@ -216,7 +216,7 @@ export default function Analysis() {
               {(channel === 'sms' || channel === 'whatsapp') && (
                 <div>
                   <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>Phone Number</label>
-                  <input className="input" value={form.phone_number} onChange={e => setForm({ ...form, phone_number: e.target.value })} placeholder="+972501234567" />
+                  <input className="input" value={form.phone_number} onChange={e => setForm({ ...form, phone_number: e.target.value })} placeholder="+12345678900" />
                 </div>
               )}
 

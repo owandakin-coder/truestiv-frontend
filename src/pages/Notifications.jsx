@@ -7,28 +7,51 @@ const api = () => axios.create({
   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
 })
 
-const mockNotifications = [
-  { id: 1, type: 'threat', title: 'Phishing email detected', message: 'An email from security@paypa1.com was identified as phishing with 95% confidence.', time: '2 min ago', read: false, color: '#ff3b3b' },
-  { id: 2, type: 'warning', title: 'Suspicious URL scanned', message: 'URL http://amazon-verify.xyz was flagged as suspicious.', time: '15 min ago', read: false, color: '#fbbf24' },
-  { id: 3, type: 'community', title: 'New community threat report', message: 'A new phishing campaign targeting Israeli banks was reported.', time: '1 hour ago', read: true, color: '#3b82f6' },
-  { id: 4, type: 'safe', title: 'Email analysis completed', message: 'Email from newsletter@github.com was verified as safe.', time: '2 hours ago', read: true, color: '#00e5a0' },
-  { id: 5, type: 'threat', title: 'Malware attachment detected', message: 'File invoice_urgent.exe was blocked before download.', time: '3 hours ago', read: true, color: '#ff3b3b' },
-  { id: 6, type: 'warning', title: 'Suspicious IP detected', message: 'Connection attempt from 185.220.101.42 was blocked.', time: '5 hours ago', read: true, color: '#fbbf24' },
-  { id: 7, type: 'safe', title: 'Weekly security summary ready', message: 'Your weekly threat intelligence report is now available.', time: '1 day ago', read: true, color: '#00e5a0' },
-  { id: 8, type: 'community', title: 'Threat verified by community', message: 'The phishing report you submitted was verified by 5 users.', time: '2 days ago', read: true, color: '#3b82f6' },
-]
-
 export default function Notifications() {
-  const [notifications, setNotifications] = useState(mockNotifications)
+  const [notifications, setNotifications] = useState([])
+  const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
+
+  // Fetch real notifications from backend
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const res = await api().get('/api/notifications')
+        //
+        const withRead = res.data.map(n => ({ ...n, read: false }))
+        setNotifications(withRead)
+      } catch (err) {
+        console.error('Failed to fetch notifications', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchNotifications()
+  }, [])
 
   const unread = notifications.filter(n => !n.read).length
 
-  const markRead = (id) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
-  const markAllRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-  const remove = (id) => setNotifications(prev => prev.filter(n => n.id !== id))
+  const markRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n))
+    // 
+    // await api().post(`/api/notifications/${id}/read`)
+  }
 
-  const filtered = notifications.filter(n => filter === 'all' ? true : filter === 'unread' ? !n.read : n.type === filter)
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+    //
+  }
+
+  const remove = (id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id))
+    // 
+  }
+
+  const filtered = notifications.filter(n => {
+    if (filter === 'all') return true
+    if (filter === 'unread') return !n.read
+    return n.type === filter
+  })
 
   const typeIcons = {
     threat: <AlertTriangle size={18} />,
@@ -44,6 +67,14 @@ export default function Notifications() {
     { id: 'warning', label: 'Warnings' },
     { id: 'community', label: 'Community' },
   ]
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <div style={{ width: 40, height: 40, border: '2px solid rgba(255,255,255,0.2)', borderTop: '2px solid #00e5a0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
+      </div>
+    )
+  }
 
   return (
     <div style={{ position: 'relative' }}>
@@ -158,6 +189,7 @@ export default function Notifications() {
           )}
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

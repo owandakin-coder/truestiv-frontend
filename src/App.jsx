@@ -11,6 +11,7 @@ import Scanner from './pages/Scanner'
 import Settings from './pages/Settings'
 import Notifications from './pages/Notifications'
 import Performance from './pages/Performance'
+import ThreatInsights from './pages/ThreatInsights'
 import Landing from './pages/Landing'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -63,6 +64,7 @@ function AppContent() {
           <Route path="settings" element={<Settings />} />
           <Route path="notifications" element={<Notifications />} />
           <Route path="performance" element={<Performance />} />
+          <Route path="threat-intel" element={<ThreatInsights />} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

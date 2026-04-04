@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
-import { BarChart2, Shield, Map, Users, Globe, LogOut, Zap, Bell, Search, Activity, ScanLine, Settings, Moon, Sun } from 'lucide-react'
+import { BarChart2, Shield, Map, Users, Globe, LogOut, Zap, Bell, Search, Activity, ScanLine, Settings, Moon, Sun, Newspaper } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 import SearchModal from './SearchModal'
 import KeyboardShortcuts from './KeyboardShortcuts'
@@ -29,6 +29,7 @@ export default function Layout() {
     { to: '/scanner', icon: <ScanLine size={19} />, label: 'Scanner' },
     { to: '/propagation', icon: <Map size={19} />, label: 'Threat Map' },
     { to: '/performance', icon: <Activity size={19} />, label: 'Performance' },
+    { to: '/threat-intel', icon: <Newspaper size={19} />, label: 'Threat Intel' },
     { to: '/contacts', icon: <Users size={19} />, label: 'Contacts' },
     { to: '/community', icon: <Globe size={19} />, label: 'Community' },
     { to: '/notifications', icon: <Bell size={19} />, label: 'Notifications' },

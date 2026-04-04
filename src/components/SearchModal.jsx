@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Shield, ScanLine, Users, Globe, BarChart2, Map, Bell, Settings, ArrowRight, X, Activity } from 'lucide-react'
+import { Search, Shield, ScanLine, Users, Globe, BarChart2, Map, Bell, Settings, ArrowRight, X, Activity, Newspaper } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const pages = [
@@ -12,6 +12,7 @@ const pages = [
   { label: 'Notifications', path: '/notifications', icon: <Bell size={16} />, desc: 'Alert center', color: '#ff6b35' },
   { label: 'Settings', path: '/settings', icon: <Settings size={16} />, desc: 'Account and preferences', color: '#64748b' },
   { label: 'Performance', path: '/performance', icon: <Activity size={16} />, desc: 'System metrics and AI performance', color: '#00e5a0' },
+  { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Threat insights and triage board', color: '#f97316' },
 ]
 
 export default function SearchModal({ open, onClose }) {

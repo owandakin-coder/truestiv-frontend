@@ -4,7 +4,8 @@ import { NavLink, Outlet } from 'react-router-dom'
 const navItems = [
   { to: '/dashboard', label: 'Dashboard' },
   { to: '/analysis', label: 'Analysis' },
-  { to: '/scanner', label: 'Media Lab' },
+  { to: '/scanner', label: 'Scanner' },
+  { to: '/media-lab', label: 'Media Lab' },
   { to: '/propagation', label: 'Geo Map' },
   { to: '/community', label: 'Community' },
   { to: '/threat-intel', label: 'Threat Intel' },

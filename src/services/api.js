@@ -1,3 +1,5 @@
+import axios from 'axios'
+
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 function buildHeaders(extraHeaders = {}) {
@@ -6,6 +8,14 @@ function buildHeaders(extraHeaders = {}) {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extraHeaders,
   }
+}
+
+export function api(extraConfig = {}) {
+  return axios.create({
+    baseURL: API_BASE_URL,
+    headers: buildHeaders(extraConfig.headers || {}),
+    ...extraConfig,
+  })
 }
 
 export async function apiRequest(path, options = {}) {

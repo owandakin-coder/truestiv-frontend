@@ -1,261 +1,115 @@
-import { useState } from 'react'
-import { Link2, Globe, FileText, Key, AlertTriangle, CheckCircle, Eye, Shield, Copy, Plus, Zap, RefreshCw, Info, MapPin, Network, Building2, Hash } from 'lucide-react'
-import axios from 'axios'
+import { useMemo, useState } from 'react'
+import {
+  FileText,
+  Globe,
+  Hash,
+  Link2,
+  Search,
+  Shield,
+  Sparkles,
+  Zap,
+} from 'lucide-react'
 
-const api = () => axios.create({
-  baseURL: 'https://trustiveai.onrender.com',
-  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-})
+import ResultCard from '../components/ResultCard'
+import { useTheme } from '../components/ThemeProvider'
+import { api } from '../services/api'
 
-function ResultCard({ result, type }) {
-  if (!result) return null
+const tabs = [
+  { id: 'url', label: 'URL', icon: Link2 },
+  { id: 'ip', label: 'IP', icon: Globe },
+  { id: 'hash', label: 'HASH', icon: Hash },
+  { id: 'file', label: 'File', icon: FileText },
+]
 
-  const levelConfig = {
-    threat: { color: '#ff3b3b', bg: 'rgba(255,59,59,0.08)', border: 'rgba(255,59,59,0.2)', label: 'THREAT', glow: '0 0 30px rgba(255,59,59,0.15)', icon: <AlertTriangle size={32} /> },
-    suspicious: { color: '#fbbf24', bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)', label: 'SUSPICIOUS', glow: '0 0 30px rgba(251,191,36,0.1)', icon: <Eye size={32} /> },
-    safe: { color: '#00e5a0', bg: 'rgba(0,229,160,0.08)', border: 'rgba(0,229,160,0.2)', label: 'SAFE', glow: '0 0 30px rgba(0,229,160,0.1)', icon: <CheckCircle size={32} /> }
+const examples = {
+  url: [
+    'https://paypa1-security-check.example/login',
+    'http://verify-amazon-access.example',
+    'https://google.com',
+  ],
+  ip: ['185.220.101.42', '198.199.100.1', '8.8.8.8'],
+  hash: [
+    '44d88612fea8a8f36de82e1278abb02f',
+    '3395856ce81f2b7382dee72602f798b642f14140',
+    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+  ],
+  file: ['invoice_payment.exe', 'report.docm', 'archive.zip'],
+}
+
+function getPalette(theme) {
+  const dark = theme !== 'light'
+  return {
+    dark,
+    card: dark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.95)',
+    cardStrong: dark ? 'rgba(255,255,255,0.04)' : '#ffffff',
+    border: dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(15,23,42,0.08)',
+    text: dark ? '#f8fafc' : '#0f172a',
+    muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
+    subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
+    orange: '#ff6b35',
   }
+}
 
-  const cfg = levelConfig[result.threat_level] || levelConfig.safe
-  const [showSources, setShowSources] = useState(false)
+const initialState = {
+  url: '',
+  ip: '',
+  hash: '',
+  filename: '',
+  file_size: '',
+  file_hash: '',
+}
 
-  const getIsp = () => {
-    if (result.geo?.isp) return result.geo.isp
-    if (result.sources) {
-      const ispFromSources = result.sources.find(s => s.isp)?.isp
-      if (ispFromSources) return ispFromSources
-    }
-    return null
-  }
-
-  const getOrganization = () => {
-    if (result.geo?.organization) return result.geo.organization
-    if (result.sources) {
-      const org = result.sources.find(s => s.org || s.as_owner)?.org || result.sources.find(s => s.as_owner)?.as_owner
-      if (org) return org
-    }
-    return null
-  }
-
-  const getAsn = () => {
-    if (result.geo?.asn) return result.geo.asn
-    if (result.sources) {
-      const asn = result.sources.find(s => s.asn || s.as_owner)?.asn || result.sources.find(s => s.as_owner)?.as_owner
-      if (asn) return asn
-    }
-    return null
-  }
-
-  return (
-    <div style={{ background: cfg.bg, border: `1px solid ${cfg.border}`, borderRadius: 20, padding: '24px', boxShadow: cfg.glow }} className="fade-in">
-      {/* Threat level header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20, padding: '16px 20px', background: 'rgba(0,0,0,0.2)', borderRadius: 14 }}>
-        <div style={{ color: cfg.color, filter: `drop-shadow(0 0 8px ${cfg.color})` }}>{cfg.icon}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: cfg.color, letterSpacing: 1 }}>{cfg.label}</div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8 }}>
-            <div style={{ flex: 1, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3 }}>
-              <div style={{ width: `${result.risk_score || result.confidence || result.aggregated_score || 0}%`, height: '100%', background: `linear-gradient(90deg, ${cfg.color}66, ${cfg.color})`, borderRadius: 3, transition: 'width 1s ease' }} />
-            </div>
-            <span style={{ fontSize: 14, fontWeight: 800, color: cfg.color }}>
-              {type === 'ip' ? `${result.aggregated_score || result.risk_score || 0}%` : `${result.risk_score || result.confidence || 0}%`}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Basic info (IP, URL, filename, hash) */}
-      <div style={{ background: 'rgba(0,0,0,0.15)', padding: '14px 16px', borderRadius: 12, marginBottom: 14, border: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>
-          {type === 'ip' ? 'IP Address' : type === 'url' ? 'URL' : type === 'hash' ? 'File Hash' : 'Filename'}
-        </div>
-        <p style={{ fontSize: 14, color: '#fff', fontFamily: 'monospace', wordBreak: 'break-all' }}>{result.ip || result.url || result.filename || result.hash}</p>
-      </div>
-
-      {/* Additional hash details (positives/total) */}
-      {type === 'hash' && result.positives !== undefined && (
-        <div style={{ background: 'rgba(0,0,0,0.15)', padding: '14px 16px', borderRadius: 12, marginBottom: 14, border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
-            <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>VirusTotal detection</span>
-            <span style={{ fontSize: 18, fontWeight: 800, color: cfg.color }}>{result.positives} / {result.total}</span>
-          </div>
-          {result.permalink && (
-            <a href={result.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: '#3b82f6', textDecoration: 'none', marginTop: 8, display: 'inline-block' }}>
-              View on VirusTotal →
-            </a>
-          )}
-        </div>
-      )}
-
-      {/* Geolocation & Network Info (for IP) */}
-      {type === 'ip' && result.geo && (
-        <div style={{ background: 'rgba(0,0,0,0.15)', padding: '14px 16px', borderRadius: 12, marginBottom: 14, border: '1px solid rgba(255,255,255,0.05)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-            <MapPin size={14} color="#00e5a0" />
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1 }}>Location & Network</div>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-            <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>Country:</span> {result.geo.country || 'Unknown'}</div>
-            {result.geo.city && <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>City:</span> {result.geo.city}</div>}
-            {result.geo.region && <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>Region:</span> {result.geo.region}</div>}
-            {getIsp() && <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>ISP:</span> {getIsp()}</div>}
-            {getOrganization() && <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>Organization:</span> {getOrganization()}</div>}
-            {getAsn() && <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>ASN:</span> {getAsn()}</div>}
-            {result.geo.latitude && result.geo.longitude && (
-              <div><span style={{ color: 'rgba(255,255,255,0.3)' }}>Coordinates:</span> {result.geo.latitude}, {result.geo.longitude}</div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Summary */}
-      <div style={{ background: 'rgba(0,0,0,0.15)', padding: '14px 16px', borderRadius: 12, marginBottom: 14, border: '1px solid rgba(255,255,255,0.05)' }}>
-        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 6 }}>Summary</div>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.75)', lineHeight: 1.6 }}>{result.summary}</p>
-      </div>
-
-      {/* Indicators */}
-      {result.indicators?.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Indicators</div>
-          {result.indicators.map((ind, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 8, padding: '7px 0', borderBottom: '1px solid rgba(255,255,255,0.04)', fontSize: 13, color: 'rgba(255,255,255,0.6)', animation: `fadeInUp 0.3s ease ${i * 0.06}s both` }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: cfg.color, flexShrink: 0, marginTop: 5, boxShadow: `0 0 6px ${cfg.color}` }} />
-              {ind}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Threat Intelligence Sources (for IP) */}
-      {type === 'ip' && result.sources && result.sources.length > 0 && (
-        <div style={{ marginBottom: 14 }}>
-          <button
-            onClick={() => setShowSources(!showSources)}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#00e5a0',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: 12,
-              fontWeight: 600,
-              padding: '8px 0',
-              width: '100%',
-              justifyContent: 'space-between',
-              borderTop: '1px solid rgba(255,255,255,0.05)',
-              marginTop: 4,
-              paddingTop: 12
-            }}
-          >
-            <span><Info size={14} style={{ marginRight: 6 }} /> Threat Intelligence Sources</span>
-            <span>{showSources ? '▼' : '▶'}</span>
-          </button>
-          {showSources && (
-            <div style={{ maxHeight: 400, overflowY: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: 12, padding: 12, marginTop: 8 }}>
-              {result.sources.map((src, idx) => (
-                <div key={idx} style={{ marginBottom: 12, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 10 }}>
-                  <div style={{ fontWeight: 700, marginBottom: 6, color: '#00e5a0', fontSize: 13 }}>{src.source}</div>
-                  {src.error ? (
-                    <div style={{ color: '#ff6b6b', fontSize: 12 }}>Error: {src.error}</div>
-                  ) : (
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>
-                      {src.score !== undefined && <div>Score: {src.score}</div>}
-                      {src.malicious_votes !== undefined && <div>Malicious votes: {src.malicious_votes}</div>}
-                      {src.total_reports !== undefined && <div>Total reports: {src.total_reports}</div>}
-                      {src.classification && <div>Classification: {src.classification}</div>}
-                      {src.country && <div>Country: {src.country}</div>}
-                      {src.isp && <div>ISP: {src.isp}</div>}
-                      {src.as_owner && <div>AS Owner: {src.as_owner}</div>}
-                      {src.organization && <div>Organization: {src.organization}</div>}
-                      {src.categories && src.categories.length > 0 && (
-                        <div>Categories: {src.categories.join(', ')}</div>
-                      )}
-                      {src.tags && src.tags.length > 0 && (
-                        <div>Tags: {src.tags.join(', ')}</div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Recommendation */}
-      <div style={{ marginTop: 14, background: `${cfg.color}10`, border: `1px solid ${cfg.color}25`, padding: '12px 16px', borderRadius: 12 }}>
-        <div style={{ fontSize: 11, color: cfg.color, fontWeight: 800, textTransform: 'uppercase', letterSpacing: 1 }}>
-          ⚡ Recommendation: {result.recommendation?.toUpperCase()}
-        </div>
-      </div>
-    </div>
-  )
+function tabDescription(tab) {
+  if (tab === 'url') return 'Scan links for phishing and suspicious patterns.'
+  if (tab === 'ip') return 'Check IP reputation and threat intelligence aggregation.'
+  if (tab === 'hash') return 'Inspect file hashes across VirusTotal detections.'
+  return 'Optionally scan file metadata when hashes are not available.'
 }
 
 export default function Scanner() {
-  const [tab, setTab] = useState('url')
-  const [urlInput, setUrlInput] = useState('')
-  const [ipInput, setIpInput] = useState('')
-  const [hashInput, setHashInput] = useState('')
-  const [fileData, setFileData] = useState({ filename: '', file_size: 0, file_hash: '' })
+  const { theme } = useTheme()
+  const palette = useMemo(() => getPalette(theme), [theme])
+
+  const [activeTab, setActiveTab] = useState('url')
+  const [form, setForm] = useState(initialState)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [apiKeys, setApiKeys] = useState(null)
-  const [apiLoading, setApiLoading] = useState(false)
-  const [newKeyName, setNewKeyName] = useState('')
-  const [copied, setCopied] = useState(null)
   const [error, setError] = useState('')
+
+  const updateField = (field, value) => {
+    setForm((current) => ({ ...current, [field]: value }))
+  }
 
   const scan = async () => {
     setLoading(true)
     setError('')
     setResult(null)
+
     try {
-      let res
-      if (tab === 'url') res = await api().post('/api/scanner/url', { url: urlInput })
-      else if (tab === 'ip') res = await api().post('/api/scanner/ip/enhanced', { ip: ipInput })
-      else if (tab === 'hash') res = await api().post('/api/scanner/hash', { hash: hashInput })
-      else if (tab === 'file') res = await api().post('/api/scanner/file', fileData)
-      setResult(res.data)
-    } catch (err) {
-      setError(err.response?.data?.detail || 'Scan failed')
-    } finally { setLoading(false) }
+      let response
+      if (activeTab === 'url') {
+        response = await api().post('/api/scanner/url', { url: form.url })
+      } else if (activeTab === 'ip') {
+        response = await api().post('/api/scanner/ip/enhanced', { ip: form.ip })
+      } else if (activeTab === 'hash') {
+        response = await api().post('/api/scanner/hash', { hash: form.hash })
+      } else {
+        response = await api().post('/api/scanner/file', {
+          filename: form.filename,
+          file_size: Number(form.file_size || 0),
+          file_hash: form.file_hash,
+        })
+      }
+      setResult(response.data)
+    } catch (requestError) {
+      const detail = requestError.response?.data?.detail
+      setError(typeof detail === 'string' ? detail : 'Scan failed. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const loadApiKeys = async () => {
-    setApiLoading(true)
-    try {
-      const res = await api().get('/api/scanner/apikeys')
-      setApiKeys(res.data.keys)
-    } catch { setError('Failed to load API keys') }
-    finally { setApiLoading(false) }
-  }
-
-  const generateKey = async () => {
-    if (!newKeyName.trim()) return
-    try {
-      const res = await api().post('/api/scanner/apikeys/generate', { name: newKeyName })
-      setApiKeys(prev => [...(prev || []), res.data.key])
-      setNewKeyName('')
-    } catch { setError('Failed to generate key') }
-  }
-
-  const copyKey = (key, id) => {
-    navigator.clipboard.writeText(key)
-    setCopied(id)
-    setTimeout(() => setCopied(null), 2000)
-  }
-
-  const tabs = [
-    { id: 'url', label: 'URL Analysis', icon: <Link2 size={16} />, color: '#ff6b35' },
-    { id: 'ip', label: 'IP Reputation', icon: <Globe size={16} />, color: '#3b82f6' },
-    { id: 'hash', label: 'Hash Scan', icon: <Hash size={16} />, color: '#a855f7' },
-    { id: 'file', label: 'File Scanner', icon: <FileText size={16} />, color: '#a78bfa' },
-    { id: 'apikeys', label: 'API Keys', icon: <Key size={16} />, color: '#00e5a0' },
-  ]
+  const currentExamples = examples[activeTab]
 
   return (
     <div style={{ position: 'relative' }}>
@@ -263,276 +117,285 @@ export default function Scanner() {
       <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1 }}>
-        {/* Header */}
-        <div className="fade-in" style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ff6b35', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: 12, color: '#ff6b35', fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase' }}>Security Scanner</span>
+        <section className="fade-in" style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(255,107,53,0.35)' }} />
+            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
+              Advanced Scanner
+            </span>
           </div>
-          <h1 style={{ fontSize: 44, fontWeight: 900, color: '#fff', marginBottom: 8, lineHeight: 1.1 }}>
-            Advanced <span className="gradient-text">Scanner</span>
+          <h1 style={{ fontSize: 46, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
+            Scanner <span className="gradient-text">Console</span>
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 15 }}>URL analysis, IP reputation, hash scan, file scanning and API key management</p>
-        </div>
+          <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>
+            Run URL, IP, HASH, and file scans from one analyst-friendly console using the authenticated API client.
+          </p>
+        </section>
 
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 8, marginBottom: 28, background: 'rgba(255,255,255,0.03)', padding: 6, borderRadius: 16, border: '1px solid rgba(255,255,255,0.06)', width: 'fit-content' }}>
-          {tabs.map(({ id, label, icon, color }) => (
-            <button key={id} onClick={() => { setTab(id); setResult(null); setError(''); if (id === 'apikeys') loadApiKeys() }}
+        <div className="analysis-layout">
+          <section
+            className="fade-in"
+            style={{
+              background: palette.card,
+              border: palette.border,
+              borderRadius: 24,
+              padding: 28,
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
+              <div>
+                <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>
+                  Choose a scan type
+                </h2>
+                <p style={{ color: palette.muted, fontSize: 14 }}>
+                  {tabDescription(activeTab)}
+                </p>
+              </div>
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  color: palette.orange,
+                  fontWeight: 700,
+                  background: 'rgba(255,107,53,0.12)',
+                  border: '1px solid rgba(255,107,53,0.18)',
+                  borderRadius: 999,
+                  padding: '10px 14px',
+                }}
+              >
+                <Sparkles size={16} />
+                Authenticated scanner API
+              </div>
+            </div>
+
+            <div className="channel-grid" style={{ marginBottom: 24 }}>
+              {tabs.map(({ id, label, icon: Icon }) => {
+                const active = activeTab === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setActiveTab(id)
+                      setResult(null)
+                      setError('')
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 10,
+                      padding: '14px 18px',
+                      borderRadius: 18,
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      border: active ? '1px solid rgba(255,107,53,0.24)' : palette.border,
+                      background: active ? 'linear-gradient(135deg, rgba(255,107,53,0.18), rgba(255,59,59,0.10))' : palette.cardStrong,
+                      color: active ? palette.text : palette.muted,
+                      boxShadow: active ? '0 16px 40px rgba(255,107,53,0.18)' : 'none',
+                    }}
+                  >
+                    <Icon size={16} color={active ? palette.orange : palette.subtle} />
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
+            {error && (
+              <div
+                style={{
+                  marginBottom: 20,
+                  padding: '14px 16px',
+                  borderRadius: 18,
+                  background: 'rgba(255,92,92,0.10)',
+                  border: '1px solid rgba(255,92,92,0.18)',
+                  color: '#ff5c5c',
+                  fontWeight: 600,
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {activeTab === 'url' && (
+              <label className="analysis-field">
+                <span>URL to Scan</span>
+                <input
+                  className="analysis-input"
+                  value={form.url}
+                  onChange={(event) => updateField('url', event.target.value)}
+                  placeholder="https://suspicious-domain.example/login"
+                />
+              </label>
+            )}
+
+            {activeTab === 'ip' && (
+              <label className="analysis-field">
+                <span>IP Address</span>
+                <input
+                  className="analysis-input"
+                  value={form.ip}
+                  onChange={(event) => updateField('ip', event.target.value)}
+                  placeholder="185.220.101.42"
+                />
+              </label>
+            )}
+
+            {activeTab === 'hash' && (
+              <label className="analysis-field">
+                <span>Hash Value</span>
+                <input
+                  className="analysis-input"
+                  value={form.hash}
+                  onChange={(event) => updateField('hash', event.target.value)}
+                  placeholder="MD5, SHA1, or SHA256"
+                />
+              </label>
+            )}
+
+            {activeTab === 'file' && (
+              <div className="field-grid">
+                <label className="analysis-field">
+                  <span>Filename</span>
+                  <input
+                    className="analysis-input"
+                    value={form.filename}
+                    onChange={(event) => updateField('filename', event.target.value)}
+                    placeholder="invoice_attachment.exe"
+                  />
+                </label>
+                <label className="analysis-field">
+                  <span>File Size (bytes)</span>
+                  <input
+                    className="analysis-input"
+                    value={form.file_size}
+                    onChange={(event) => updateField('file_size', event.target.value)}
+                    placeholder="20480"
+                  />
+                </label>
+                <label className="analysis-field" style={{ gridColumn: '1 / -1' }}>
+                  <span>Optional Hash</span>
+                  <input
+                    className="analysis-input"
+                    value={form.file_hash}
+                    onChange={(event) => updateField('file_hash', event.target.value)}
+                    placeholder="Optional hash for stronger validation"
+                  />
+                </label>
+              </div>
+            )}
+
+            <div style={{ marginTop: 22 }}>
+              <span className="analysis-meta-label">Example Inputs</span>
+              <div className="example-grid" style={{ marginTop: 14 }}>
+                {currentExamples.map((example) => (
+                  <button
+                    key={example}
+                    type="button"
+                    onClick={() => {
+                      if (activeTab === 'url') updateField('url', example)
+                      if (activeTab === 'ip') updateField('ip', example)
+                      if (activeTab === 'hash') updateField('hash', example)
+                      if (activeTab === 'file') updateField('filename', example)
+                    }}
+                    style={{
+                      borderRadius: 18,
+                      padding: '12px 14px',
+                      border: palette.border,
+                      background: palette.cardStrong,
+                      color: palette.muted,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontFamily: activeTab === 'file' ? 'Inter, sans-serif' : 'JetBrains Mono, monospace',
+                      wordBreak: 'break-word',
+                    }}
+                  >
+                    {example}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={scan}
+              disabled={loading}
               style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '10px 18px', borderRadius: 12,
-                border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 700, transition: 'all 0.2s',
-                background: tab === id ? `linear-gradient(135deg, ${color}25, ${color}10)` : 'transparent',
-                color: tab === id ? color : 'rgba(255,255,255,0.3)',
-                borderBottom: tab === id ? `2px solid ${color}` : '2px solid transparent',
-                boxShadow: tab === id ? `0 4px 20px ${color}15` : 'none'
-              }}>
-              {icon} {label}
+                marginTop: 24,
+                width: '100%',
+                border: 'none',
+                borderRadius: 40,
+                padding: '14px 24px',
+                cursor: loading ? 'wait' : 'pointer',
+                color: '#fff',
+                fontWeight: 900,
+                fontSize: 15,
+                background: 'linear-gradient(135deg, #ff6b35, #ff3b3b)',
+                boxShadow: '0 16px 40px rgba(255,107,53,0.24)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+              }}
+            >
+              {loading ? <span className="analysis-spinner" /> : <Search size={16} />}
+              {loading ? 'Scanning...' : 'Run Scan'}
             </button>
-          ))}
-        </div>
+          </section>
 
-        {tab !== 'apikeys' && (
-          <div style={{ display: 'grid', gridTemplateColumns: result ? '1fr 1fr' : '1fr', gap: 24, maxWidth: result ? '100%' : 720 }}>
-
-            {/* Input Card */}
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 24, padding: '28px', backdropFilter: 'blur(20px)' }} className="fade-in">
-
-              {error && (
-                <div style={{ background: 'rgba(255,59,59,0.08)', border: '1px solid rgba(255,59,59,0.2)', color: '#ff6b6b', padding: '12px 16px', borderRadius: 12, marginBottom: 20, fontSize: 13 }}>
-                  ⚠️ {error}
-                </div>
-              )}
-
-              {tab === 'url' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ color: '#ff6b35', background: 'rgba(255,107,53,0.1)', padding: 8, borderRadius: 10 }}>
-                      <Link2 size={18} />
-                    </div>
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>URL Analysis</h2>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Check if a URL is malicious or phishing</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>URL to Analyze</label>
-                    <input className="input" value={urlInput} onChange={e => setUrlInput(e.target.value)}
-                      placeholder="https://suspicious-site.xyz/login" style={{ fontSize: 14 }} />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {['https://paypa1.com/verify', 'http://amazon-login-secure.xyz', 'https://google.com', 'bit.ly/3xAm9Kz'].map(ex => (
-                      <button key={ex} onClick={() => setUrlInput(ex)} style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)',
-                        background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)',
-                        fontSize: 11, cursor: 'pointer', textAlign: 'left', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                      }}>
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tab === 'ip' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ color: '#3b82f6', background: 'rgba(59,130,246,0.1)', padding: 8, borderRadius: 10 }}>
-                      <Globe size={18} />
-                    </div>
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>IP Reputation</h2>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Check if an IP is malicious or suspicious (with geolocation & threat intel)</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>IP Address</label>
-                    <input className="input" value={ipInput} onChange={e => setIpInput(e.target.value)} placeholder="185.220.101.42" />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {['185.220.101.42', '198.199.100.1', '192.168.1.1', '8.8.8.8'].map(ex => (
-                      <button key={ex} onClick={() => setIpInput(ex)} style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)',
-                        background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)',
-                        fontSize: 12, cursor: 'pointer', fontFamily: 'monospace'
-                      }}>
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tab === 'hash' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ color: '#a855f7', background: 'rgba(168,85,247,0.1)', padding: 8, borderRadius: 10 }}>
-                      <Hash size={18} />
-                    </div>
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>Hash Scan</h2>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Check file hash(MD5, SHA1, SHA256) if is malicious or suspicious</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>File Hash</label>
-                    <input className="input" value={hashInput} onChange={e => setHashInput(e.target.value)}
-                      placeholder="44d88612fea8a8f36de82e1278abb02f" style={{ fontSize: 14 }} />
-                  </div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginTop: -8 }}>
-                    Example: 44d88612fea8a8f36de82e1278abb02f (EICAR test virus)
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {[
-                      '44d88612fea8a8f36de82e1278abb02f',
-                      'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-                      '5d41402abc4b2a76b9719d911017c592'
-                    ].map(ex => (
-                      <button key={ex} onClick={() => setHashInput(ex)} style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)',
-                        background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)',
-                        fontSize: 11, cursor: 'pointer', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                      }}>
-                        {ex.substring(0, 16)}...
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {tab === 'file' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                    <div style={{ color: '#a78bfa', background: 'rgba(167,139,250,0.1)', padding: 8, borderRadius: 10 }}>
-                      <FileText size={18} />
-                    </div>
-                    <div>
-                      <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>File Scanner</h2>
-                      <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Check filename, extension and hash</p>
-                    </div>
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>Filename</label>
-                    <input className="input" value={fileData.filename} onChange={e => setFileData({ ...fileData, filename: e.target.value })} placeholder="invoice_urgent.exe" />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                    <div>
-                      <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>File Size (bytes)</label>
-                      <input className="input" type="number" value={fileData.file_size} onChange={e => setFileData({ ...fileData, file_size: parseInt(e.target.value) || 0 })} placeholder="1024" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginBottom: 8, display: 'block', fontWeight: 700, letterSpacing: 1, textTransform: 'uppercase' }}>MD5 Hash (optional)</label>
-                      <input className="input" value={fileData.file_hash} onChange={e => setFileData({ ...fileData, file_hash: e.target.value })} placeholder="abc123..." />
-                    </div>
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {['invoice_payment.exe', 'document.pdf.bat', 'report.docm', 'photo.jpg'].map(ex => (
-                      <button key={ex} onClick={() => setFileData({ ...fileData, filename: ex })} style={{
-                        padding: '8px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.06)',
-                        background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.35)',
-                        fontSize: 12, cursor: 'pointer', fontFamily: 'monospace'
-                      }}>
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <button className="btn btn-primary" onClick={scan} disabled={loading} style={{
-                width: '100%', marginTop: 20, padding: '15px', fontSize: 15, fontWeight: 800,
-                borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10
-              }}>
-                {loading ? (
-                  <><div style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} /> Scanning...</>
-                ) : (
-                  <><Shield size={18} /> Scan Now</>
-                )}
-              </button>
+          <section
+            className="fade-in"
+            style={{
+              background: palette.card,
+              border: palette.border,
+              borderRadius: 24,
+              padding: 28,
+              backdropFilter: 'blur(20px)',
+              boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
+            }}
+          >
+            <div style={{ marginBottom: 20 }}>
+              <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>
+                Scan Result
+              </h2>
+              <p style={{ color: palette.muted, fontSize: 14 }}>
+                Results adapt automatically for URL, IP, HASH, and file scans.
+              </p>
             </div>
 
-            {/* Result */}
-            {result && <ResultCard result={result} type={tab} />}
-          </div>
-        )}
-
-        {/* API Keys Tab */}
-        {tab === 'apikeys' && (
-          <div style={{ maxWidth: 720 }} className="fade-in">
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 24, padding: '28px', backdropFilter: 'blur(20px)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
-                <div style={{ color: '#00e5a0', background: 'rgba(0,229,160,0.1)', padding: 8, borderRadius: 10 }}>
-                  <Key size={18} />
-                </div>
+            {!result ? (
+              <div
+                style={{
+                  minHeight: 280,
+                  borderRadius: 22,
+                  border: palette.border,
+                  background: palette.cardStrong,
+                  display: 'grid',
+                  placeItems: 'center',
+                  textAlign: 'center',
+                  padding: 24,
+                }}
+              >
                 <div>
-                  <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>API Keys</h2>
-                  <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>Manage your API keys for integration</p>
+                  <Shield size={42} color={palette.orange} style={{ marginBottom: 14 }} />
+                  <h3 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
+                    Pick a scanner and run a request
+                  </h3>
+                  <p style={{ color: palette.muted }}>
+                    Your scan output will appear here with verdicts, scores, indicators, and external links when available.
+                  </p>
                 </div>
               </div>
-
-              {/* Generate new key */}
-              <div style={{ display: 'flex', gap: 10, marginBottom: 24 }}>
-                <input className="input" value={newKeyName} onChange={e => setNewKeyName(e.target.value)}
-                  placeholder="Key name (e.g. Production App)" style={{ flex: 1 }} />
-                <button className="btn btn-primary" onClick={generateKey} style={{ display: 'flex', alignItems: 'center', gap: 8, whiteSpace: 'nowrap', padding: '12px 20px', borderRadius: 12 }}>
-                  <Plus size={16} /> Generate
-                </button>
-              </div>
-
-              {apiLoading ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ width: 32, height: 32, border: '2px solid rgba(0,229,160,0.2)', borderTop: '2px solid #00e5a0', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 12px' }} />
-                  <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: 13 }}>Loading keys...</p>
-                </div>
-              ) : (
-                (apiKeys || []).map((k, i) => (
-                  <div key={k.id} style={{
-                    padding: '18px', marginBottom: 12, borderRadius: 16,
-                    background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)',
-                    animation: `fadeInUp 0.3s ease ${i * 0.08}s both`
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: 15, color: '#fff', marginBottom: 4 }}>{k.name}</div>
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 10px', borderRadius: 20, background: k.type === 'live' ? 'rgba(0,229,160,0.1)' : 'rgba(251,191,36,0.1)', color: k.type === 'live' ? '#00e5a0' : '#fbbf24', border: `1px solid ${k.type === 'live' ? 'rgba(0,229,160,0.2)' : 'rgba(251,191,36,0.2)'}`, textTransform: 'uppercase' }}>
-                            {k.type}
-                          </span>
-                          <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.25)', padding: '3px 10px' }}>Last used: {k.last_used}</span>
-                        </div>
-                      </div>
-                      <button onClick={() => copyKey(k.key, k.id)} style={{
-                        display: 'flex', alignItems: 'center', gap: 6, padding: '8px 14px', borderRadius: 10,
-                        background: copied === k.id ? 'rgba(0,229,160,0.1)' : 'rgba(255,255,255,0.05)',
-                        border: `1px solid ${copied === k.id ? 'rgba(0,229,160,0.2)' : 'rgba(255,255,255,0.08)'}`,
-                        color: copied === k.id ? '#00e5a0' : 'rgba(255,255,255,0.4)',
-                        cursor: 'pointer', fontSize: 12, fontWeight: 600, transition: 'all 0.2s'
-                      }}>
-                        <Copy size={13} /> {copied === k.id ? 'Copied!' : 'Copy'}
-                      </button>
-                    </div>
-                    <div style={{ background: 'rgba(0,0,0,0.3)', padding: '10px 14px', borderRadius: 10, fontFamily: 'monospace', fontSize: 12, color: 'rgba(255,255,255,0.4)', letterSpacing: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', border: '1px solid rgba(255,255,255,0.05)' }}>
-                      {k.key.slice(0, 20)}{'•'.repeat(20)}{k.key.slice(-8)}
-                    </div>
-                  </div>
-                ))
-              )}
-
-              {/* Usage example */}
-              <div style={{ marginTop: 20, background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 14, padding: '16px 20px' }}>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 }}>Usage Example</div>
-                <pre style={{ fontFamily: 'monospace', fontSize: 12, color: '#00e5a0', lineHeight: 1.7, overflow: 'auto' }}>
-{`curl -X POST https://api.trustive.ai/v1/analyze \\
-  -H "Authorization: Bearer YOUR_API_KEY" \\
-  -H "Content-Type: application/json" \\
-  -d '{"content": "email content", "channel": "email"}'`}
-                </pre>
-              </div>
-            </div>
-          </div>
-        )}
+            ) : (
+              <ResultCard result={result} type={activeTab} theme={theme} />
+            )}
+          </section>
+        </div>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }

@@ -7,6 +7,8 @@ import MediaLab from './pages/MediaLab'
 import GeoThreatMap from './pages/GeoThreatMap'
 import CommunityIntel from './pages/CommunityIntel'
 import ThreatIntelHub from './pages/ThreatIntelHub'
+import IntelTimeline from './pages/IntelTimeline'
+import IOCDetails from './pages/IOCDetails'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Landing from './pages/Landing'
@@ -44,7 +46,7 @@ function BootScreen() {
         </div>
         <h1 style={{ margin: 0, fontSize: 34, fontWeight: 900 }}>Trustive AI</h1>
         <p style={{ marginTop: 12, color: 'rgba(191,219,254,0.82)' }}>
-          Preparing your free guest workspace...
+          Preparing the intelligence workspace...
         </p>
       </div>
     </div>
@@ -79,9 +81,11 @@ function App() {
         <Route path="/analysis" element={<Analysis />} />
         <Route path="/scanner" element={<Scanner />} />
         <Route path="/media-lab" element={<MediaLab />} />
+        <Route path="/timeline" element={<IntelTimeline />} />
         <Route path="/propagation" element={<GeoThreatMap />} />
         <Route path="/community" element={<CommunityIntel />} />
         <Route path="/threat-intel" element={<ThreatIntelHub />} />
+        <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
       </Route>
 
       <Route path="/dashboard" element={<Navigate to="/analysis" replace />} />

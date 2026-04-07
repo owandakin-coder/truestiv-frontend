@@ -443,12 +443,12 @@ export default function MediaLab() {
                 </div>
 
                 <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 14 }}>
-                  <div>
-                    <div className="analysis-meta-label">Analyst Actions</div>
-                    <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
-                      Export the evidence, share the result, or promote this sample to community intelligence.
+                    <div>
+                      <div className="analysis-meta-label">Analyst Actions</div>
+                      <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
+                        Promote the strongest media sample to community intelligence when it reveals useful public indicators.
+                      </div>
                     </div>
-                  </div>
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                       {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}

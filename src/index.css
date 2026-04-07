@@ -620,6 +620,85 @@ body {
   line-height: 1.7;
 }
 
+.intel-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.intel-filter-field {
+  display: grid;
+  gap: 8px;
+}
+
+.intel-filter-field span,
+.intel-detail-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(191,219,254,0.5);
+}
+
+.intel-filter-field select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(148,163,184,0.14);
+  background: rgba(15,23,42,0.72);
+  color: #eff6ff;
+  font-size: 14px;
+}
+
+.intel-feed-row-wide {
+  grid-template-columns: minmax(0, 2.2fr) minmax(110px, 0.7fr) minmax(120px, 0.6fr) auto auto;
+}
+
+.intel-inline-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(37,99,235,0.12);
+  color: #dbeafe;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.intel-inline-link-disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.intel-grid-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.intel-detail-card {
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(148,163,184,0.14);
+  background: rgba(255,255,255,0.03);
+  display: grid;
+  gap: 8px;
+}
+
+.intel-detail-value {
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #eff6ff;
+}
+
+.intel-detail-copy {
+  color: rgba(191,219,254,0.72);
+  line-height: 1.7;
+}
+
 [data-theme="light"] .intel-hero-card,
 [data-theme="light"] .intel-section-card,
 [data-theme="light"] .intel-feed-card,
@@ -649,6 +728,23 @@ body {
   color: #475569;
 }
 
+[data-theme="light"] .intel-filter-field select,
+[data-theme="light"] .intel-detail-card {
+  background: rgba(248,250,252,0.96);
+  color: #0f172a;
+  border-color: rgba(15,23,42,0.08);
+}
+
+[data-theme="light"] .intel-detail-value {
+  color: #0f172a;
+}
+
+[data-theme="light"] .intel-detail-copy,
+[data-theme="light"] .intel-filter-field span,
+[data-theme="light"] .intel-detail-label {
+  color: #64748b;
+}
+
 @media (max-width: 1180px) {
   .analysis-layout,
   .analysis-result-grid,
@@ -663,6 +759,11 @@ body {
   .intel-stat-grid,
   .intel-grid,
   .intel-source-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .intel-filter-grid,
+  .intel-grid-two {
     grid-template-columns: 1fr;
   }
 

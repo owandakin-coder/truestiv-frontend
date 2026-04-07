@@ -335,7 +335,7 @@ export default function Analysis() {
           </div>
           <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
           <p style={{ margin: '14px 0 0', maxWidth: 760, color: mutedColor, lineHeight: 1.7 }}>
-            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, share/export actions, and a clean path into community intelligence.
+            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
           </p>
         </div>
 
@@ -482,7 +482,7 @@ export default function Analysis() {
                   <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
                     <div>
                       <div className="analysis-meta-label">Analyst Actions</div>
-                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Export the investigation, share the summary, or promote the strongest indicator to community intelligence.</div>
+                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                       <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>

@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   FileText,
   Globe,
   Hash,
   Link2,
+  Radar,
   Search,
   Shield,
   Sparkles,
@@ -15,9 +17,9 @@ import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
+  buildIocPath,
+  formatRelativeDate,
   getPrimaryIndicator,
-  makeStorageList,
-  readStorageList,
 } from '../utils/intelTools'
 
 const tabs = [
@@ -61,7 +63,7 @@ function getPalette(theme) {
     text: dark ? '#f8fafc' : '#0f172a',
     muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
-    orange: '#38bdf8',
+    blue: '#38bdf8',
     green: '#22c55e',
     yellow: '#fbbf24',
   }
@@ -82,7 +84,7 @@ function currentValueForTab(tab, form) {
 }
 
 function typeColor(level, palette) {
-  if (level === 'threat') return palette.orange
+  if (level === 'threat') return '#fb7185'
   if (level === 'suspicious') return palette.yellow
   return palette.green
 }
@@ -95,37 +97,46 @@ function shouldAutoPublish(result) {
 export default function Scanner() {
   const { theme } = useTheme()
   const palette = useMemo(() => getPalette(theme), [theme])
+  const client = useMemo(() => api(), [])
+  const navigate = useNavigate()
 
   const [activeTab, setActiveTab] = useState('url')
   const [form, setForm] = useState(initialState)
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(true)
   const [error, setError] = useState('')
   const [recentScans, setRecentScans] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
 
+  const loadHistory = async (scanType = 'all') => {
+    setHistoryLoading(true)
+    try {
+      const response = await client.get('/api/intelligence/scan-history', {
+        params: {
+          limit: 8,
+          time_range: '30d',
+          scan_type: scanType,
+        },
+      })
+      setRecentScans(response.data?.items || [])
+    } catch {
+      setRecentScans([])
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
   useEffect(() => {
-    setRecentScans(readStorageList('trustive_scanner_history'))
+    loadHistory()
   }, [])
+
+  useEffect(() => {
+    loadHistory(activeTab)
+  }, [activeTab])
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
-  }
-
-  const saveScanHistory = (payload) => {
-    const history = makeStorageList(
-      'trustive_scanner_history',
-      {
-        id: crypto.randomUUID(),
-        type: activeTab,
-        value: getPrimaryIndicator(activeTab, payload, currentValueForTab(activeTab, form)),
-        threat_level: payload?.threat_level || 'unknown',
-        summary: payload?.summary || '',
-        created_at: new Date().toISOString(),
-      },
-      8
-    )
-    setRecentScans(history)
   }
 
   const scan = async () => {
@@ -137,13 +148,13 @@ export default function Scanner() {
     try {
       let response
       if (activeTab === 'url') {
-        response = await api().post('/api/scanner/url', { url: form.url })
+        response = await client.post('/api/scanner/url', { url: form.url })
       } else if (activeTab === 'ip') {
-        response = await api().post('/api/scanner/ip/enhanced', { ip: form.ip })
+        response = await client.post('/api/scanner/ip/enhanced', { ip: form.ip })
       } else if (activeTab === 'hash') {
-        response = await api().post('/api/scanner/hash', { hash: form.hash })
+        response = await client.post('/api/scanner/hash', { hash: form.hash })
       } else {
-        response = await api().post('/api/scanner/file', {
+        response = await client.post('/api/scanner/file', {
           filename: form.filename,
           file_size: Number(form.file_size || 0),
           file_hash: form.file_hash,
@@ -151,7 +162,7 @@ export default function Scanner() {
       }
 
       setResult(response.data)
-      saveScanHistory(response.data)
+      await loadHistory(activeTab)
       if (shouldAutoPublish(response.data)) {
         await publishThreat(response.data)
       }
@@ -171,7 +182,7 @@ export default function Scanner() {
     setPublishState({ status: 'loading', message: '' })
 
     try {
-      const response = await api().post(
+      const response = await client.post(
         '/api/community/publish-threat',
         buildCommunityPayload({
           indicator,
@@ -198,19 +209,22 @@ export default function Scanner() {
   }
 
   const loadRecentScan = (entry) => {
-    setActiveTab(entry.type)
+    setActiveTab(entry.scan_type)
     setResult(null)
     setError('')
     setPublishState({ status: 'idle', message: '' })
 
-    if (entry.type === 'url') updateField('url', entry.value)
-    if (entry.type === 'ip') updateField('ip', entry.value)
-    if (entry.type === 'hash') updateField('hash', entry.value)
-    if (entry.type === 'file') updateField('filename', entry.value)
+    if (entry.scan_type === 'url') updateField('url', entry.indicator)
+    if (entry.scan_type === 'ip') updateField('ip', entry.indicator)
+    if (entry.scan_type === 'hash') updateField('hash', entry.indicator)
+    if (entry.scan_type === 'file') updateField('filename', entry.indicator)
   }
 
   const currentExamples = examples[activeTab]
-  const resultLevelColor = typeColor(result?.threat_level, palette)
+  const resultLevelColor = typeColor(String(result?.threat_level || '').toLowerCase(), palette)
+  const detailPath = result
+    ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
+    : ''
 
   return (
     <div style={{ position: 'relative' }}>
@@ -220,8 +234,8 @@ export default function Scanner() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         <section className="fade-in" style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>
               Advanced Scanner
             </span>
           </div>
@@ -229,7 +243,7 @@ export default function Scanner() {
             Scanner <span className="gradient-text">Console</span>
           </h1>
           <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>
-            Run URL, IP, HASH, and file scans from one analyst-friendly console using the authenticated API client.
+            Run URL, IP, HASH, and file scans from one analyst-friendly console. Every scan is stored server-side and can feed the shared intelligence timeline.
           </p>
         </section>
 
@@ -259,7 +273,7 @@ export default function Scanner() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  color: palette.orange,
+                  color: palette.blue,
                   fontWeight: 700,
                   background: 'rgba(37,99,235,0.12)',
                   border: '1px solid rgba(56,189,248,0.18)',
@@ -268,7 +282,7 @@ export default function Scanner() {
                 }}
               >
                 <Sparkles size={16} />
-                Authenticated scanner API
+                Persistent scan history
               </div>
             </div>
 
@@ -300,7 +314,7 @@ export default function Scanner() {
                       boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
                     }}
                   >
-                    <Icon size={16} color={active ? palette.orange : palette.subtle} />
+                    <Icon size={16} color={active ? palette.blue : palette.subtle} />
                     {label}
                   </button>
                 )
@@ -457,53 +471,89 @@ export default function Scanner() {
                 background: palette.cardStrong,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <Zap size={16} color={palette.orange} />
-                <span className="analysis-meta-label">Recent Scans</span>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <Zap size={16} color={palette.blue} />
+                  <span className="analysis-meta-label">Server-side Scan History</span>
+                </div>
+                <Link to="/timeline" style={{ color: palette.blue, textDecoration: 'none', fontWeight: 800 }}>
+                  Open timeline
+                </Link>
               </div>
-              {!recentScans.length ? (
+              {historyLoading ? (
                 <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>
-                  Recent scanner activity will be saved locally so you can rerun common investigations in one click.
+                  Loading recent scan history from the backend...
+                </p>
+              ) : !recentScans.length ? (
+                <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>
+                  Recent backend scan history will appear here after you run scanner requests.
                 </p>
               ) : (
                 <div style={{ display: 'grid', gap: 10 }}>
                   {recentScans.map((entry) => (
-                    <button
+                    <div
                       key={entry.id}
-                      type="button"
-                      onClick={() => loadRecentScan(entry)}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 12,
+                        display: 'grid',
+                        gap: 10,
                         padding: '12px 14px',
                         borderRadius: 18,
                         border: palette.border,
                         background: 'transparent',
-                        color: palette.text,
-                        cursor: 'pointer',
-                        textAlign: 'left',
                       }}
                     >
-                      <span style={{ minWidth: 0 }}>
-                        <strong style={{ display: 'block', marginBottom: 4 }}>{entry.type.toUpperCase()}</strong>
-                        <span style={{ color: palette.muted, wordBreak: 'break-word' }}>{entry.value}</span>
-                      </span>
-                      <span
-                        style={{
-                          padding: '8px 10px',
-                          borderRadius: 999,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          color: typeColor(entry.threat_level, palette),
-                          background: `${typeColor(entry.threat_level, palette)}12`,
-                          border: `1px solid ${typeColor(entry.threat_level, palette)}28`,
-                        }}
-                      >
-                        {entry.threat_level}
-                      </span>
-                    </button>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          onClick={() => loadRecentScan(entry)}
+                          style={{
+                            border: 'none',
+                            background: 'transparent',
+                            color: palette.text,
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            padding: 0,
+                            minWidth: 0,
+                          }}
+                        >
+                          <strong style={{ display: 'block', marginBottom: 4 }}>{String(entry.scan_type || '').toUpperCase()}</strong>
+                          <span style={{ color: palette.muted, wordBreak: 'break-word' }}>{entry.indicator}</span>
+                        </button>
+                        <span
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: 999,
+                            fontSize: 12,
+                            fontWeight: 800,
+                            color: typeColor(entry.threat_level, palette),
+                            background: `${typeColor(entry.threat_level, palette)}12`,
+                            border: `1px solid ${typeColor(entry.threat_level, palette)}28`,
+                          }}
+                        >
+                          {entry.threat_level}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                        <span style={{ color: palette.subtle, fontSize: 13 }}>
+                          {formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => navigate(entry.details_path)}
+                          style={{
+                            borderRadius: 999,
+                            border: '1px solid rgba(56,189,248,0.2)',
+                            background: 'rgba(37,99,235,0.08)',
+                            color: palette.blue,
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            fontWeight: 700,
+                          }}
+                        >
+                          IOC details
+                        </button>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -544,12 +594,12 @@ export default function Scanner() {
                 }}
               >
                 <div>
-                  <Shield size={42} color={palette.orange} style={{ marginBottom: 14 }} />
+                  <Shield size={42} color={palette.blue} style={{ marginBottom: 14 }} />
                   <h3 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
                     Pick a scanner and run a request
                   </h3>
                   <p style={{ color: palette.muted }}>
-                    Your scan output will appear here with verdicts, scores, indicators, and external links when available.
+                    Your scan output will appear here with verdicts, scores, indicators, and a direct IOC details view.
                   </p>
                 </div>
               </div>
@@ -567,6 +617,30 @@ export default function Scanner() {
                     gap: 14,
                   }}
                 >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                      <Radar size={16} color={palette.blue} />
+                      <span className="analysis-meta-label">Workflow</span>
+                    </div>
+                    {detailPath ? (
+                      <button
+                        type="button"
+                        onClick={() => navigate(detailPath)}
+                        style={{
+                          borderRadius: 999,
+                          border: '1px solid rgba(56,189,248,0.2)',
+                          background: 'rgba(37,99,235,0.08)',
+                          color: palette.blue,
+                          padding: '10px 14px',
+                          cursor: 'pointer',
+                          fontWeight: 800,
+                        }}
+                      >
+                        Open IOC details
+                      </button>
+                    ) : null}
+                  </div>
+
                   {publishState.message ? (
                     <div
                       style={{
@@ -595,7 +669,7 @@ export default function Scanner() {
                         border: `1px solid ${resultLevelColor}28`,
                       }}
                     >
-                      This suspicious result will be published automatically into the Community and Threat Intel flow.
+                      This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.
                     </div>
                   ) : null}
                 </div>

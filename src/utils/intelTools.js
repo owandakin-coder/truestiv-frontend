@@ -92,3 +92,17 @@ export function getPrimaryIndicator(type, result, fallback = '') {
   if (type === 'media') return result?.filename || fallback
   return fallback
 }
+
+export function buildIocPath(type, indicator) {
+  if (!type || !indicator) return ''
+  return `/ioc/${encodeURIComponent(type)}/${encodeURIComponent(indicator)}`
+}
+
+export function formatRelativeDate(value) {
+  if (!value) return 'Unknown time'
+  try {
+    return new Date(value).toLocaleString()
+  } catch {
+    return String(value)
+  }
+}

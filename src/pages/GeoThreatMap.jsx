@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Globe2, MapPin, Radar } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
+import { Filter, Globe2, MapPin, Radar } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 import { useTheme } from '../components/ThemeProvider'
@@ -17,7 +18,7 @@ function getPalette(theme) {
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
     blue: '#38bdf8',
     yellow: '#fbbf24',
-    red: '#ff5c5c',
+    red: '#fb7185',
     green: '#22c55e',
   }
 }
@@ -28,25 +29,44 @@ function markerColor(level, palette) {
   return palette.green
 }
 
+const timeRanges = ['24h', '7d', '30d', '90d', 'all']
+
 export default function GeoThreatMap() {
   const { theme } = useTheme()
   const palette = useMemo(() => getPalette(theme), [theme])
   const [markers, setMarkers] = useState([])
+  const [facets, setFacets] = useState({ sources: [], countries: [], threat_levels: [] })
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [filters, setFilters] = useState({
+    source: 'all',
+    country: 'all',
+    threat_level: 'all',
+    time_range: '30d',
+  })
 
   useEffect(() => {
     let active = true
-    api().get('/api/intelligence/geo-map')
+    setLoading(true)
+    setError('')
+
+    api()
+      .get('/api/intelligence/geo-map', { params: filters })
       .then(({ data }) => {
-        if (active) setMarkers(data.markers || [])
+        if (!active) return
+        setMarkers(data.markers || [])
+        setFacets(data.facets || { sources: [], countries: [], threat_levels: [] })
       })
       .catch((requestError) => {
         if (active) setError(getErrorMessage(requestError, 'Failed to load geo map'))
       })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
     return () => {
       active = false
     }
-  }, [])
+  }, [filters])
 
   const center = useMemo(() => {
     const withCoords = markers.filter((marker) => Number.isFinite(Number(marker.latitude)) && Number.isFinite(Number(marker.longitude)))
@@ -69,8 +89,61 @@ export default function GeoThreatMap() {
           Geo <span className="gradient-text">Threat Map</span>
         </h1>
         <p style={{ color: palette.muted }}>
-          Real-world threat locations from community indicators and recent scanned IP activity, including named cities and countries when available.
+          Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
         </p>
+      </section>
+
+      <section className="map-panel fade-in-delay-1" style={{ background: palette.card, border: palette.border }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
+          <Filter size={18} color={palette.blue} />
+          <h2 style={{ color: palette.text, fontSize: 20, fontWeight: 900 }}>Map Filters</h2>
+        </div>
+
+        <div className="intel-filter-grid">
+          <label className="intel-filter-field">
+            <span>Source</span>
+            <select value={filters.source} onChange={(event) => setFilters((current) => ({ ...current, source: event.target.value }))}>
+              <option value="all">ALL</option>
+              {(facets.sources || []).map((option) => (
+                <option key={option} value={option}>
+                  {String(option).toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="intel-filter-field">
+            <span>Country</span>
+            <select value={filters.country} onChange={(event) => setFilters((current) => ({ ...current, country: event.target.value }))}>
+              <option value="all">ALL</option>
+              {(facets.countries || []).map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="intel-filter-field">
+            <span>Threat Level</span>
+            <select value={filters.threat_level} onChange={(event) => setFilters((current) => ({ ...current, threat_level: event.target.value }))}>
+              <option value="all">ALL</option>
+              {(facets.threat_levels || []).map((option) => (
+                <option key={option} value={option}>
+                  {String(option).toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="intel-filter-field">
+            <span>Time Range</span>
+            <select value={filters.time_range} onChange={(event) => setFilters((current) => ({ ...current, time_range: event.target.value }))}>
+              {timeRanges.map((option) => (
+                <option key={option} value={option}>
+                  {option.toUpperCase()}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </section>
 
       {error ? (
@@ -89,7 +162,7 @@ export default function GeoThreatMap() {
           <div className="map-canvas">
             <MapContainer center={center} zoom={2} scrollWheelZoom className="map-leaflet">
               <TileLayer
-                attribution='&copy; OpenStreetMap contributors'
+                attribution="&copy; OpenStreetMap contributors"
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
               {markers.map((marker) => {
@@ -102,12 +175,17 @@ export default function GeoThreatMap() {
                     pathOptions={{ color, fillColor: color, fillOpacity: 0.55, weight: 2 }}
                   >
                     <Popup>
-                      <div style={{ minWidth: 180 }}>
+                      <div style={{ minWidth: 200 }}>
                         <strong>{marker.indicator}</strong>
                         <div>{marker.location_name || 'Unknown location'}</div>
                         <div>Risk: {marker.risk_score}</div>
                         <div>Level: {marker.threat_level}</div>
                         <div>Source: {marker.source || 'intel'}</div>
+                        {marker.details_path ? (
+                          <a href={marker.details_path} style={{ display: 'inline-block', marginTop: 8 }}>
+                            Open IOC details
+                          </a>
+                        ) : null}
                       </div>
                     </Popup>
                   </CircleMarker>
@@ -124,21 +202,32 @@ export default function GeoThreatMap() {
           </div>
 
           <div className="map-list">
-            {markers.map((marker) => (
-              <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  <strong style={{ color: palette.text }}>{marker.indicator}</strong>
-                  <span style={{ color: markerColor(marker.threat_level, palette), fontWeight: 800 }}>{marker.threat_level}</span>
-                </div>
-                <p style={{ color: palette.muted, marginTop: 8 }}>{marker.location_name || 'Unknown location'}</p>
-                <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score} | Source: {marker.source || 'intel'}</p>
+            {loading ? (
+              <div className="intel-empty-card" style={{ marginTop: 12 }}>
+                Loading filtered threat markers...
               </div>
-            ))}
-            {!markers.length ? (
+            ) : null}
+            {!loading &&
+              markers.map((marker) => (
+                <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                    <strong style={{ color: palette.text }}>{marker.indicator}</strong>
+                    <span style={{ color: markerColor(marker.threat_level, palette), fontWeight: 800 }}>{marker.threat_level}</span>
+                  </div>
+                  <p style={{ color: palette.muted, marginTop: 8 }}>{marker.location_name || 'Unknown location'}</p>
+                  <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score} | Source: {marker.source || 'intel'}</p>
+                  {marker.details_path ? (
+                    <Link className="intel-inline-link" style={{ marginTop: 10, display: 'inline-flex' }} to={marker.details_path}>
+                      IOC details
+                    </Link>
+                  ) : null}
+                </div>
+              ))}
+            {!loading && !markers.length ? (
               <div className="intel-empty-card" style={{ marginTop: 12 }}>
                 <Radar size={22} color={palette.blue} style={{ marginBottom: 10 }} />
                 <div style={{ color: palette.muted }}>
-                  No markers available yet. Run IP scans or wait for automated intelligence collection to surface geolocated IPs.
+                  No markers available for the current filters. Try widening the time range or running more IP scans.
                 </div>
               </div>
             ) : null}

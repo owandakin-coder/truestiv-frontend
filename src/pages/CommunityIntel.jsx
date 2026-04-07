@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { Globe2, RadioTower, ShieldAlert, Users } from 'lucide-react'
 
 import { apiRequest } from '../services/api'
+import { buildIocPath } from '../utils/intelTools'
 
 function threatLabel(level) {
   const value = String(level || '').toLowerCase()
@@ -95,7 +97,7 @@ export default function CommunityIntel() {
         ) : (
           <div className="intel-feed-list">
             {items.map((item) => (
-              <article key={item.id} className="intel-feed-row">
+              <article key={item.id} className="intel-feed-row intel-feed-row-wide">
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
                   <div className="intel-feed-row-meta">
@@ -106,6 +108,11 @@ export default function CommunityIntel() {
                 <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
                 <div>
                   <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
+                </div>
+                <div>
+                  <Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>
+                    IOC details
+                  </Link>
                 </div>
               </article>
             ))}

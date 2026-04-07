@@ -16,7 +16,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api } from '../services/api'
+import { API_BASE_URL, api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
   downloadJson,
@@ -268,7 +268,7 @@ export default function Analysis() {
       const iocs = extractIocsFromText(form.sender, form.subject, form.content, ...(normalized.indicators || []))
       await fetchIpIntel(iocs.ips)
     } catch (requestError) {
-      setError(requestError?.response?.data?.detail || requestError?.message || 'Unable to complete the analysis right now.')
+      setError(getErrorMessage(requestError, 'Unable to complete the analysis right now.'))
       setResult(null)
       setIpIntel([])
     } finally {
@@ -285,7 +285,7 @@ export default function Analysis() {
     } catch (requestError) {
       setPivot({
         loading: false,
-        error: requestError?.response?.data?.detail || 'Unable to enrich this IOC right now.',
+        error: getErrorMessage(requestError, 'Unable to enrich this IOC right now.'),
         result: null,
         type: config.resultType,
         value,
@@ -323,7 +323,10 @@ export default function Analysis() {
     } catch (requestError) {
       setPublishState({
         status: 'error',
-        message: requestError?.response?.data?.detail || 'Unable to publish this analysis to the community feed.',
+        message: getErrorMessage(
+          requestError,
+          'Unable to publish this analysis to the community feed.'
+        ),
       })
     }
   }

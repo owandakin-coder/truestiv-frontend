@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Globe2, MapPin } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
-import { api } from '../services/api'
+import { api, getErrorMessage } from '../services/api'
 
 function getPalette(theme) {
   const dark = theme !== 'light'
@@ -45,7 +45,7 @@ export default function GeoThreatMap() {
         if (active) setMarkers(data.markers || [])
       })
       .catch((requestError) => {
-        if (active) setError(requestError.response?.data?.detail || requestError.message || 'Failed to load geo map')
+        if (active) setError(getErrorMessage(requestError, 'Failed to load geo map'))
       })
     return () => {
       active = false

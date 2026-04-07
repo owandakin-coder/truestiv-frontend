@@ -1,6 +1,12 @@
 import axios from 'axios'
 
-const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8000').replace(/\/$/, '')
+const DEFAULT_LOCAL_API_URL = 'http://localhost:8000'
+const DEFAULT_PROD_API_URL = 'https://trustiveai.onrender.com'
+
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? DEFAULT_LOCAL_API_URL : DEFAULT_PROD_API_URL)
+).replace(/\/$/, '')
 
 let guestPromise = null
 
@@ -24,6 +30,30 @@ function buildHeaders(extraHeaders = {}) {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...extraHeaders,
   }
+}
+
+export function getErrorMessage(error, fallback = 'Request failed. Please try again.') {
+  const detail = error?.response?.data?.detail
+  if (typeof detail === 'string' && detail.trim()) {
+    return detail
+  }
+
+  if (Array.isArray(detail) && detail.length) {
+    return detail
+      .map((item) => item?.msg || item?.message || JSON.stringify(item))
+      .filter(Boolean)
+      .join(', ')
+  }
+
+  if (error?.message === 'Network Error') {
+    return `Unable to reach the Trustive API at ${API_BASE_URL}. Check the deployed API URL and backend CORS settings.`
+  }
+
+  if (typeof error?.message === 'string' && error.message.trim()) {
+    return error.message
+  }
+
+  return fallback
 }
 
 export async function ensureGuestSession(force = false) {

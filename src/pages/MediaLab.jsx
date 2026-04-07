@@ -13,7 +13,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api } from '../services/api'
+import { API_BASE_URL, api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
   downloadJson,
@@ -168,7 +168,7 @@ export default function MediaLab() {
     } catch (requestError) {
       setPivot({
         loading: false,
-        error: requestError?.response?.data?.detail || 'Unable to enrich this artifact right now.',
+        error: getErrorMessage(requestError, 'Unable to enrich this artifact right now.'),
         result: null,
         type: config.type,
         value: item.value,
@@ -207,7 +207,7 @@ export default function MediaLab() {
     } catch (requestError) {
       setPublishState({
         status: 'error',
-        message: requestError?.response?.data?.detail || 'Unable to publish this media finding.',
+        message: getErrorMessage(requestError, 'Unable to publish this media finding.'),
       })
     }
   }

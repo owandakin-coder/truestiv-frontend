@@ -14,7 +14,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api } from '../services/api'
+import { API_BASE_URL, api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
   downloadJson,
@@ -151,8 +151,7 @@ export default function Scanner() {
       setResult(response.data)
       saveScanHistory(response.data)
     } catch (requestError) {
-      const detail = requestError.response?.data?.detail
-      setError(typeof detail === 'string' ? detail : 'Scan failed. Please try again.')
+      setError(getErrorMessage(requestError, 'Scan failed. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -183,9 +182,10 @@ export default function Scanner() {
     } catch (requestError) {
       setPublishState({
         status: 'error',
-        message:
-          requestError?.response?.data?.detail ||
-          'Unable to publish this result to the community feed.',
+        message: getErrorMessage(
+          requestError,
+          'Unable to publish this result to the community feed.'
+        ),
       })
     }
   }

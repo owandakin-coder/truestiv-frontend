@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Globe2, RadioTower, ShieldAlert, Users } from 'lucide-react'
 
-import ShareThreatActions from '../components/ShareThreatActions'
-import { apiRequest, API_BASE_URL } from '../services/api'
+import { apiRequest } from '../services/api'
 
 function threatLabel(level) {
   const value = String(level || '').toLowerCase()
@@ -32,21 +31,6 @@ export default function CommunityIntel() {
       mounted = false
     }
   }, [])
-
-  const toggleLike = async (id) => {
-    try {
-      const payload = await apiRequest(`/api/community/${id}/like`, { method: 'POST' })
-      setItems((current) =>
-        current.map((item) =>
-          item.id === id
-            ? { ...item, liked: payload.liked }
-            : item
-        )
-      )
-    } catch (err) {
-      setError(err.message)
-    }
-  }
 
   const stats = useMemo(() => {
     const total = items.length
@@ -109,33 +93,19 @@ export default function CommunityIntel() {
         {!loading && !items.length ? (
           <div className="intel-empty-card">No community threats have been published yet.</div>
         ) : (
-          <div className="intel-grid">
+          <div className="intel-feed-list">
             {items.map((item) => (
-              <article key={item.id} className="intel-feed-card">
-                <div className="intel-feed-card-header">
-                  <div style={{ display: 'grid', gap: 8 }}>
-                    <div className="intel-indicator">{item.indicator}</div>
-                    <div className="intel-meta">
-                      {item.threat_type} | risk {item.risk_score} | published {item.published_at ? new Date(item.published_at).toLocaleString() : 'recently'}
-                    </div>
+              <article key={item.id} className="intel-feed-row">
+                <div className="intel-feed-row-main">
+                  <div className="intel-indicator">{item.indicator}</div>
+                  <div className="intel-feed-row-meta">
+                    {item.published_at ? new Date(item.published_at).toLocaleString() : 'Recently published'} | community-promoted indicator in the shared public feed.
                   </div>
+                </div>
+                <div className="intel-meta">{item.threat_type}</div>
+                <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
+                <div>
                   <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
-                </div>
-
-                <div className="intel-summary">
-                  Community-promoted indicator currently visible in the shared Trustive AI public feed.
-                </div>
-
-                <ShareThreatActions
-                  title={`${String(item.threat_type || 'indicator').toUpperCase()} indicator`}
-                  summary={`Indicator ${item.indicator} currently scores ${item.risk_score}.`}
-                  shareUrl={`${API_BASE_URL}/community?threat=${item.id}`}
-                />
-
-                <div className="intel-actions">
-                  <button type="button" className="intel-button ghost" onClick={() => toggleLike(item.id)}>
-                    {item.liked ? 'Unlike' : 'Like'}
-                  </button>
                 </div>
               </article>
             ))}

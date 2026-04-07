@@ -41,7 +41,7 @@ export default function ThreatIntelHub() {
           <p className="platform-eyebrow">Threat Intel</p>
           <h1>Threat Intelligence Hub</h1>
           <p>
-            Review public feeds, force a fresh collection run, and share high-value indicators.
+            Review public feeds, force a fresh collection run, and monitor the most recent published indicators.
           </p>
         </div>
         <button type="button" className="platform-button" onClick={collectNow} disabled={collecting}>
@@ -74,13 +74,17 @@ export default function ThreatIntelHub() {
         </article>
       </div>
 
+      {!feed.length && !error ? (
+        <div className="platform-panel">No threat intelligence items are available yet.</div>
+      ) : null}
+
       <div className="platform-grid">
         {feed.slice(0, 8).map((item) => (
           <article key={item.id} className="platform-panel">
             <div className="platform-panel-header">
               <div>
                 <h3>{item.indicator}</h3>
-                <p>{item.threat_type} • risk {item.risk_score}</p>
+                <p>{item.threat_type} | risk {item.risk_score}</p>
               </div>
               <span className={`platform-badge ${item.threat_level}`}>{item.threat_level}</span>
             </div>

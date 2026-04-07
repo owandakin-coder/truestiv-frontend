@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  CheckCircle2,
   FileText,
   Globe,
   Hash,
@@ -90,6 +89,11 @@ function typeColor(level, palette) {
   return palette.green
 }
 
+function shouldAutoPublish(result) {
+  const level = String(result?.threat_level || '').toLowerCase()
+  return level === 'threat' || level === 'suspicious'
+}
+
 export default function Scanner() {
   const { theme } = useTheme()
   const palette = useMemo(() => getPalette(theme), [theme])
@@ -150,6 +154,9 @@ export default function Scanner() {
 
       setResult(response.data)
       saveScanHistory(response.data)
+      if (shouldAutoPublish(response.data)) {
+        await publishThreat(response.data)
+      }
     } catch (requestError) {
       setError(getErrorMessage(requestError, 'Scan failed. Please try again.'))
     } finally {
@@ -157,10 +164,10 @@ export default function Scanner() {
     }
   }
 
-  const publishThreat = async () => {
-    if (!result) return
+  const publishThreat = async (payload = result) => {
+    if (!payload) return
 
-    const indicator = getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form))
+    const indicator = getPrimaryIndicator(activeTab, payload, currentValueForTab(activeTab, form))
     if (!indicator) return
 
     setPublishState({ status: 'loading', message: '' })
@@ -171,13 +178,13 @@ export default function Scanner() {
         buildCommunityPayload({
           indicator,
           threatType: activeTab === 'file' ? 'file' : activeTab,
-          result,
+          result: payload,
         })
       )
 
       setPublishState({
         status: 'success',
-        message: 'Indicator published to the community feed.',
+        message: 'Suspicious result published automatically to Community and Threat Intel.',
       })
     } catch (requestError) {
       setPublishState({
@@ -428,6 +435,32 @@ export default function Scanner() {
               </div>
             </div>
 
+            <button
+              type="button"
+              onClick={scan}
+              disabled={loading}
+              style={{
+                marginTop: 24,
+                width: '100%',
+                border: 'none',
+                borderRadius: 40,
+                padding: '14px 24px',
+                cursor: loading ? 'wait' : 'pointer',
+                color: '#fff',
+                fontWeight: 900,
+                fontSize: 15,
+                background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+                boxShadow: '0 16px 40px rgba(14,165,233,0.24)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 10,
+              }}
+            >
+              {loading ? <span className="analysis-spinner" /> : <Search size={16} />}
+              {loading ? 'Scanning...' : 'Run Scan'}
+            </button>
+
             <div
               style={{
                 marginTop: 24,
@@ -488,32 +521,6 @@ export default function Scanner() {
                 </div>
               )}
             </div>
-
-            <button
-              type="button"
-              onClick={scan}
-              disabled={loading}
-              style={{
-                marginTop: 24,
-                width: '100%',
-                border: 'none',
-                borderRadius: 40,
-                padding: '14px 24px',
-                cursor: loading ? 'wait' : 'pointer',
-                color: '#fff',
-                fontWeight: 900,
-                fontSize: 15,
-                background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
-                boxShadow: '0 16px 40px rgba(14,165,233,0.24)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-              }}
-            >
-              {loading ? <span className="analysis-spinner" /> : <Search size={16} />}
-              {loading ? 'Scanning...' : 'Run Scan'}
-            </button>
           </section>
 
           <section
@@ -573,49 +580,7 @@ export default function Scanner() {
                     gap: 14,
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <div>
-                      <div className="analysis-meta-label">Analyst Actions</div>
-                      <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
-                        Export the evidence, share the finding, or promote it directly into the community intelligence feed.
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '10px 14px',
-                        borderRadius: 999,
-                        color: resultLevelColor,
-                        border: `1px solid ${resultLevelColor}28`,
-                        background: `${resultLevelColor}12`,
-                        fontWeight: 800,
-                      }}
-                    >
-                      <CheckCircle2 size={16} />
-                      Ready for action
-                    </div>
-                  </div>
-
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={publishThreat}
-                      disabled={publishState.status === 'loading'}
-                      style={{
-                        border: 'none',
-                        borderRadius: 999,
-                        padding: '12px 18px',
-                        background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
-                        color: '#fff',
-                        fontWeight: 800,
-                        cursor: publishState.status === 'loading' ? 'wait' : 'pointer',
-                      }}
-                    >
-                      {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
-                    </button>
-
                     <button
                       type="button"
                       onClick={exportResult}
@@ -645,7 +610,7 @@ export default function Scanner() {
                       style={{
                         padding: '12px 14px',
                         borderRadius: 16,
-                        color: publishState.status === 'success' ? palette.green : palette.orange,
+                        color: publishState.status === 'success' ? palette.green : resultLevelColor,
                         background:
                           publishState.status === 'success'
                             ? 'rgba(34,197,94,0.12)'
@@ -657,6 +622,18 @@ export default function Scanner() {
                       }}
                     >
                       {publishState.message}
+                    </div>
+                  ) : shouldAutoPublish(result) ? (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 16,
+                        color: resultLevelColor,
+                        background: `${resultLevelColor}12`,
+                        border: `1px solid ${resultLevelColor}28`,
+                      }}
+                    >
+                      This suspicious result will be published automatically into the Community and Threat Intel flow.
                     </div>
                   ) : null}
                 </div>

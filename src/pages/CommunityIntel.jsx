@@ -45,14 +45,18 @@ export default function CommunityIntel() {
     <section className="platform-page">
       <div className="platform-hero">
         <div>
-          <p className="platform-eyebrow">Priority 2</p>
+          <p className="platform-eyebrow">Community Intel</p>
           <h1>Community Threat Feed</h1>
-          <p>Share curated threats to X and LinkedIn directly from the community stream.</p>
+          <p>Track suspicious indicators that were promoted by analysts and automated threat collection.</p>
         </div>
       </div>
 
       {error && <div className="platform-alert error">{error}</div>}
       {loading && <div className="platform-panel">Loading community intelligence...</div>}
+
+      {!loading && !items.length ? (
+        <div className="platform-panel">No community threats have been published yet.</div>
+      ) : null}
 
       <div className="platform-grid">
         {items.map((item) => (
@@ -60,7 +64,7 @@ export default function CommunityIntel() {
             <div className="platform-panel-header">
               <div>
                 <h3>{item.indicator}</h3>
-                <p>{item.threat_type} • risk {item.risk_score}</p>
+                <p>{item.threat_type} | risk {item.risk_score}</p>
               </div>
               <span className={`platform-badge ${item.threat_level}`}>{item.threat_level}</span>
             </div>

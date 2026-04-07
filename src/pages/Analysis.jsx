@@ -146,7 +146,6 @@ export default function Analysis() {
   const client = useMemo(() => api(), [])
   const [channel, setChannel] = useState('email')
   const [form, setForm] = useState({ sender: '', subject: '', phone: '', content: '' })
-  const [notes, setNotes] = useState(localStorage.getItem('trustive_analysis_notes') || '')
   const [result, setResult] = useState(null)
   const [ipIntel, setIpIntel] = useState([])
   const [history, setHistory] = useState([])
@@ -154,10 +153,6 @@ export default function Analysis() {
   const [error, setError] = useState('')
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
-
-  useEffect(() => {
-    localStorage.setItem('trustive_analysis_notes', notes)
-  }, [notes])
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -297,7 +292,6 @@ export default function Analysis() {
     downloadJson(`trustive-analysis-${Date.now()}.json`, {
       request: { channel, ...form },
       result,
-      notes,
       extracted_iocs: derivedIocs,
       ip_intelligence: ipIntel,
       exported_at: new Date().toISOString(),
@@ -353,7 +347,7 @@ export default function Analysis() {
           </div>
           <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
           <p style={{ margin: '14px 0 0', maxWidth: 760, color: mutedColor, lineHeight: 1.7 }}>
-            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, analyst notes, share/export actions, and a clean path into community intelligence.
+            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, share/export actions, and a clean path into community intelligence.
           </p>
         </div>
 
@@ -413,11 +407,6 @@ export default function Analysis() {
                 <label className="analysis-field">
                   <span>Content</span>
                   <textarea value={form.content} onChange={(event) => setField('content', event.target.value)} placeholder="Paste the message content here." rows={10} style={{ ...inputStyle, minHeight: 220, resize: 'vertical', fontFamily: 'inherit' }} />
-                </label>
-
-                <label className="analysis-field">
-                  <span>Analyst Notes</span>
-                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Capture investigation notes, escalation details, or follow-up actions." rows={4} style={{ ...inputStyle, minHeight: 120, resize: 'vertical', fontFamily: 'inherit' }} />
                 </label>
 
                 {error ? <div style={{ borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(248,113,113,0.28)', background: 'rgba(248,113,113,0.12)', color: '#fecaca', lineHeight: 1.6 }}>{error}</div> : null}

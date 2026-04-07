@@ -8,33 +8,36 @@ export function useTheme() {
 
 export default function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
-  const [accent, setAccent] = useState(localStorage.getItem('accent') || 'orange')
+  const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue')
 
   const accentMap = {
-    orange: { main: '#ff6b35', secondary: '#ff3b3b' },
-    cyan: { main: '#00d4ff', secondary: '#7c3aed' },
-    green: { main: '#00e5a0', secondary: '#3b82f6' },
-    purple: { main: '#a78bfa', secondary: '#ec4899' },
+    blue: { main: '#2563eb', secondary: '#0ea5e9' },
+    cyan: { main: '#06b6d4', secondary: '#38bdf8' },
+    navy: { main: '#1d4ed8', secondary: '#1e3a8a' },
+    emerald: { main: '#059669', secondary: '#0ea5e9' },
   }
-
-useEffect(() => {
-  document.documentElement.setAttribute('data-theme', theme)
-  if (theme === 'light') {
-    document.body.style.background = '#f8fafc'
-    document.body.style.color = '#0f172a'
-  } else {
-    document.body.style.background = '#050507'
-    document.body.style.color = '#f1f5f9'
-  }
-}, [theme])
 
   useEffect(() => {
-    const c = accentMap[accent] || accentMap.orange
-    document.documentElement.style.setProperty('--accent-cyan', c.main)
-    document.documentElement.style.setProperty('--accent-purple', c.secondary)
-    document.documentElement.style.setProperty('--border-accent', c.main + '40')
-    document.documentElement.style.setProperty('--glow-cyan', `0 0 40px ${c.main}25`)
-    document.documentElement.style.setProperty('--orange', c.main)
+    document.documentElement.setAttribute('data-theme', theme)
+    if (theme === 'light') {
+      document.body.style.background = '#f8fafc'
+      document.body.style.color = '#0f172a'
+    } else {
+      document.body.style.background = '#030712'
+      document.body.style.color = '#eff6ff'
+    }
+  }, [theme])
+
+  useEffect(() => {
+    const colors = accentMap[accent] || accentMap.blue
+    document.documentElement.style.setProperty('--accent-primary', colors.main)
+    document.documentElement.style.setProperty('--accent-secondary', colors.secondary)
+    document.documentElement.style.setProperty('--accent-primary-dim', `${colors.main}1f`)
+    document.documentElement.style.setProperty('--border-accent', `${colors.main}40`)
+    document.documentElement.style.setProperty('--glow-accent', `0 0 40px ${colors.main}25`)
+    document.documentElement.style.setProperty('--orange', colors.main)
+    document.documentElement.style.setProperty('--accent-cyan', colors.main)
+    document.documentElement.style.setProperty('--accent-purple', colors.secondary)
   }, [accent])
 
   const toggleTheme = () => {
@@ -43,9 +46,9 @@ useEffect(() => {
     localStorage.setItem('theme', next)
   }
 
-  const changeAccent = (a) => {
-    setAccent(a)
-    localStorage.setItem('accent', a)
+  const changeAccent = (value) => {
+    setAccent(value)
+    localStorage.setItem('accent', value)
   }
 
   return (

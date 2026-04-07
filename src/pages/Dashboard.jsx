@@ -62,7 +62,7 @@ export default function Dashboard() {
   const circumference = 2 * Math.PI * 54
 
   const statCards = [
-    { label: 'Total Analyzed', value: stats?.total_analyzed ?? 0, icon: <BarChart2 size={22} />, color: '#ff6b35', change: '+12%', delay: 'fade-in-delay-1' },
+    { label: 'Total Analyzed', value: stats?.total_analyzed ?? 0, icon: <BarChart2 size={22} />, color: '#38bdf8', change: '+12%', delay: 'fade-in-delay-1' },
     { label: 'Threats Detected', value: stats?.threats_detected ?? 0, icon: <AlertTriangle size={22} />, color: '#ff3b3b', change: '+5%', delay: 'fade-in-delay-2' },
     { label: 'Hijack Attempts', value: stats?.hijack_attempts ?? 0, icon: <Shield size={22} />, color: '#fbbf24', change: '-3%', delay: 'fade-in-delay-3' },
     { label: 'Safe Messages', value: stats?.safe ?? 0, icon: <CheckCircle size={22} />, color: '#00e5a0', change: '+18%', delay: 'fade-in-delay-3' },
@@ -78,8 +78,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="fade-in" style={{ marginBottom: 36 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#00e5a0', animation: 'pulse 2s infinite' }} />
-            <span style={{ fontSize: 12, color: '#00e5a0', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase' }}>Live Monitoring</span>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8', animation: 'pulse 2s infinite' }} />
+            <span style={{ fontSize: 12, color: '#38bdf8', fontWeight: 600, letterSpacing: 2, textTransform: 'uppercase' }}>Live Monitoring</span>
           </div>
           <h1 style={{ fontSize: 48, fontWeight: 900, lineHeight: 1.05, marginBottom: 10 }}>
             Threat<br />
@@ -119,7 +119,7 @@ export default function Dashboard() {
                 <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.3)' }}>Threats vs safe messages</p>
               </div>
               <div style={{ display: 'flex', gap: 16 }}>
-                {[{ label: 'Threats', color: '#ff6b35' }, { label: 'Safe', color: '#00e5a0' }].map(({ label, color }) => (
+                {[{ label: 'Threats', color: '#38bdf8' }, { label: 'Safe', color: '#10b981' }].map(({ label, color }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: '50%', background: color }} />
                     <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', fontWeight: 500 }}>{label}</span>
@@ -131,19 +131,19 @@ export default function Dashboard() {
               <AreaChart data={areaData}>
                 <defs>
                   <linearGradient id="threatGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ff6b35" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ff6b35" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="safeGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00e5a0" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#00e5a0" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 12 }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: 'rgba(255,255,255,0.25)', fontSize: 12 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="threats" stroke="#ff6b35" strokeWidth={2.5} fill="url(#threatGrad)" />
-                <Area type="monotone" dataKey="safe" stroke="#00e5a0" strokeWidth={2.5} fill="url(#safeGrad)" />
+                <Area type="monotone" dataKey="threats" stroke="#38bdf8" strokeWidth={2.5} fill="url(#threatGrad)" />
+                <Area type="monotone" dataKey="safe" stroke="#10b981" strokeWidth={2.5} fill="url(#safeGrad)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -194,7 +194,7 @@ export default function Dashboard() {
           <div className="card fade-in-delay-2">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>Recent Threats</h2>
-              <button onClick={() => navigate('/analysis')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#ff6b35', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
+              <button onClick={() => navigate('/analysis')} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 12, color: '#38bdf8', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 700 }}>
                 Analyze <ArrowRight size={13} />
               </button>
             </div>

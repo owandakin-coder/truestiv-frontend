@@ -19,7 +19,7 @@ function getPalette(theme) {
     text: dark ? '#f8fafc' : '#0f172a',
     muted: dark ? 'rgba(255,255,255,0.62)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.35)' : '#64748b',
-    orange: '#ff6b35',
+    orange: '#38bdf8',
     green: '#00e5a0',
     yellow: '#fbbf24',
     red: '#ff5c5c',

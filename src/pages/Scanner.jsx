@@ -64,7 +64,7 @@ function getPalette(theme) {
     text: dark ? '#f8fafc' : '#0f172a',
     muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
-    orange: '#ff6b35',
+    orange: '#38bdf8',
     green: '#22c55e',
     yellow: '#fbbf24',
   }
@@ -226,7 +226,7 @@ export default function Scanner() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         <section className="fade-in" style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(255,107,53,0.35)' }} />
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
             <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
               Advanced Scanner
             </span>
@@ -267,8 +267,8 @@ export default function Scanner() {
                   gap: 8,
                   color: palette.orange,
                   fontWeight: 700,
-                  background: 'rgba(255,107,53,0.12)',
-                  border: '1px solid rgba(255,107,53,0.18)',
+                  background: 'rgba(37,99,235,0.12)',
+                  border: '1px solid rgba(56,189,248,0.18)',
                   borderRadius: 999,
                   padding: '10px 14px',
                 }}
@@ -300,10 +300,10 @@ export default function Scanner() {
                       borderRadius: 18,
                       fontWeight: 800,
                       cursor: 'pointer',
-                      border: active ? '1px solid rgba(255,107,53,0.24)' : palette.border,
-                      background: active ? 'linear-gradient(135deg, rgba(255,107,53,0.18), rgba(255,59,59,0.10))' : palette.cardStrong,
+                      border: active ? '1px solid rgba(56,189,248,0.24)' : palette.border,
+                      background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : palette.cardStrong,
                       color: active ? palette.text : palette.muted,
-                      boxShadow: active ? '0 16px 40px rgba(255,107,53,0.18)' : 'none',
+                      boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
                     }}
                   >
                     <Icon size={16} color={active ? palette.orange : palette.subtle} />
@@ -503,8 +503,8 @@ export default function Scanner() {
                 color: '#fff',
                 fontWeight: 900,
                 fontSize: 15,
-                background: 'linear-gradient(135deg, #ff6b35, #ff3b3b)',
-                boxShadow: '0 16px 40px rgba(255,107,53,0.24)',
+                background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+                boxShadow: '0 16px 40px rgba(14,165,233,0.24)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -607,7 +607,7 @@ export default function Scanner() {
                         border: 'none',
                         borderRadius: 999,
                         padding: '12px 18px',
-                        background: 'linear-gradient(135deg, #ff6b35, #ff914d)',
+                        background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
                         color: '#fff',
                         fontWeight: 800,
                         cursor: publishState.status === 'loading' ? 'wait' : 'pointer',
@@ -649,11 +649,11 @@ export default function Scanner() {
                         background:
                           publishState.status === 'success'
                             ? 'rgba(34,197,94,0.12)'
-                            : 'rgba(255,107,53,0.12)',
+                            : 'rgba(37,99,235,0.12)',
                         border:
                           publishState.status === 'success'
                             ? '1px solid rgba(34,197,94,0.22)'
-                            : '1px solid rgba(255,107,53,0.22)',
+                            : '1px solid rgba(56,189,248,0.22)',
                       }}
                     >
                       {publishState.message}

@@ -344,8 +344,8 @@ export default function Analysis() {
       <div className="grid-dots" />
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
         <div style={{ marginBottom: 6 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.2)', color: '#ffb089', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff6b35', boxShadow: '0 0 18px rgba(255,107,53,0.9)' }} />
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.2)', color: '#bae6fd', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: '#38bdf8', boxShadow: '0 0 18px rgba(56,189,248,0.9)' }} />
             Analysis Studio
           </div>
           <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
@@ -359,10 +359,10 @@ export default function Analysis() {
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Intake</div>
+                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Intake</div>
                   <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Run Analysis</h2>
                 </div>
-                <button type="button" onClick={loadExample} style={{ borderRadius: 999, border: '1px solid rgba(255,107,53,0.24)', background: 'rgba(255,107,53,0.1)', color: '#ffb089', padding: '10px 16px', fontWeight: 700, cursor: 'pointer' }}>
+                <button type="button" onClick={loadExample} style={{ borderRadius: 999, border: '1px solid rgba(56,189,248,0.24)', background: 'rgba(37,99,235,0.1)', color: '#bae6fd', padding: '10px 16px', fontWeight: 700, cursor: 'pointer' }}>
                   Load Example
                 </button>
               </div>
@@ -383,8 +383,8 @@ export default function Analysis() {
                         gap: 10,
                         padding: '14px 16px',
                         borderRadius: 18,
-                        border: active ? '1px solid rgba(255,107,53,0.45)' : `1px solid ${borderColor}`,
-                        background: active ? 'linear-gradient(135deg, #ff6b35, #ff914d)' : inputColor,
+                        border: active ? '1px solid rgba(56,189,248,0.45)' : `1px solid ${borderColor}`,
+                        background: active ? 'linear-gradient(135deg, #2563eb, #0ea5e9)' : inputColor,
                         color: active ? '#fff' : textColor,
                         cursor: 'pointer',
                         fontWeight: 800,
@@ -419,7 +419,7 @@ export default function Analysis() {
 
                 {error ? <div style={{ borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(248,113,113,0.28)', background: 'rgba(248,113,113,0.12)', color: '#fecaca', lineHeight: 1.6 }}>{error}</div> : null}
 
-                <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, border: 'none', borderRadius: 999, padding: '14px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff914d)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'wait' : 'pointer', boxShadow: '0 20px 48px rgba(255,107,53,0.32)' }}>
+                <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, border: 'none', borderRadius: 999, padding: '14px 24px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'wait' : 'pointer', boxShadow: '0 20px 48px rgba(14,165,233,0.28)' }}>
                   {loading ? <Loader2 size={18} className="analysis-spinner" /> : <Sparkles size={18} />}
                   {loading ? 'Analyzing...' : 'Run Analysis'}
                 </button>
@@ -428,7 +428,7 @@ export default function Analysis() {
 
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <Zap size={16} color="#ff9a62" />
+                <Zap size={16} color="#7dd3fc" />
                 <span className="analysis-meta-label">Recent Analyses</span>
               </div>
               {!history.length ? (
@@ -449,7 +449,7 @@ export default function Analysis() {
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Verdict</div>
+                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Verdict</div>
                   <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>AI-backed outcome</h2>
                 </div>
                 {result ? (
@@ -463,7 +463,7 @@ export default function Analysis() {
               {!result ? (
                 <div style={{ minHeight: 320, borderRadius: 22, border: `1px dashed ${borderColor}`, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24, color: mutedColor, lineHeight: 1.7 }}>
                   <div style={{ display: 'grid', gap: 16, justifyItems: 'center', maxWidth: 420 }}>
-                    <div style={{ width: 72, height: 72, borderRadius: 999, display: 'grid', placeItems: 'center', background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.18)', color: '#ff9a62' }}>
+                    <div style={{ width: 72, height: 72, borderRadius: 999, display: 'grid', placeItems: 'center', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#7dd3fc' }}>
                       <Radar size={28} />
                     </div>
                     <div style={{ fontSize: 18, fontWeight: 700, color: textColor }}>Run an analysis to generate an AI-backed verdict.</div>
@@ -492,7 +492,7 @@ export default function Analysis() {
                     <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Recommendation</strong>
                     {result.recommendation}
                     {result.related_threats_count > 0 ? (
-                      <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.18)', color: '#ffb089', fontWeight: 700 }}>
+                      <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#bae6fd', fontWeight: 700 }}>
                         <ExternalLink size={15} />
                         Related threats detected: {result.related_threats_count}
                       </div>
@@ -505,7 +505,7 @@ export default function Analysis() {
                       <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Export the investigation, share the summary, or promote the strongest indicator to community intelligence.</div>
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                      <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #ff6b35, #ff914d)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+                      <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                         {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
                       </button>
                       <button type="button" onClick={exportAnalysis} style={{ borderRadius: 999, padding: '12px 18px', border: `1px solid ${borderColor}`, background: 'transparent', color: textColor, fontWeight: 800, cursor: 'pointer' }}>
@@ -514,7 +514,7 @@ export default function Analysis() {
                     </div>
                     <ShareThreatActions title={`Trustive ${titleCase(channel)} analysis`} summary={result.summary} shareUrl={`${API_BASE_URL}/analysis?analysis=${result.id || 'latest'}`} hashtags={['TrustiveAI', 'ThreatIntel', titleCase(channel)]} />
                     {publishState.message ? (
-                      <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#ffb089', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(255,107,53,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(255,107,53,0.2)' }}>
+                      <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
                         {publishState.message}
                       </div>
                     ) : null}
@@ -525,7 +525,7 @@ export default function Analysis() {
 
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
+                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
               </div>
               {!allIocs.length ? (
@@ -538,14 +538,14 @@ export default function Analysis() {
                     {allIocs.map((item) => {
                       const enrichable = ['url', 'ip', 'hash', 'domain'].includes(item.type)
                       return (
-                        <button key={`${item.type}-${item.value}`} type="button" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ padding: '10px 14px', borderRadius: 999, border: `1px solid ${borderColor}`, background: enrichable ? 'rgba(255,107,53,0.08)' : 'rgba(255,255,255,0.03)', color: textColor, fontWeight: 700, cursor: enrichable ? 'pointer' : 'default' }}>
+                        <button key={`${item.type}-${item.value}`} type="button" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ padding: '10px 14px', borderRadius: 999, border: `1px solid ${borderColor}`, background: enrichable ? 'rgba(37,99,235,0.08)' : 'rgba(255,255,255,0.03)', color: textColor, fontWeight: 700, cursor: enrichable ? 'pointer' : 'default' }}>
                           {item.type.toUpperCase()}: {item.value}
                         </button>
                       )
                     })}
                   </div>
                   {pivot.loading ? <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, display: 'flex', alignItems: 'center', gap: 12 }}><Loader2 size={18} className="analysis-spinner" />Enriching {pivot.value}...</div> : null}
-                  {pivot.error ? <div style={{ borderRadius: 20, border: '1px solid rgba(255,107,53,0.2)', background: 'rgba(255,107,53,0.12)', padding: 16, color: '#ffb089' }}>{pivot.error}</div> : null}
+                  {pivot.error ? <div style={{ borderRadius: 20, border: '1px solid rgba(56,189,248,0.2)', background: 'rgba(37,99,235,0.12)', padding: 16, color: '#bae6fd' }}>{pivot.error}</div> : null}
                   {pivot.result ? <ResultCard result={pivot.result} type={pivot.type} theme={theme} /> : null}
                 </div>
               )}
@@ -553,7 +553,7 @@ export default function Analysis() {
 
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
+                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure pivot</h2>
               </div>
               {!ipIntel.length ? (
@@ -566,7 +566,7 @@ export default function Analysis() {
                     <div key={entry.ip} style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18, display: 'grid', gap: 10 }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <div style={{ fontWeight: 900, fontSize: 18 }}>{entry.ip}</div>
-                        <div style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(255,107,53,0.2)', background: 'rgba(255,107,53,0.1)', color: '#ffb089', fontWeight: 700 }}>
+                        <div style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(56,189,248,0.2)', background: 'rgba(37,99,235,0.1)', color: '#bae6fd', fontWeight: 700 }}>
                           {normalizeThreatLevel(entry.data?.threat_level || 'unknown')}
                         </div>
                       </div>

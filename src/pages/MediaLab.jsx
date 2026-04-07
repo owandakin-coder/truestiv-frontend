@@ -41,7 +41,7 @@ function paletteFor(theme) {
     text: dark ? '#f8fafc' : '#0f172a',
     muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
-    orange: '#ff6b35',
+    orange: '#38bdf8',
     green: '#22c55e',
   }
 }
@@ -220,7 +220,7 @@ export default function MediaLab() {
       <div style={{ position: 'relative', zIndex: 1 }}>
         <section className="fade-in" style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(255,107,53,0.35)' }} />
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
             <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
               Media Threat Intelligence
             </span>
@@ -254,7 +254,7 @@ export default function MediaLab() {
                   Choose a media type, drop a file, and inspect the forensic output.
                 </p>
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 700, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.18)', borderRadius: 999, padding: '10px 14px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 700, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', borderRadius: 999, padding: '10px 14px' }}>
                 <Sparkles size={16} />
                 Deepfake and OCR
               </div>
@@ -277,10 +277,10 @@ export default function MediaLab() {
                       borderRadius: 18,
                       fontWeight: 800,
                       cursor: 'pointer',
-                      border: active ? '1px solid rgba(255,107,53,0.24)' : palette.border,
-                      background: active ? 'linear-gradient(135deg, rgba(255,107,53,0.18), rgba(255,59,59,0.10))' : palette.cardStrong,
+                      border: active ? '1px solid rgba(56,189,248,0.24)' : palette.border,
+                      background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : palette.cardStrong,
                       color: active ? palette.text : palette.muted,
-                      boxShadow: active ? '0 16px 40px rgba(255,107,53,0.18)' : 'none',
+                      boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
                     }}
                   >
                     <Icon size={16} color={active ? palette.orange : palette.subtle} />
@@ -309,8 +309,8 @@ export default function MediaLab() {
                 width: '100%',
                 textAlign: 'center',
                 cursor: 'pointer',
-                background: dragOver ? 'rgba(255,107,53,0.12)' : palette.cardStrong,
-                border: dragOver ? '1px solid rgba(255,107,53,0.28)' : palette.border,
+                background: dragOver ? 'rgba(37,99,235,0.12)' : palette.cardStrong,
+                border: dragOver ? '1px solid rgba(56,189,248,0.28)' : palette.border,
               }}
             >
               <UploadCloud size={32} color={palette.orange} />
@@ -320,7 +320,7 @@ export default function MediaLab() {
               <p style={{ color: palette.muted, marginTop: 8 }}>
                 Or click to browse your local files for analysis.
               </p>
-              <div style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 40, padding: '12px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff3b3b)', color: '#fff', fontWeight: 800, boxShadow: '0 16px 40px rgba(255,107,53,0.24)' }}>
+              <div style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 40, padding: '12px 24px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, boxShadow: '0 16px 40px rgba(14,165,233,0.24)' }}>
                 <ScanSearch size={16} />
                 Select File
               </div>
@@ -358,7 +358,7 @@ export default function MediaLab() {
                     <div key={entry.id} style={{ padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent', color: palette.text }}>
                       <strong style={{ display: 'block', marginBottom: 4 }}>{entry.filename}</strong>
                       <div style={{ color: palette.muted, marginBottom: 8 }}>{entry.summary}</div>
-                      <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(255,107,53,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12 }}>
+                      <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(37,99,235,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12 }}>
                         {normalizeThreatLevel(entry.threat_level)}
                       </span>
                     </div>
@@ -422,7 +422,7 @@ export default function MediaLab() {
                 <div className="analysis-result-grid">
                   <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
                     <span className="analysis-meta-label">Threat Level</span>
-                    <div style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 999, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.24)', color: palette.orange, fontWeight: 800 }}>
+                    <div style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.24)', color: palette.orange, fontWeight: 800 }}>
                       <Sparkles size={16} />
                       {normalizeThreatLevel(result.threat_level)}
                     </div>
@@ -436,7 +436,7 @@ export default function MediaLab() {
                     <span className="analysis-meta-label">Deepfake Score</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                       <div style={{ flex: 1, height: 10, borderRadius: 999, background: palette.dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)' }}>
-                        <div style={{ width: `${Math.max(0, Math.min(100, result.deepfake_score || 0))}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #ff6b35, #ff3b3b)' }} />
+                        <div style={{ width: `${Math.max(0, Math.min(100, result.deepfake_score || 0))}%`, height: '100%', borderRadius: 999, background: 'linear-gradient(90deg, #2563eb, #0ea5e9)' }} />
                       </div>
                       <strong style={{ color: palette.orange, fontSize: 20 }}>{result.deepfake_score || 0}%</strong>
                     </div>
@@ -464,7 +464,7 @@ export default function MediaLab() {
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #ff6b35, #ff914d)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+                    <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                       {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
                     </button>
                     <button type="button" onClick={exportResult} style={{ borderRadius: 999, padding: '12px 18px', border: palette.border, background: 'transparent', color: palette.text, fontWeight: 800, cursor: 'pointer' }}>
@@ -478,7 +478,7 @@ export default function MediaLab() {
                     hashtags={['TrustiveAI', 'Deepfake', activeTab]}
                   />
                   {publishState.message ? (
-                    <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.orange, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(255,107,53,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(255,107,53,0.22)' }}>
+                    <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.orange, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>
                       {publishState.message}
                     </div>
                   ) : null}
@@ -494,7 +494,7 @@ export default function MediaLab() {
                     <>
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                         {iocs.map((item) => (
-                          <button key={`${item.type}-${item.value}`} type="button" onClick={() => runPivot(item)} style={{ padding: '10px 14px', borderRadius: 999, border: palette.border, background: 'rgba(255,107,53,0.08)', color: palette.text, fontWeight: 700, cursor: 'pointer' }}>
+                          <button key={`${item.type}-${item.value}`} type="button" onClick={() => runPivot(item)} style={{ padding: '10px 14px', borderRadius: 999, border: palette.border, background: 'rgba(37,99,235,0.08)', color: palette.text, fontWeight: 700, cursor: 'pointer' }}>
                             {item.type.toUpperCase()}: {item.value}
                           </button>
                         ))}

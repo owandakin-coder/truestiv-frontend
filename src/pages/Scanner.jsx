@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
+  CheckCircle2,
   FileText,
   Globe,
   Hash,
@@ -11,8 +12,16 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
+import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { api } from '../services/api'
+import { API_BASE_URL, api } from '../services/api'
+import {
+  buildCommunityPayload,
+  downloadJson,
+  getPrimaryIndicator,
+  makeStorageList,
+  readStorageList,
+} from '../utils/intelTools'
 
 const tabs = [
   { id: 'url', label: 'URL', icon: Link2 },
@@ -36,6 +45,15 @@ const examples = {
   file: ['invoice_payment.exe', 'report.docm', 'archive.zip'],
 }
 
+const initialState = {
+  url: '',
+  ip: '',
+  hash: '',
+  filename: '',
+  file_size: '',
+  file_hash: '',
+}
+
 function getPalette(theme) {
   const dark = theme !== 'light'
   return {
@@ -47,23 +65,29 @@ function getPalette(theme) {
     muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
     orange: '#ff6b35',
+    green: '#22c55e',
+    yellow: '#fbbf24',
   }
 }
 
-const initialState = {
-  url: '',
-  ip: '',
-  hash: '',
-  filename: '',
-  file_size: '',
-  file_hash: '',
+function tabDescription(tab) {
+  if (tab === 'url') return 'Scan links for phishing indicators, reputation clues, and obvious deception patterns.'
+  if (tab === 'ip') return 'Check IP reputation and aggregate intelligence from the authenticated backend.'
+  if (tab === 'hash') return 'Inspect file hashes against VirusTotal detections and pivot to the original report.'
+  return 'Use lightweight file metadata analysis when a direct file upload is not available.'
 }
 
-function tabDescription(tab) {
-  if (tab === 'url') return 'Scan links for phishing and suspicious patterns.'
-  if (tab === 'ip') return 'Check IP reputation and threat intelligence aggregation.'
-  if (tab === 'hash') return 'Inspect file hashes across VirusTotal detections.'
-  return 'Optionally scan file metadata when hashes are not available.'
+function currentValueForTab(tab, form) {
+  if (tab === 'url') return form.url
+  if (tab === 'ip') return form.ip
+  if (tab === 'hash') return form.hash
+  return form.filename
+}
+
+function typeColor(level, palette) {
+  if (level === 'threat') return palette.orange
+  if (level === 'suspicious') return palette.yellow
+  return palette.green
 }
 
 export default function Scanner() {
@@ -75,15 +99,38 @@ export default function Scanner() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [recentScans, setRecentScans] = useState([])
+  const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
+
+  useEffect(() => {
+    setRecentScans(readStorageList('trustive_scanner_history'))
+  }, [])
 
   const updateField = (field, value) => {
     setForm((current) => ({ ...current, [field]: value }))
+  }
+
+  const saveScanHistory = (payload) => {
+    const history = makeStorageList(
+      'trustive_scanner_history',
+      {
+        id: crypto.randomUUID(),
+        type: activeTab,
+        value: getPrimaryIndicator(activeTab, payload, currentValueForTab(activeTab, form)),
+        threat_level: payload?.threat_level || 'unknown',
+        summary: payload?.summary || '',
+        created_at: new Date().toISOString(),
+      },
+      8
+    )
+    setRecentScans(history)
   }
 
   const scan = async () => {
     setLoading(true)
     setError('')
     setResult(null)
+    setPublishState({ status: 'idle', message: '' })
 
     try {
       let response
@@ -100,7 +147,9 @@ export default function Scanner() {
           file_hash: form.file_hash,
         })
       }
+
       setResult(response.data)
+      saveScanHistory(response.data)
     } catch (requestError) {
       const detail = requestError.response?.data?.detail
       setError(typeof detail === 'string' ? detail : 'Scan failed. Please try again.')
@@ -109,7 +158,65 @@ export default function Scanner() {
     }
   }
 
+  const publishThreat = async () => {
+    if (!result) return
+
+    const indicator = getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form))
+    if (!indicator) return
+
+    setPublishState({ status: 'loading', message: '' })
+
+    try {
+      await api().post(
+        '/api/community/publish-threat',
+        buildCommunityPayload({
+          indicator,
+          threatType: activeTab === 'file' ? 'file' : activeTab,
+          result,
+        })
+      )
+
+      setPublishState({
+        status: 'success',
+        message: 'Indicator published to the community feed.',
+      })
+    } catch (requestError) {
+      setPublishState({
+        status: 'error',
+        message:
+          requestError?.response?.data?.detail ||
+          'Unable to publish this result to the community feed.',
+      })
+    }
+  }
+
+  const exportResult = () => {
+    if (!result) return
+
+    downloadJson(`trustive-scan-${activeTab}-${Date.now()}.json`, {
+      scan_type: activeTab,
+      submitted_at: new Date().toISOString(),
+      request: form,
+      result,
+    })
+  }
+
+  const loadRecentScan = (entry) => {
+    setActiveTab(entry.type)
+    setResult(null)
+    setError('')
+    setPublishState({ status: 'idle', message: '' })
+
+    if (entry.type === 'url') updateField('url', entry.value)
+    if (entry.type === 'ip') updateField('ip', entry.value)
+    if (entry.type === 'hash') updateField('hash', entry.value)
+    if (entry.type === 'file') updateField('filename', entry.value)
+  }
+
   const currentExamples = examples[activeTab]
+  const shareSummary = result?.summary || `Scanner verdict for ${currentValueForTab(activeTab, form)}`
+  const shareUrl = `${API_BASE_URL}/scanner?type=${activeTab}`
+  const resultLevelColor = typeColor(result?.threat_level, palette)
 
   return (
     <div style={{ position: 'relative' }}>
@@ -182,6 +289,7 @@ export default function Scanner() {
                       setActiveTab(id)
                       setResult(null)
                       setError('')
+                      setPublishState({ status: 'idle', message: '' })
                     }}
                     style={{
                       display: 'flex',
@@ -320,6 +428,67 @@ export default function Scanner() {
               </div>
             </div>
 
+            <div
+              style={{
+                marginTop: 24,
+                padding: 18,
+                borderRadius: 20,
+                border: palette.border,
+                background: palette.cardStrong,
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Zap size={16} color={palette.orange} />
+                <span className="analysis-meta-label">Recent Scans</span>
+              </div>
+              {!recentScans.length ? (
+                <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>
+                  Recent scanner activity will be saved locally so you can rerun common investigations in one click.
+                </p>
+              ) : (
+                <div style={{ display: 'grid', gap: 10 }}>
+                  {recentScans.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      onClick={() => loadRecentScan(entry)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 12,
+                        padding: '12px 14px',
+                        borderRadius: 18,
+                        border: palette.border,
+                        background: 'transparent',
+                        color: palette.text,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                      }}
+                    >
+                      <span style={{ minWidth: 0 }}>
+                        <strong style={{ display: 'block', marginBottom: 4 }}>{entry.type.toUpperCase()}</strong>
+                        <span style={{ color: palette.muted, wordBreak: 'break-word' }}>{entry.value}</span>
+                      </span>
+                      <span
+                        style={{
+                          padding: '8px 10px',
+                          borderRadius: 999,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          color: typeColor(entry.threat_level, palette),
+                          background: `${typeColor(entry.threat_level, palette)}12`,
+                          border: `1px solid ${typeColor(entry.threat_level, palette)}28`,
+                        }}
+                      >
+                        {entry.threat_level}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={scan}
@@ -391,7 +560,107 @@ export default function Scanner() {
                 </div>
               </div>
             ) : (
-              <ResultCard result={result} type={activeTab} theme={theme} />
+              <div style={{ display: 'grid', gap: 18 }}>
+                <ResultCard result={result} type={activeTab} theme={theme} />
+
+                <div
+                  style={{
+                    padding: 18,
+                    borderRadius: 20,
+                    background: palette.cardStrong,
+                    border: palette.border,
+                    display: 'grid',
+                    gap: 14,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                    <div>
+                      <div className="analysis-meta-label">Analyst Actions</div>
+                      <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
+                        Export the evidence, share the finding, or promote it directly into the community intelligence feed.
+                      </div>
+                    </div>
+                    <div
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        padding: '10px 14px',
+                        borderRadius: 999,
+                        color: resultLevelColor,
+                        border: `1px solid ${resultLevelColor}28`,
+                        background: `${resultLevelColor}12`,
+                        fontWeight: 800,
+                      }}
+                    >
+                      <CheckCircle2 size={16} />
+                      Ready for action
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                    <button
+                      type="button"
+                      onClick={publishThreat}
+                      disabled={publishState.status === 'loading'}
+                      style={{
+                        border: 'none',
+                        borderRadius: 999,
+                        padding: '12px 18px',
+                        background: 'linear-gradient(135deg, #ff6b35, #ff914d)',
+                        color: '#fff',
+                        fontWeight: 800,
+                        cursor: publishState.status === 'loading' ? 'wait' : 'pointer',
+                      }}
+                    >
+                      {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={exportResult}
+                      style={{
+                        borderRadius: 999,
+                        padding: '12px 18px',
+                        border: palette.border,
+                        background: 'transparent',
+                        color: palette.text,
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Export JSON
+                    </button>
+                  </div>
+
+                  <ShareThreatActions
+                    title={`Trustive ${activeTab.toUpperCase()} scan`}
+                    summary={shareSummary}
+                    shareUrl={shareUrl}
+                    hashtags={['TrustiveAI', 'ThreatIntel', activeTab.toUpperCase()]}
+                  />
+
+                  {publishState.message ? (
+                    <div
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: 16,
+                        color: publishState.status === 'success' ? palette.green : palette.orange,
+                        background:
+                          publishState.status === 'success'
+                            ? 'rgba(34,197,94,0.12)'
+                            : 'rgba(255,107,53,0.12)',
+                        border:
+                          publishState.status === 'success'
+                            ? '1px solid rgba(34,197,94,0.22)'
+                            : '1px solid rgba(255,107,53,0.22)',
+                      }}
+                    >
+                      {publishState.message}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
             )}
           </section>
         </div>

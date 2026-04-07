@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
-  BadgeInfo,
   CheckCircle2,
+  ExternalLink,
   Loader2,
   Mail,
   MessageSquareText,
@@ -10,177 +10,182 @@ import {
   Radar,
   ShieldAlert,
   Sparkles,
-} from 'lucide-react';
-import { api } from '../services/api';
-import { useTheme } from '../components/ThemeProvider';
+  Zap,
+} from 'lucide-react'
+
+import ResultCard from '../components/ResultCard'
+import ShareThreatActions from '../components/ShareThreatActions'
+import { useTheme } from '../components/ThemeProvider'
+import { API_BASE_URL, api } from '../services/api'
+import {
+  buildCommunityPayload,
+  downloadJson,
+  extractIocsFromText,
+  flattenIocs,
+  makeStorageList,
+  normalizeThreatLevel,
+  readStorageList,
+  titleCase,
+} from '../utils/intelTools'
 
 const channelOptions = [
   { id: 'email', label: 'Email', icon: Mail },
   { id: 'sms', label: 'SMS', icon: MessageSquareText },
   { id: 'whatsapp', label: 'WhatsApp', icon: Phone },
-];
+]
 
 const quickScenarios = {
   email: {
     sender: 'payroll@secure-mail-alerts.net',
     subject: 'Urgent bank detail change request',
     content:
-      'Please update the CEO salary payment account before 17:00 today. Use IP 185.220.101.4 for the secure portal and reply only to this address.',
+      'Please update the CEO salary payment account before 17:00 today. Use IP 185.220.101.4 for the secure portal at https://wire-approval-access.example and confirm by reply.',
   },
   sms: {
     phone: '+1 202 555 0117',
     content:
-      'Your package is on hold. Confirm delivery at hxxps://parcel-check-secure.com immediately or it will be returned.',
+      'Your package is on hold. Confirm delivery at https://parcel-check-secure.com immediately or it will be returned.',
   },
   whatsapp: {
     phone: '+1 202 555 0151',
     content:
       'Hi, this is finance. I need you to review the attached transfer details now. Server fallback is 45.83.64.22 if the main portal fails.',
   },
-};
-
-const emptyResultText = 'Run an analysis to generate an AI-backed verdict.';
-
-function extractIps(...sources) {
-  const pattern = /\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b/g;
-  const matches = sources
-    .filter(Boolean)
-    .flatMap((value) => String(value).match(pattern) || []);
-
-  return [...new Set(matches)].slice(0, 3);
 }
 
-function normalizeThreatLevel(value) {
-  const raw = String(value || '').trim().toLowerCase();
-  if (!raw) return 'Unknown';
-  return raw.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
+const emptyResultText = 'Run an analysis to generate an AI-backed verdict.'
+
+function toneFor(level) {
+  const value = String(level || '').toLowerCase()
+  if (value.includes('threat') || value.includes('dangerous') || value.includes('critical')) {
+    return { color: '#ff9770', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)', icon: AlertTriangle }
+  }
+  if (value.includes('safe') || value.includes('benign')) {
+    return { color: '#86efac', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)', icon: CheckCircle2 }
+  }
+  return { color: '#fdba74', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)', icon: ShieldAlert }
 }
 
 function normalizeAnalysis(payload) {
-  const source = payload?.result || payload?.analysis || payload || {};
-  const indicators = source.indicators || source.flags || source.signals || [];
-
+  const source = payload?.result || payload?.analysis || payload || {}
+  const indicators = source.indicators || source.flags || source.signals || []
   return {
-    threatLevel: normalizeThreatLevel(
-      source.threat_level || source.threatLevel || source.verdict || source.risk_label
-    ),
+    id: payload?.id || source.id || null,
+    threatLevel: normalizeThreatLevel(source.threat_level || source.threatLevel || source.verdict),
     confidence: Number(source.confidence || source.confidence_score || source.score || 0),
-    summary:
-      source.summary ||
-      source.description ||
-      source.message ||
-      'The engine completed the review and returned a structured verdict.',
+    summary: source.summary || source.description || source.message || 'The engine returned a structured verdict.',
     indicators: Array.isArray(indicators)
       ? indicators.map((item) => (typeof item === 'string' ? item : item?.label || item?.value)).filter(Boolean)
       : [],
-    recommendation:
-      source.recommendation ||
-      source.next_step ||
-      source.action ||
-      'Treat this content as suspicious until it is independently verified.',
+    recommendation: source.recommendation || source.next_step || source.action || 'Treat this content as suspicious until independently verified.',
+    risk_score: Number(source.risk_score || payload?.risk_score || 0),
+    related_threats_count: Number(source.related_threats_count || payload?.related_threats_count || 0),
     raw: source,
-  };
+  }
 }
 
-function getThreatTone(level) {
-  const normalized = String(level).toLowerCase();
-  if (normalized.includes('high') || normalized.includes('critical') || normalized.includes('malicious')) {
-    return {
-      color: '#ff9770',
-      border: 'rgba(248,113,113,0.3)',
-      background: 'rgba(248,113,113,0.12)',
-      icon: AlertTriangle,
-    };
-  }
-
-  if (normalized.includes('low') || normalized.includes('safe') || normalized.includes('benign')) {
-    return {
-      color: '#86efac',
-      border: 'rgba(74,222,128,0.3)',
-      background: 'rgba(74,222,128,0.12)',
-      icon: CheckCircle2,
-    };
-  }
-
-  return {
-    color: '#fdba74',
-    border: 'rgba(251,146,60,0.3)',
-    background: 'rgba(251,146,60,0.12)',
-    icon: ShieldAlert,
-  };
+function pivotConfig(type, value) {
+  if (type === 'ip') return { path: '/api/scanner/ip/enhanced', body: { ip: value }, resultType: 'ip' }
+  if (type === 'hash') return { path: '/api/scanner/hash', body: { hash: value }, resultType: 'hash' }
+  if (type === 'domain') return { path: '/api/scanner/url', body: { url: `https://${value}` }, resultType: 'url' }
+  return { path: '/api/scanner/url', body: { url: value }, resultType: 'url' }
 }
 
-function SectionTitle({ eyebrow, title, copy }) {
+function primaryIndicator(channel, form, iocs) {
+  if (iocs.urls?.[0]) return { indicator: iocs.urls[0], threatType: 'url' }
+  if (iocs.ips?.[0]) return { indicator: iocs.ips[0], threatType: 'ip' }
+  if (form.sender) return { indicator: form.sender, threatType: channel === 'email' ? 'email' : 'phone' }
+  if (form.phone) return { indicator: form.phone, threatType: 'phone' }
+  return { indicator: '', threatType: channel === 'email' ? 'email' : 'phone' }
+}
+
+function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
+  const tone = toneFor(entry.threat_level)
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '8px 14px',
-          borderRadius: 999,
-          background: 'rgba(255,107,53,0.12)',
-          border: '1px solid rgba(255,107,53,0.2)',
-          color: '#ffb089',
-          fontSize: 12,
-          fontWeight: 800,
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          marginBottom: 16,
-        }}
-      >
+    <button
+      type="button"
+      onClick={() => onClick(entry)}
+      style={{
+        width: '100%',
+        textAlign: 'left',
+        padding: '12px 14px',
+        borderRadius: 18,
+        border: `1px solid ${borderColor}`,
+        background: 'transparent',
+        color: textColor,
+        cursor: 'pointer',
+        display: 'grid',
+        gap: 6,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <strong>{titleCase(entry.channel || 'analysis')}</strong>
         <span
           style={{
-            width: 8,
-            height: 8,
+            padding: '8px 10px',
             borderRadius: 999,
-            background: '#ff6b35',
-            boxShadow: '0 0 18px rgba(255,107,53,0.9)',
+            background: tone.bg,
+            border: `1px solid ${tone.border}`,
+            color: tone.color,
+            fontWeight: 800,
+            fontSize: 12,
           }}
-        />
-        {eyebrow}
+        >
+          {normalizeThreatLevel(entry.threat_level)}
+        </span>
       </div>
-      <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>{title}</h1>
-      <p style={{ margin: '14px 0 0', maxWidth: 760, color: 'rgba(226,232,240,0.74)', lineHeight: 1.7 }}>
-        {copy}
-      </p>
-    </div>
-  );
+      <div style={{ color: mutedColor, lineHeight: 1.6 }}>
+        {(entry.subject || entry.sender || entry.summary || 'Open analysis').slice(0, 120)}
+      </div>
+    </button>
+  )
 }
 
-function Analysis() {
-  const { theme } = useTheme();
-  const [channel, setChannel] = useState('email');
-  const [form, setForm] = useState({
-    sender: '',
-    subject: '',
-    phone: '',
-    content: '',
-  });
-  const [result, setResult] = useState(null);
-  const [ipIntel, setIpIntel] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+export default function Analysis() {
+  const { theme } = useTheme()
+  const client = useMemo(() => api(), [])
+  const [channel, setChannel] = useState('email')
+  const [form, setForm] = useState({ sender: '', subject: '', phone: '', content: '' })
+  const [notes, setNotes] = useState(localStorage.getItem('trustive_analysis_notes') || '')
+  const [result, setResult] = useState(null)
+  const [ipIntel, setIpIntel] = useState([])
+  const [history, setHistory] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
+  const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
 
-  const client = useMemo(() => api(), []);
+  useEffect(() => {
+    localStorage.setItem('trustive_analysis_notes', notes)
+  }, [notes])
 
-  const surfaceColor = theme === 'dark' ? '#050507' : '#f8fafc';
-  const textColor = theme === 'dark' ? '#f8fafc' : '#0f172a';
-  const mutedColor = theme === 'dark' ? 'rgba(226,232,240,0.74)' : '#475569';
-  const borderColor = theme === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)';
-  const panelColor = theme === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.03)';
-  const inputColor = theme === 'dark' ? 'rgba(12,12,16,0.82)' : 'rgba(255,255,255,0.85)';
-  const placeholderTone = theme === 'dark' ? 'rgba(148,163,184,0.72)' : '#64748b';
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const response = await client.get('/api/analysis/history', { params: { limit: 6 } })
+        setHistory(response.data || [])
+      } catch {
+        setHistory(readStorageList('trustive_analysis_history'))
+      }
+    }
+    loadHistory()
+  }, [client])
 
+  const dark = theme !== 'light'
+  const textColor = dark ? '#f8fafc' : '#0f172a'
+  const mutedColor = dark ? 'rgba(226,232,240,0.74)' : '#475569'
+  const borderColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'
+  const panelColor = dark ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.03)'
+  const inputColor = dark ? 'rgba(12,12,16,0.82)' : 'rgba(255,255,255,0.86)'
+  const tone = toneFor(result?.threatLevel)
+  const ToneIcon = tone.icon
   const cardStyle = {
     borderRadius: 24,
     border: `1px solid ${borderColor}`,
     background: panelColor,
     backdropFilter: 'blur(18px)',
     boxShadow: '0 24px 70px rgba(0,0,0,0.24)',
-  };
-
+  }
   const inputStyle = {
     width: '100%',
     borderRadius: 18,
@@ -190,316 +195,265 @@ function Analysis() {
     padding: '14px 16px',
     outline: 'none',
     fontSize: 15,
-  };
+  }
 
-  const setField = (key, value) => setForm((current) => ({ ...current, [key]: value }));
+  const derivedIocs = useMemo(
+    () => extractIocsFromText(form.sender, form.subject, form.content, ...(result?.indicators || [])),
+    [form.sender, form.subject, form.content, result?.indicators]
+  )
+  const allIocs = useMemo(() => flattenIocs(derivedIocs), [derivedIocs])
 
-  const applyExample = () => {
-    const preset = quickScenarios[channel];
+  const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
+
+  const loadExample = () => {
+    const preset = quickScenarios[channel]
     setForm((current) => ({
       ...current,
       sender: preset.sender || '',
       subject: preset.subject || '',
       phone: preset.phone || '',
       content: preset.content || '',
-    }));
-  };
+    }))
+  }
+
+  const saveLocalHistory = (normalized) => {
+    const next = makeStorageList(
+      'trustive_analysis_history',
+      {
+        id: normalized.id || crypto.randomUUID(),
+        channel,
+        sender: form.sender || form.phone,
+        subject: form.subject,
+        threat_level: String(normalized.threatLevel || '').toLowerCase(),
+        summary: normalized.summary,
+        confidence: normalized.confidence,
+        created_at: new Date().toISOString(),
+      },
+      8
+    )
+    setHistory(next)
+  }
 
   const fetchIpIntel = async (ips) => {
-    if (!ips.length) {
-      setIpIntel([]);
-      return;
-    }
-
+    if (!ips.length) return setIpIntel([])
     const responses = await Promise.all(
-      ips.map(async (ip) => {
+      ips.slice(0, 3).map(async (ip) => {
         try {
-          const response = await client.get('/api/scanner/ip/enhanced', {
-            params: { ip },
-          });
-          return { ip, data: response.data };
-        } catch (requestError) {
-          return {
-            ip,
-            data: {
-              threat_level: 'Unavailable',
-              summary: 'IP intelligence is currently unavailable for this indicator.',
-            },
-          };
+          const response = await client.post('/api/scanner/ip/enhanced', { ip })
+          return { ip, data: response.data }
+        } catch {
+          return { ip, data: { threat_level: 'Unavailable', summary: 'IP intelligence is currently unavailable.' } }
         }
       })
-    );
+    )
+    setIpIntel(responses)
+  }
 
-    setIpIntel(responses);
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    setError('');
-
+  const runAnalysis = async (event) => {
+    event.preventDefault()
+    setLoading(true)
+    setError('')
+    setPublishState({ status: 'idle', message: '' })
     try {
-      const payload = {
+      const response = await client.post('/api/analysis/analyze', {
         channel,
         sender: form.sender,
         subject: form.subject,
         phone_number: form.phone,
         content: form.content,
-      };
-
-      const response = await client.post('/api/analysis/analyze', payload);
-      const normalized = normalizeAnalysis(response.data);
-      setResult(normalized);
-
-      const ips = extractIps(form.sender, form.content);
-      await fetchIpIntel(ips);
+      })
+      const normalized = normalizeAnalysis(response.data)
+      setResult(normalized)
+      saveLocalHistory(normalized)
+      const iocs = extractIocsFromText(form.sender, form.subject, form.content, ...(normalized.indicators || []))
+      await fetchIpIntel(iocs.ips)
     } catch (requestError) {
-      const detail =
-        requestError?.response?.data?.detail ||
-        requestError?.message ||
-        'Unable to complete the analysis right now.';
-      setError(detail);
-      setResult(null);
-      setIpIntel([]);
+      setError(requestError?.response?.data?.detail || requestError?.message || 'Unable to complete the analysis right now.')
+      setResult(null)
+      setIpIntel([])
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const tone = getThreatTone(result?.threatLevel);
-  const ToneIcon = tone.icon;
+  const runPivot = async (type, value) => {
+    const config = pivotConfig(type, value)
+    setPivot({ loading: true, error: '', result: null, type: config.resultType, value })
+    try {
+      const response = await client.post(config.path, config.body)
+      setPivot({ loading: false, error: '', result: response.data, type: config.resultType, value })
+    } catch (requestError) {
+      setPivot({
+        loading: false,
+        error: requestError?.response?.data?.detail || 'Unable to enrich this IOC right now.',
+        result: null,
+        type: config.resultType,
+        value,
+      })
+    }
+  }
+
+  const exportAnalysis = () => {
+    downloadJson(`trustive-analysis-${Date.now()}.json`, {
+      request: { channel, ...form },
+      result,
+      notes,
+      extracted_iocs: derivedIocs,
+      ip_intelligence: ipIntel,
+      exported_at: new Date().toISOString(),
+    })
+  }
+
+  const publishThreat = async () => {
+    if (!result) return
+    const primary = primaryIndicator(channel, form, derivedIocs)
+    if (!primary.indicator) return
+    setPublishState({ status: 'loading', message: '' })
+    try {
+      await client.post(
+        '/api/community/publish-threat',
+        buildCommunityPayload({
+          indicator: primary.indicator,
+          threatType: primary.threatType,
+          result: { risk_score: result.risk_score, threat_level: result.threatLevel },
+          analysisId: result.id,
+        })
+      )
+      setPublishState({ status: 'success', message: 'Analysis promoted to the community feed.' })
+    } catch (requestError) {
+      setPublishState({
+        status: 'error',
+        message: requestError?.response?.data?.detail || 'Unable to publish this analysis to the community feed.',
+      })
+    }
+  }
+
+  const applyHistory = (entry) => {
+    setChannel(entry.channel || 'email')
+    setForm({
+      sender: entry.channel === 'email' ? entry.sender || '' : '',
+      subject: entry.subject || '',
+      phone: entry.channel !== 'email' ? entry.sender || '' : '',
+      content: '',
+    })
+  }
 
   return (
-    <section
-      style={{
-        minHeight: 'calc(100vh - 140px)',
-        position: 'relative',
-        color: textColor,
-        background: surfaceColor,
-      }}
-    >
+    <section style={{ minHeight: 'calc(100vh - 140px)', position: 'relative', color: textColor }}>
       <div className="hero-bg" />
       <div className="grid-dots" />
-
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
-        <SectionTitle
-          eyebrow="Analysis Studio"
-          title="AI message triage built like the scanner."
-          copy="This workspace now follows the same visual rhythm as the scanner page: a focused intake panel on the left, a live verdict pane on the right, and fast pivots into IP intelligence when the content exposes infrastructure."
-        />
+        <div style={{ marginBottom: 6 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.2)', color: '#ffb089', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 999, background: '#ff6b35', boxShadow: '0 0 18px rgba(255,107,53,0.9)' }} />
+            Analysis Studio
+          </div>
+          <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
+          <p style={{ margin: '14px 0 0', maxWidth: 760, color: mutedColor, lineHeight: 1.7 }}>
+            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, analyst notes, share/export actions, and a clean path into community intelligence.
+          </p>
+        </div>
 
         <div className="analysis-layout" style={{ display: 'grid', gap: 24, alignItems: 'start' }}>
-          <div style={{ ...cardStyle, padding: 24 }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: 12,
-                flexWrap: 'wrap',
-                marginBottom: 20,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>
-                  Intake
+          <div style={{ display: 'grid', gap: 24 }}>
+            <div style={{ ...cardStyle, padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Intake</div>
+                  <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Run Analysis</h2>
                 </div>
-                <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Run Analysis</h2>
+                <button type="button" onClick={loadExample} style={{ borderRadius: 999, border: '1px solid rgba(255,107,53,0.24)', background: 'rgba(255,107,53,0.1)', color: '#ffb089', padding: '10px 16px', fontWeight: 700, cursor: 'pointer' }}>
+                  Load Example
+                </button>
               </div>
 
-              <button
-                type="button"
-                onClick={applyExample}
-                style={{
-                  borderRadius: 999,
-                  border: '1px solid rgba(255,107,53,0.24)',
-                  background: 'rgba(255,107,53,0.1)',
-                  color: '#ffb089',
-                  padding: '10px 16px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                }}
-              >
-                Load Example
-              </button>
-            </div>
+              <div className="channel-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
+                {channelOptions.map((option) => {
+                  const Icon = option.icon
+                  const active = channel === option.id
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => setChannel(option.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 10,
+                        padding: '14px 16px',
+                        borderRadius: 18,
+                        border: active ? '1px solid rgba(255,107,53,0.45)' : `1px solid ${borderColor}`,
+                        background: active ? 'linear-gradient(135deg, #ff6b35, #ff914d)' : inputColor,
+                        color: active ? '#fff' : textColor,
+                        cursor: 'pointer',
+                        fontWeight: 800,
+                      }}
+                    >
+                      <Icon size={16} />
+                      {option.label}
+                    </button>
+                  )
+                })}
+              </div>
 
-            <div
-              className="channel-grid"
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
-                gap: 12,
-                marginBottom: 20,
-              }}
-            >
-              {channelOptions.map((option) => {
-                const Icon = option.icon;
-                const active = channel === option.id;
+              <form onSubmit={runAnalysis} style={{ display: 'grid', gap: 16 }}>
+                {channel === 'email' ? (
+                  <>
+                    <label className="analysis-field"><span>Sender</span><input value={form.sender} onChange={(event) => setField('sender', event.target.value)} placeholder="alerts@company-security.com" style={inputStyle} /></label>
+                    <label className="analysis-field"><span>Subject</span><input value={form.subject} onChange={(event) => setField('subject', event.target.value)} placeholder="Urgent payment request" style={inputStyle} /></label>
+                  </>
+                ) : (
+                  <label className="analysis-field"><span>Phone Number</span><input value={form.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+1 202 555 0172" style={inputStyle} /></label>
+                )}
 
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => setChannel(option.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 10,
-                      padding: '14px 16px',
-                      borderRadius: 18,
-                      border: active
-                        ? '1px solid rgba(255,107,53,0.45)'
-                        : `1px solid ${borderColor}`,
-                      background: active
-                        ? 'linear-gradient(135deg, #ff6b35, #ff914d)'
-                        : inputColor,
-                      color: active ? '#fff' : textColor,
-                      cursor: 'pointer',
-                      fontWeight: 800,
-                    }}
-                  >
-                    <Icon size={16} />
-                    {option.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16 }}>
-              {channel === 'email' ? (
-                <>
-                  <label className="analysis-field" style={{ display: 'grid', gap: 8 }}>
-                    <span className="analysis-meta-label" style={{ color: mutedColor, fontSize: 14, fontWeight: 700 }}>
-                      Sender
-                    </span>
-                    <input
-                      value={form.sender}
-                      onChange={(event) => setField('sender', event.target.value)}
-                      placeholder="alerts@company-security.com"
-                      style={inputStyle}
-                    />
-                  </label>
-
-                  <label className="analysis-field" style={{ display: 'grid', gap: 8 }}>
-                    <span className="analysis-meta-label" style={{ color: mutedColor, fontSize: 14, fontWeight: 700 }}>
-                      Subject
-                    </span>
-                    <input
-                      value={form.subject}
-                      onChange={(event) => setField('subject', event.target.value)}
-                      placeholder="Urgent payment request"
-                      style={inputStyle}
-                    />
-                  </label>
-                </>
-              ) : (
-                <label className="analysis-field" style={{ display: 'grid', gap: 8 }}>
-                  <span className="analysis-meta-label" style={{ color: mutedColor, fontSize: 14, fontWeight: 700 }}>
-                    Phone Number
-                  </span>
-                  <input
-                    value={form.phone}
-                    onChange={(event) => setField('phone', event.target.value)}
-                    placeholder="+1 202 555 0172"
-                    style={inputStyle}
-                  />
+                <label className="analysis-field">
+                  <span>Content</span>
+                  <textarea value={form.content} onChange={(event) => setField('content', event.target.value)} placeholder="Paste the message content here." rows={10} style={{ ...inputStyle, minHeight: 220, resize: 'vertical', fontFamily: 'inherit' }} />
                 </label>
-              )}
 
-              <label className="analysis-field" style={{ display: 'grid', gap: 8 }}>
-                <span className="analysis-meta-label" style={{ color: mutedColor, fontSize: 14, fontWeight: 700 }}>
-                  Content
-                </span>
-                <textarea
-                  value={form.content}
-                  onChange={(event) => setField('content', event.target.value)}
-                  placeholder="Paste the email, message, or WhatsApp content here."
-                  rows={10}
-                  style={{
-                    ...inputStyle,
-                    minHeight: 220,
-                    resize: 'vertical',
-                    fontFamily: 'inherit',
-                  }}
-                />
-              </label>
+                <label className="analysis-field">
+                  <span>Analyst Notes</span>
+                  <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Capture investigation notes, escalation details, or follow-up actions." rows={4} style={{ ...inputStyle, minHeight: 120, resize: 'vertical', fontFamily: 'inherit' }} />
+                </label>
 
-              {error ? (
-                <div
-                  style={{
-                    borderRadius: 18,
-                    padding: '14px 16px',
-                    border: '1px solid rgba(248,113,113,0.28)',
-                    background: 'rgba(248,113,113,0.12)',
-                    color: '#fecaca',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {error}
+                {error ? <div style={{ borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(248,113,113,0.28)', background: 'rgba(248,113,113,0.12)', color: '#fecaca', lineHeight: 1.6 }}>{error}</div> : null}
+
+                <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, border: 'none', borderRadius: 999, padding: '14px 24px', background: 'linear-gradient(135deg, #ff6b35, #ff914d)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'wait' : 'pointer', boxShadow: '0 20px 48px rgba(255,107,53,0.32)' }}>
+                  {loading ? <Loader2 size={18} className="analysis-spinner" /> : <Sparkles size={18} />}
+                  {loading ? 'Analyzing...' : 'Run Analysis'}
+                </button>
+              </form>
+            </div>
+
+            <div style={{ ...cardStyle, padding: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Zap size={16} color="#ff9a62" />
+                <span className="analysis-meta-label">Recent Analyses</span>
+              </div>
+              {!history.length ? (
+                <div style={{ color: mutedColor, lineHeight: 1.7 }}>
+                  Previous verdicts will appear here so you can quickly reuse common investigation contexts.
                 </div>
-              ) : null}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="analysis-submit"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  border: 'none',
-                  borderRadius: 999,
-                  padding: '14px 24px',
-                  background: 'linear-gradient(135deg, #ff6b35, #ff914d)',
-                  color: '#fff',
-                  fontWeight: 800,
-                  fontSize: 15,
-                  cursor: loading ? 'wait' : 'pointer',
-                  boxShadow: '0 20px 48px rgba(255,107,53,0.32)',
-                }}
-              >
-                {loading ? <Loader2 size={18} className="analysis-spinner" /> : <Sparkles size={18} />}
-                {loading ? 'Analyzing...' : 'Run Analysis'}
-              </button>
-            </form>
+              ) : (
+                <div className="result-stack" style={{ display: 'grid', gap: 10 }}>
+                  {history.map((entry) => (
+                    <HistoryButton key={`${entry.id}-${entry.created_at || ''}`} entry={entry} onClick={applyHistory} borderColor={borderColor} textColor={textColor} mutedColor={mutedColor} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ display: 'grid', gap: 24 }}>
             <div style={{ ...cardStyle, padding: 24 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  flexWrap: 'wrap',
-                  marginBottom: 20,
-                }}
-              >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>
-                    Verdict
-                  </div>
+                  <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Verdict</div>
                   <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>AI-backed outcome</h2>
                 </div>
-
                 {result ? (
-                  <div
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 16px',
-                      borderRadius: 999,
-                      color: tone.color,
-                      border: `1px solid ${tone.border}`,
-                      background: tone.background,
-                      fontWeight: 800,
-                    }}
-                  >
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderRadius: 999, color: tone.color, border: `1px solid ${tone.border}`, background: tone.bg, fontWeight: 800 }}>
                     <ToneIcon size={16} />
                     {result.threatLevel}
                   </div>
@@ -507,138 +461,63 @@ function Analysis() {
               </div>
 
               {!result ? (
-                <div
-                  style={{
-                    minHeight: 320,
-                    borderRadius: 22,
-                    border: `1px dashed ${borderColor}`,
-                    display: 'grid',
-                    placeItems: 'center',
-                    textAlign: 'center',
-                    padding: 24,
-                    color: placeholderTone,
-                    lineHeight: 1.7,
-                  }}
-                >
+                <div style={{ minHeight: 320, borderRadius: 22, border: `1px dashed ${borderColor}`, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24, color: mutedColor, lineHeight: 1.7 }}>
                   <div style={{ display: 'grid', gap: 16, justifyItems: 'center', maxWidth: 420 }}>
-                    <div
-                      style={{
-                        width: 72,
-                        height: 72,
-                        borderRadius: 999,
-                        display: 'grid',
-                        placeItems: 'center',
-                        background: 'rgba(255,107,53,0.12)',
-                        border: '1px solid rgba(255,107,53,0.18)',
-                        color: '#ff9a62',
-                      }}
-                    >
+                    <div style={{ width: 72, height: 72, borderRadius: 999, display: 'grid', placeItems: 'center', background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.18)', color: '#ff9a62' }}>
                       <Radar size={28} />
                     </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: textColor }}>
-                      {emptyResultText}
-                    </div>
-                    <div>
-                      The results panel will surface the threat level, confidence, analyst summary,
-                      extracted indicators, recommendation, and any linked IP intelligence.
-                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: textColor }}>Run an analysis to generate an AI-backed verdict.</div>
+                    <div>{emptyResultText}</div>
                   </div>
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 18 }}>
                   <div className="analysis-result-grid" style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-                    <div
-                      style={{
-                        borderRadius: 20,
-                        border: `1px solid ${borderColor}`,
-                        background: inputColor,
-                        padding: 18,
-                      }}
-                    >
+                    <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18 }}>
                       <div style={{ color: mutedColor, fontSize: 13, marginBottom: 8 }}>Threat Level</div>
                       <div style={{ fontSize: 24, fontWeight: 900 }}>{result.threatLevel}</div>
                     </div>
-
-                    <div
-                      style={{
-                        borderRadius: 20,
-                        border: `1px solid ${borderColor}`,
-                        background: inputColor,
-                        padding: 18,
-                      }}
-                    >
+                    <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18 }}>
                       <div style={{ color: mutedColor, fontSize: 13, marginBottom: 8 }}>Confidence</div>
-                      <div style={{ fontSize: 24, fontWeight: 900 }}>
-                        {Number.isFinite(result.confidence) ? `${Math.round(result.confidence)}%` : 'N/A'}
+                      <div style={{ fontSize: 24, fontWeight: 900 }}>{Math.round(result.confidence || 0)}%</div>
+                    </div>
+                  </div>
+
+                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                    <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Summary</strong>
+                    {result.summary}
+                  </div>
+
+                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                    <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Recommendation</strong>
+                    {result.recommendation}
+                    {result.related_threats_count > 0 ? (
+                      <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, background: 'rgba(255,107,53,0.12)', border: '1px solid rgba(255,107,53,0.18)', color: '#ffb089', fontWeight: 700 }}>
+                        <ExternalLink size={15} />
+                        Related threats detected: {result.related_threats_count}
                       </div>
-                    </div>
+                    ) : null}
                   </div>
 
-                  <div
-                    style={{
-                      borderRadius: 22,
-                      border: `1px solid ${borderColor}`,
-                      background: inputColor,
-                      padding: 20,
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, fontWeight: 800 }}>
-                      <BadgeInfo size={18} color="#ff9a62" />
-                      Summary
+                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
+                    <div>
+                      <div className="analysis-meta-label">Analyst Actions</div>
+                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Export the investigation, share the summary, or promote the strongest indicator to community intelligence.</div>
                     </div>
-                    <div style={{ color: mutedColor }}>{result.summary}</div>
-                  </div>
-
-                  <div
-                    style={{
-                      borderRadius: 22,
-                      border: `1px solid ${borderColor}`,
-                      background: inputColor,
-                      padding: 20,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14, fontWeight: 800 }}>
-                      <Sparkles size={18} color="#ff9a62" />
-                      Indicators
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #ff6b35, #ff914d)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+                        {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
+                      </button>
+                      <button type="button" onClick={exportAnalysis} style={{ borderRadius: 999, padding: '12px 18px', border: `1px solid ${borderColor}`, background: 'transparent', color: textColor, fontWeight: 800, cursor: 'pointer' }}>
+                        Export JSON
+                      </button>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                      {result.indicators.length ? (
-                        result.indicators.map((item) => (
-                          <span
-                            key={item}
-                            style={{
-                              padding: '10px 14px',
-                              borderRadius: 999,
-                              border: `1px solid ${borderColor}`,
-                              background: 'rgba(255,107,53,0.08)',
-                              color: textColor,
-                              fontWeight: 700,
-                            }}
-                          >
-                            {item}
-                          </span>
-                        ))
-                      ) : (
-                        <span style={{ color: mutedColor }}>No structured indicators were returned for this analysis.</span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      borderRadius: 22,
-                      border: `1px solid ${borderColor}`,
-                      background: inputColor,
-                      padding: 20,
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, fontWeight: 800 }}>
-                      <ShieldAlert size={18} color="#ff9a62" />
-                      Recommendation
-                    </div>
-                    <div style={{ color: mutedColor }}>{result.recommendation}</div>
+                    <ShareThreatActions title={`Trustive ${titleCase(channel)} analysis`} summary={result.summary} shareUrl={`${API_BASE_URL}/analysis?analysis=${result.id || 'latest'}`} hashtags={['TrustiveAI', 'ThreatIntel', titleCase(channel)]} />
+                    {publishState.message ? (
+                      <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#ffb089', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(255,107,53,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(255,107,53,0.2)' }}>
+                        {publishState.message}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               )}
@@ -646,88 +525,54 @@ function Analysis() {
 
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>
-                  IP Intelligence
+                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
+                <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
+              </div>
+              {!allIocs.length ? (
+                <div style={{ borderRadius: 20, border: `1px dashed ${borderColor}`, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                  URLs, IPs, domains, and hashes extracted from the message and returned indicators will appear here for one-click enrichment.
                 </div>
+              ) : (
+                <div style={{ display: 'grid', gap: 18 }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                    {allIocs.map((item) => {
+                      const enrichable = ['url', 'ip', 'hash', 'domain'].includes(item.type)
+                      return (
+                        <button key={`${item.type}-${item.value}`} type="button" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ padding: '10px 14px', borderRadius: 999, border: `1px solid ${borderColor}`, background: enrichable ? 'rgba(255,107,53,0.08)' : 'rgba(255,255,255,0.03)', color: textColor, fontWeight: 700, cursor: enrichable ? 'pointer' : 'default' }}>
+                          {item.type.toUpperCase()}: {item.value}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  {pivot.loading ? <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, display: 'flex', alignItems: 'center', gap: 12 }}><Loader2 size={18} className="analysis-spinner" />Enriching {pivot.value}...</div> : null}
+                  {pivot.error ? <div style={{ borderRadius: 20, border: '1px solid rgba(255,107,53,0.2)', background: 'rgba(255,107,53,0.12)', padding: 16, color: '#ffb089' }}>{pivot.error}</div> : null}
+                  {pivot.result ? <ResultCard result={pivot.result} type={pivot.type} theme={theme} /> : null}
+                </div>
+              )}
+            </div>
+
+            <div style={{ ...cardStyle, padding: 24 }}>
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 13, color: '#ff9a62', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure pivot</h2>
               </div>
-
               {!ipIntel.length ? (
-                <div
-                  style={{
-                    borderRadius: 20,
-                    border: `1px dashed ${borderColor}`,
-                    padding: 20,
-                    color: mutedColor,
-                    lineHeight: 1.7,
-                  }}
-                >
+                <div style={{ borderRadius: 20, border: `1px dashed ${borderColor}`, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
                   If the content exposes IP addresses, enhanced infrastructure intelligence will appear here automatically after the analysis completes.
                 </div>
               ) : (
                 <div className="result-stack" style={{ display: 'grid', gap: 14 }}>
-                  {ipIntel.map((entry) => {
-                    const data = entry.data || {};
-                    const intelLevel = normalizeThreatLevel(data.threat_level || data.risk || 'Unknown');
-
-                    return (
-                      <div
-                        key={entry.ip}
-                        style={{
-                          borderRadius: 20,
-                          border: `1px solid ${borderColor}`,
-                          background: inputColor,
-                          padding: 18,
-                          display: 'grid',
-                          gap: 10,
-                        }}
-                      >
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                          <div style={{ fontWeight: 900, fontSize: 18 }}>{entry.ip}</div>
-                          <div
-                            style={{
-                              padding: '8px 12px',
-                              borderRadius: 999,
-                              border: '1px solid rgba(255,107,53,0.2)',
-                              background: 'rgba(255,107,53,0.1)',
-                              color: '#ffb089',
-                              fontWeight: 700,
-                            }}
-                          >
-                            {intelLevel}
-                          </div>
-                        </div>
-
-                        <div style={{ color: mutedColor, lineHeight: 1.7 }}>
-                          {data.summary || data.message || 'Enhanced IP intelligence was collected for this indicator.'}
-                        </div>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                          {[
-                            data.country && `Country: ${data.country}`,
-                            data.isp && `ISP: ${data.isp}`,
-                            data.abuse_score && `Abuse Score: ${data.abuse_score}`,
-                            data.usage_type && `Usage: ${data.usage_type}`,
-                          ]
-                            .filter(Boolean)
-                            .map((item) => (
-                              <span
-                                key={item}
-                                style={{
-                                  padding: '9px 12px',
-                                  borderRadius: 999,
-                                  border: `1px solid ${borderColor}`,
-                                  background: 'rgba(255,255,255,0.03)',
-                                  fontSize: 13,
-                                }}
-                              >
-                                {item}
-                              </span>
-                            ))}
+                  {ipIntel.map((entry) => (
+                    <div key={entry.ip} style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18, display: 'grid', gap: 10 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                        <div style={{ fontWeight: 900, fontSize: 18 }}>{entry.ip}</div>
+                        <div style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(255,107,53,0.2)', background: 'rgba(255,107,53,0.1)', color: '#ffb089', fontWeight: 700 }}>
+                          {normalizeThreatLevel(entry.data?.threat_level || 'unknown')}
                         </div>
                       </div>
-                    );
-                  })}
+                      <div style={{ color: mutedColor, lineHeight: 1.7 }}>{entry.data?.summary || 'Enhanced IP intelligence was collected for this indicator.'}</div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -735,7 +580,5 @@ function Analysis() {
         </div>
       </div>
     </section>
-  );
+  )
 }
-
-export default Analysis;

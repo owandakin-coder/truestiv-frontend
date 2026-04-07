@@ -275,10 +275,306 @@ body {
 
 .result-stack { display: grid; gap: 20px; }
 
+.intel-shell {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, calc(100vw - 32px));
+  margin: 0 auto;
+  display: grid;
+  gap: 24px;
+}
+
+.intel-hero-card,
+.intel-section-card,
+.intel-feed-card,
+.intel-empty-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.14);
+  border-radius: 28px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 24px 70px rgba(2,8,23,0.26);
+}
+
+.intel-hero-card {
+  padding: 40px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.intel-hero-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 24%, rgba(37,99,235,0.18), transparent 24%),
+    radial-gradient(circle at 80% 18%, rgba(14,165,233,0.14), transparent 22%),
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  pointer-events: none;
+}
+
+.intel-hero-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+
+.intel-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(37,99,235,0.12);
+  color: #bae6fd;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.intel-eyebrow-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 18px rgba(56,189,248,0.85);
+}
+
+.intel-title {
+  font-size: clamp(2rem, 4vw, 3.35rem);
+  line-height: 1;
+  font-weight: 900;
+  max-width: 920px;
+}
+
+.intel-copy {
+  max-width: 760px;
+  color: rgba(191,219,254,0.78);
+  line-height: 1.75;
+  font-size: 15px;
+}
+
+.intel-stat-grid,
+.intel-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.intel-stat-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.intel-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.intel-stat-card,
+.intel-feed-card,
+.intel-source-card,
+.intel-action-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.14);
+  border-radius: 24px;
+  padding: 22px;
+  backdrop-filter: blur(16px);
+}
+
+.intel-stat-card {
+  text-align: center;
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.intel-stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #eff6ff;
+}
+
+.intel-stat-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(191,219,254,0.45);
+}
+
+.intel-stat-copy,
+.intel-section-copy,
+.intel-muted {
+  color: rgba(191,219,254,0.7);
+  line-height: 1.7;
+}
+
+.intel-section-card {
+  padding: 28px;
+  display: grid;
+  gap: 22px;
+}
+
+.intel-section-head {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.intel-section-title {
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
+.intel-feed-card {
+  display: grid;
+  gap: 18px;
+}
+
+.intel-feed-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.intel-indicator {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #eff6ff;
+  word-break: break-word;
+}
+
+.intel-meta {
+  color: rgba(191,219,254,0.62);
+  line-height: 1.7;
+}
+
+.intel-summary {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(37,99,235,0.1);
+  border: 1px solid rgba(56,189,248,0.16);
+  color: rgba(219,234,254,0.84);
+  line-height: 1.65;
+}
+
+.intel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.intel-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(37,99,235,0.12);
+  color: #dbeafe;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.intel-button.primary {
+  border: none;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb, #0ea5e9);
+  box-shadow: 0 16px 40px rgba(14,165,233,0.22);
+}
+
+.intel-button.ghost {
+  background: transparent;
+  color: #eff6ff;
+  border: 1px solid rgba(148,163,184,0.14);
+}
+
+.intel-source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.intel-source-card {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+}
+
+.intel-source-name {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #eff6ff;
+}
+
+.intel-source-type {
+  display: inline-flex;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(37,99,235,0.12);
+  border: 1px solid rgba(56,189,248,0.16);
+  color: #bae6fd;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.intel-empty-card {
+  padding: 26px;
+  text-align: center;
+  color: rgba(191,219,254,0.72);
+  line-height: 1.7;
+}
+
+[data-theme="light"] .intel-hero-card,
+[data-theme="light"] .intel-section-card,
+[data-theme="light"] .intel-feed-card,
+[data-theme="light"] .intel-empty-card,
+[data-theme="light"] .intel-stat-card,
+[data-theme="light"] .intel-source-card,
+[data-theme="light"] .intel-action-card {
+  background: rgba(255,255,255,0.94);
+  border-color: rgba(15,23,42,0.08);
+  box-shadow: 0 16px 40px rgba(15,23,42,0.08);
+}
+
+[data-theme="light"] .intel-title,
+[data-theme="light"] .intel-stat-value,
+[data-theme="light"] .intel-section-title,
+[data-theme="light"] .intel-indicator,
+[data-theme="light"] .intel-source-name {
+  color: #0f172a;
+}
+
+[data-theme="light"] .intel-copy,
+[data-theme="light"] .intel-stat-copy,
+[data-theme="light"] .intel-section-copy,
+[data-theme="light"] .intel-muted,
+[data-theme="light"] .intel-meta,
+[data-theme="light"] .intel-empty-card {
+  color: #475569;
+}
+
 @media (max-width: 1180px) {
   .analysis-layout,
   .analysis-result-grid,
   .scanner-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .intel-stat-grid,
+  .intel-grid,
+  .intel-source-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -288,5 +584,17 @@ body {
   .channel-grid,
   .example-grid {
     grid-template-columns: 1fr;
+  }
+
+  .intel-shell {
+    width: min(100vw - 24px, 1180px);
+  }
+
+  .intel-hero-card,
+  .intel-section-card,
+  .intel-feed-card,
+  .intel-empty-card {
+    padding-left: 20px;
+    padding-right: 20px;
   }
 }

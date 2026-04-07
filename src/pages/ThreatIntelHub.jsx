@@ -1,7 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Activity, DatabaseZap, Globe2, Radar } from 'lucide-react'
 
 import ShareThreatActions from '../components/ShareThreatActions'
 import { apiRequest, API_BASE_URL } from '../services/api'
+
+function threatLabel(level) {
+  const value = String(level || '').toLowerCase()
+  if (!value) return 'unknown'
+  return value
+}
 
 export default function ThreatIntelHub() {
   const [sources, setSources] = useState([])
@@ -34,69 +41,124 @@ export default function ThreatIntelHub() {
     }
   }
 
+  const stats = useMemo(() => {
+    const activeSources = sources.length
+    const publishedFeed = feed.length
+    const highRisk = feed.filter((item) => ['threat', 'suspicious'].includes(String(item.threat_level || '').toLowerCase())).length
+    return { activeSources, publishedFeed, highRisk }
+  }, [feed, sources])
+
   return (
-    <section className="platform-page">
-      <div className="platform-hero split">
-        <div>
-          <p className="platform-eyebrow">Threat Intel</p>
-          <h1>Threat Intelligence Hub</h1>
-          <p>
-            Review public feeds, force a fresh collection run, and monitor the most recent published indicators.
+    <section className="intel-shell">
+      <div className="intel-hero-card fade-in">
+        <div className="intel-hero-content">
+          <div className="intel-eyebrow">
+            <span className="intel-eyebrow-dot" />
+            Public Threat Intelligence
+          </div>
+          <h1 className="intel-title">External feed collection and public indicator monitoring in one centered view.</h1>
+          <p className="intel-copy">
+            This page is shaped like an intelligence briefing hub. It is focused on public feeds, recent promoted indicators, and source visibility so anyone can understand what the platform is collecting.
+          </p>
+          <div className="intel-actions">
+            <button type="button" className="intel-button primary" onClick={collectNow} disabled={collecting}>
+              {collecting ? 'Collecting...' : 'Collect Feeds Now'}
+            </button>
+            <a className="intel-button ghost" href={`${API_BASE_URL}/api/docs`} target="_blank" rel="noreferrer">
+              Open API Docs
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {error ? <div className="intel-empty-card">{error}</div> : null}
+
+      <div className="intel-stat-grid fade-in-delay-1">
+        <article className="intel-stat-card">
+          <DatabaseZap size={20} color="#38bdf8" />
+          <div className="intel-stat-value">{stats.activeSources}</div>
+          <div className="intel-stat-label">Active Sources</div>
+          <p className="intel-stat-copy">Feeds currently exposed by the backend intelligence status endpoint.</p>
+        </article>
+        <article className="intel-stat-card">
+          <Radar size={20} color="#22c55e" />
+          <div className="intel-stat-value">{stats.publishedFeed}</div>
+          <div className="intel-stat-label">Published Indicators</div>
+          <p className="intel-stat-copy">Recent intelligence items already visible in the shared platform feed.</p>
+        </article>
+        <article className="intel-stat-card">
+          <Activity size={20} color="#fbbf24" />
+          <div className="intel-stat-value">{stats.highRisk}</div>
+          <div className="intel-stat-label">High Attention Items</div>
+          <p className="intel-stat-copy">Indicators currently marked as suspicious or threat in the public stream.</p>
+        </article>
+      </div>
+
+      <section className="intel-section-card fade-in-delay-2">
+        <div className="intel-section-head">
+          <div className="intel-eyebrow">
+            <Globe2 size={14} />
+            Feed Catalog
+          </div>
+          <h2 className="intel-section-title">Known public collection sources</h2>
+          <p className="intel-section-copy">
+            These are the feeds currently represented by the backend intelligence source status endpoint.
           </p>
         </div>
-        <button type="button" className="platform-button" onClick={collectNow} disabled={collecting}>
-          {collecting ? 'Collecting...' : 'Collect Feeds Now'}
-        </button>
-      </div>
 
-      {error && <div className="platform-alert error">{error}</div>}
-
-      <div className="platform-grid two-up">
-        <article className="platform-panel">
-          <h3>Active Sources</h3>
-          <div className="platform-list">
-            {sources.map((source) => (
-              <div key={source.name} className="platform-list-item">
-                <div>
-                  <strong>{source.name}</strong>
-                  <p>{source.type}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="platform-panel">
-          <h3>Developer Access</h3>
-          <p>OpenAPI guide: <a href={`${API_BASE_URL}/api/public/guide`} target="_blank" rel="noreferrer">/api/public/guide</a></p>
-          <p>Swagger UI: <a href={`${API_BASE_URL}/api/docs`} target="_blank" rel="noreferrer">/api/docs</a></p>
-          <p>CLI package entry point: <code>python -m trustive_cli</code></p>
-        </article>
-      </div>
+        <div className="intel-source-grid">
+          {sources.map((source) => (
+            <article key={source.name} className="intel-source-card">
+              <div className="intel-source-name">{source.name}</div>
+              <div className="intel-source-type">{source.type}</div>
+              <div className="intel-muted">Public-source collection available through the scheduled intelligence workflow.</div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       {!feed.length && !error ? (
-        <div className="platform-panel">No threat intelligence items are available yet.</div>
-      ) : null}
-
-      <div className="platform-grid">
-        {feed.slice(0, 8).map((item) => (
-          <article key={item.id} className="platform-panel">
-            <div className="platform-panel-header">
-              <div>
-                <h3>{item.indicator}</h3>
-                <p>{item.threat_type} | risk {item.risk_score}</p>
-              </div>
-              <span className={`platform-badge ${item.threat_level}`}>{item.threat_level}</span>
+        <div className="intel-empty-card">No threat intelligence items are available yet.</div>
+      ) : (
+        <section className="intel-section-card fade-in-delay-3">
+          <div className="intel-section-head">
+            <div className="intel-eyebrow">
+              <Radar size={14} />
+              Latest Intelligence
             </div>
+            <h2 className="intel-section-title">Most recent published indicators</h2>
+            <p className="intel-section-copy">
+              A centered summary of the newest indicators coming from automated collection and community promotion.
+            </p>
+          </div>
 
-            <ShareThreatActions
-              title={`${item.threat_type.toUpperCase()} indicator`}
-              summary={`Trustive AI flagged ${item.indicator} with score ${item.risk_score}.`}
-              shareUrl={`${API_BASE_URL}/community?threat=${item.id}`}
-            />
-          </article>
-        ))}
-      </div>
+          <div className="intel-grid">
+            {feed.slice(0, 8).map((item) => (
+              <article key={item.id} className="intel-feed-card">
+                <div className="intel-feed-card-header">
+                  <div style={{ display: 'grid', gap: 8 }}>
+                    <div className="intel-indicator">{item.indicator}</div>
+                    <div className="intel-meta">
+                      {item.threat_type} | risk {item.risk_score}
+                    </div>
+                  </div>
+                  <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
+                </div>
+
+                <div className="intel-summary">
+                  Trustive AI currently exposes this indicator as part of the public threat intelligence stream.
+                </div>
+
+                <ShareThreatActions
+                  title={`${String(item.threat_type || 'indicator').toUpperCase()} indicator`}
+                  summary={`Trustive AI flagged ${item.indicator} with score ${item.risk_score}.`}
+                  shareUrl={`${API_BASE_URL}/community?threat=${item.id}`}
+                />
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
     </section>
   )
 }

@@ -1,16 +1,6 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Activity,
-  ArrowRight,
-  Globe,
-  Image,
-  Radar,
-  ScanSearch,
-  Shield,
-  Sparkles,
-  Waves,
-} from 'lucide-react'
+import { ArrowRight, Globe, Image, ScanSearch, Shield, Waves } from 'lucide-react'
 import { ensureGuestSession } from '../services/api'
 
 const features = [
@@ -34,7 +24,7 @@ export default function Landing() {
 
   const enterWorkspace = async () => {
     await ensureGuestSession()
-    navigate('/dashboard')
+    navigate('/analysis')
   }
 
   return (

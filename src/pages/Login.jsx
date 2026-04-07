@@ -11,7 +11,7 @@ export default function Login() {
     setLoading(true)
     try {
       await ensureGuestSession(true)
-      navigate('/dashboard')
+      navigate('/analysis')
     } finally {
       setLoading(false)
     }

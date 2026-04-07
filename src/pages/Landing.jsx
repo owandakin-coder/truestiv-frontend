@@ -56,6 +56,7 @@ export default function Landing() {
       />
 
       <nav
+        className="landing-topbar"
         style={{
           position: 'sticky',
           top: 0,
@@ -89,13 +90,14 @@ export default function Landing() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="landing-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button className="btn btn-secondary" onClick={() => navigate('/login')}>Open Access</button>
           <button className="btn btn-primary" onClick={enterWorkspace}>Launch Workspace</button>
         </div>
       </nav>
 
       <section
+        className="landing-hero-grid"
         style={{
           position: 'relative',
           zIndex: 1,
@@ -151,7 +153,7 @@ export default function Landing() {
             </button>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
+          <div className="landing-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 14 }}>
             {stats.map((item) => (
               <div key={item.label} className="card" style={{ padding: 18 }}>
                 <div style={{ fontSize: 28, fontWeight: 900, marginBottom: 6 }}>{item.value}</div>
@@ -191,7 +193,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
+            <div className="landing-control-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
               <div className="card" style={{ padding: 18, background: 'rgba(9,17,31,0.9)' }}>
                 <div style={{ color: '#93c5fd', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.16em', marginBottom: 8 }}>Verdict Split</div>
                 <div style={{ fontSize: 36, fontWeight: 900 }}>78%</div>
@@ -228,7 +230,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
+            <div className="landing-mini-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 14 }}>
               {[
                 { icon: Radar, label: 'Live analysis', copy: 'Open' },
                 { icon: Sparkles, label: 'Media review', copy: 'Ready' },
@@ -249,7 +251,7 @@ export default function Landing() {
       </section>
 
       <section style={{ position: 'relative', zIndex: 1, maxWidth: 1360, margin: '0 auto', padding: '0 36px 72px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 18 }}>
+        <div className="landing-feature-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 18 }}>
           {features.map((feature) => {
             const Icon = feature.icon
             return (
@@ -264,6 +266,51 @@ export default function Landing() {
           })}
         </div>
       </section>
+
+      <style>{`
+        @media (max-width: 1120px) {
+          .landing-topbar {
+            padding: 18px 20px !important;
+          }
+
+          .landing-hero-grid,
+          .landing-feature-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .landing-stats-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          }
+        }
+
+        @media (max-width: 820px) {
+          .landing-topbar {
+            align-items: stretch !important;
+            gap: 14px !important;
+          }
+
+          .landing-topbar-actions {
+            width: 100%;
+            justify-content: space-between;
+          }
+
+          .landing-control-grid,
+          .landing-mini-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .landing-stats-grid,
+          .landing-feature-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .landing-topbar-actions {
+            flex-wrap: wrap;
+          }
+        }
+      `}</style>
     </div>
   )
 }

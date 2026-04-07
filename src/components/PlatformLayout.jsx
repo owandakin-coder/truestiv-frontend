@@ -56,6 +56,7 @@ function PlatformLayout() {
       <div className="grid-dots" />
 
       <nav
+        className="platform-topbar"
         style={{
           position: 'sticky',
           top: 0,
@@ -71,7 +72,7 @@ function PlatformLayout() {
           boxShadow: '0 16px 40px rgba(2,8,23,0.18)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div className="platform-topbar-brand" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div
             style={{
               width: 42,
@@ -91,7 +92,7 @@ function PlatformLayout() {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <div className="platform-topbar-nav" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           {navItems.map((item) => {
             const Icon = item.icon
             return (
@@ -120,7 +121,7 @@ function PlatformLayout() {
           })}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="platform-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <button
             type="button"
             onClick={toggleTheme}
@@ -163,15 +164,49 @@ function PlatformLayout() {
         </div>
       </nav>
 
-      <main style={{ position: 'relative', zIndex: 1, padding: '28px 32px 40px' }}>
+      <main className="platform-main" style={{ position: 'relative', zIndex: 1, padding: '28px 32px 40px' }}>
         <Outlet />
       </main>
 
       <style>{`
         @media (max-width: 1120px) {
-          nav {
-            flex-direction: column;
+          .platform-topbar {
+            padding: 16px 20px;
             align-items: stretch;
+          }
+
+          .platform-topbar-nav {
+            justify-content: flex-start;
+          }
+        }
+
+        @media (max-width: 900px) {
+          .platform-topbar {
+            gap: 14px;
+          }
+
+          .platform-topbar-nav {
+            overflow-x: auto;
+            flex-wrap: nowrap !important;
+            padding-bottom: 4px;
+          }
+
+          .platform-topbar-actions {
+            justify-content: space-between;
+          }
+
+          .platform-main {
+            padding: 22px 20px 32px !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          .platform-topbar-brand {
+            width: 100%;
+          }
+
+          .platform-topbar-actions {
+            width: 100%;
           }
         }
       `}</style>

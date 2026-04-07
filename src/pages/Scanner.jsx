@@ -173,7 +173,7 @@ export default function Scanner() {
     setPublishState({ status: 'loading', message: '' })
 
     try {
-      await api().post(
+      const response = await api().post(
         '/api/community/publish-threat',
         buildCommunityPayload({
           indicator,
@@ -184,7 +184,9 @@ export default function Scanner() {
 
       setPublishState({
         status: 'success',
-        message: 'Suspicious result published automatically to Community and Threat Intel.',
+        message: response.data?.duplicate
+          ? 'This suspicious indicator was already published earlier, so no duplicate entry was created.'
+          : 'Suspicious result published automatically to Community and Threat Intel.',
       })
     } catch (requestError) {
       setPublishState({

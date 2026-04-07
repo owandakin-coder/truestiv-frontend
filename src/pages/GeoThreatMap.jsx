@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Globe2, MapPin } from 'lucide-react'
+import { Globe2, MapPin, Radar } from 'lucide-react'
+import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
 
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
@@ -13,10 +15,10 @@ function getPalette(theme) {
     text: dark ? '#f8fafc' : '#0f172a',
     muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
     subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
-    orange: '#ff6b35',
+    blue: '#38bdf8',
     yellow: '#fbbf24',
     red: '#ff5c5c',
-    green: '#00e5a0',
+    green: '#22c55e',
   }
 }
 
@@ -24,12 +26,6 @@ function markerColor(level, palette) {
   if (level === 'threat') return palette.red
   if (level === 'suspicious') return palette.yellow
   return palette.green
-}
-
-function projectPosition(latitude, longitude) {
-  const x = ((Number(longitude) + 180) / 360) * 100
-  const y = ((90 - Number(latitude)) / 180) * 100
-  return { left: `${x}%`, top: `${y}%` }
 }
 
 export default function GeoThreatMap() {
@@ -52,12 +48,20 @@ export default function GeoThreatMap() {
     }
   }, [])
 
+  const center = useMemo(() => {
+    const withCoords = markers.filter((marker) => Number.isFinite(Number(marker.latitude)) && Number.isFinite(Number(marker.longitude)))
+    if (!withCoords.length) return [20, 0]
+    const latitude = withCoords.reduce((sum, marker) => sum + Number(marker.latitude), 0) / withCoords.length
+    const longitude = withCoords.reduce((sum, marker) => sum + Number(marker.longitude), 0) / withCoords.length
+    return [latitude, longitude]
+  }, [markers])
+
   return (
-    <div style={{ display: 'grid', gap: 20 }}>
+    <div className="map-shell">
       <section className="fade-in">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(255,107,53,0.35)' }} />
-          <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
+          <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+          <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>
             Threat Geography
           </span>
         </div>
@@ -65,81 +69,79 @@ export default function GeoThreatMap() {
           Geo <span className="gradient-text">Threat Map</span>
         </h1>
         <p style={{ color: palette.muted }}>
-          Lightweight world-map projection that keeps production builds free of extra map runtime dependencies.
+          Real-world threat locations from community indicators and recent scanned IP activity, including named cities and countries when available.
         </p>
       </section>
 
-      {error && (
+      {error ? (
         <div style={{ padding: '14px 16px', borderRadius: 18, background: 'rgba(255,92,92,0.10)', border: '1px solid rgba(255,92,92,0.18)', color: palette.red, fontWeight: 600 }}>
           {error}
         </div>
-      )}
+      ) : null}
 
-      <div className="analysis-layout">
-        <section style={{ background: palette.card, border: palette.border, borderRadius: 24, padding: 24, backdropFilter: 'blur(20px)' }}>
+      <div className="map-layout">
+        <section className="map-panel" style={{ background: palette.card, border: palette.border }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <Globe2 size={20} color={palette.orange} />
-            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>Projected World Map</h2>
+            <Globe2 size={20} color={palette.blue} />
+            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>World Map</h2>
           </div>
 
-          <div
-            style={{
-              position: 'relative',
-              minHeight: 420,
-              borderRadius: 24,
-              overflow: 'hidden',
-              background:
-                'radial-gradient(circle at 30% 30%, rgba(255,107,53,0.18), transparent 22%), radial-gradient(circle at 70% 35%, rgba(96,165,250,0.18), transparent 18%), radial-gradient(circle at 50% 65%, rgba(0,229,160,0.16), transparent 18%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
-              border: palette.border,
-            }}
-          >
-            <div style={{ position: 'absolute', inset: '12% 8%', borderRadius: '50%', border: palette.border, opacity: 0.45 }} />
-            <div style={{ position: 'absolute', inset: '22% 18%', borderRadius: '50%', border: palette.border, opacity: 0.28 }} />
-            <div style={{ position: 'absolute', inset: '35% 28%', borderRadius: '50%', border: palette.border, opacity: 0.18 }} />
-
-            {markers.map((marker) => {
-              const position = projectPosition(marker.latitude, marker.longitude)
-              const color = markerColor(marker.threat_level, palette)
-              return (
-                <div
-                  key={`${marker.indicator}-${marker.latitude}-${marker.longitude}`}
-                  title={`${marker.indicator} • ${marker.country}`}
-                  style={{
-                    position: 'absolute',
-                    ...position,
-                    transform: 'translate(-50%, -50%)',
-                    width: Math.max(12, Math.min(28, (marker.risk_score || 30) / 4)),
-                    height: Math.max(12, Math.min(28, (marker.risk_score || 30) / 4)),
-                    borderRadius: '50%',
-                    background: `${color}33`,
-                    border: `2px solid ${color}`,
-                    boxShadow: `0 0 24px ${color}66`,
-                  }}
-                />
-              )
-            })}
+          <div className="map-canvas">
+            <MapContainer center={center} zoom={2} scrollWheelZoom className="map-leaflet">
+              <TileLayer
+                attribution='&copy; OpenStreetMap contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {markers.map((marker) => {
+                const color = markerColor(marker.threat_level, palette)
+                return (
+                  <CircleMarker
+                    key={`${marker.indicator}-${marker.latitude}-${marker.longitude}`}
+                    center={[Number(marker.latitude), Number(marker.longitude)]}
+                    radius={Math.max(6, Math.min(14, Number(marker.risk_score || 24) / 8))}
+                    pathOptions={{ color, fillColor: color, fillOpacity: 0.55, weight: 2 }}
+                  >
+                    <Popup>
+                      <div style={{ minWidth: 180 }}>
+                        <strong>{marker.indicator}</strong>
+                        <div>{marker.location_name || 'Unknown location'}</div>
+                        <div>Risk: {marker.risk_score}</div>
+                        <div>Level: {marker.threat_level}</div>
+                        <div>Source: {marker.source || 'intel'}</div>
+                      </div>
+                    </Popup>
+                  </CircleMarker>
+                )
+              })}
+            </MapContainer>
           </div>
         </section>
 
-        <section style={{ background: palette.card, border: palette.border, borderRadius: 24, padding: 24, backdropFilter: 'blur(20px)' }}>
+        <section className="map-panel" style={{ background: palette.card, border: palette.border }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <MapPin size={20} color={palette.orange} />
-            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>Live Marker Feed</h2>
+            <MapPin size={20} color={palette.blue} />
+            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>Marker Feed</h2>
           </div>
-          <div style={{ display: 'grid', gap: 12 }}>
+
+          <div className="map-list">
             {markers.map((marker) => (
-              <div key={`${marker.indicator}-${marker.published_at}`} style={{ padding: 16, borderRadius: 18, background: 'rgba(255,255,255,0.03)', border: palette.border }}>
+              <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                   <strong style={{ color: palette.text }}>{marker.indicator}</strong>
                   <span style={{ color: markerColor(marker.threat_level, palette), fontWeight: 800 }}>{marker.threat_level}</span>
                 </div>
-                <p style={{ color: palette.muted, marginTop: 8 }}>{marker.city}, {marker.country}</p>
-                <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score}</p>
+                <p style={{ color: palette.muted, marginTop: 8 }}>{marker.location_name || 'Unknown location'}</p>
+                <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score} | Source: {marker.source || 'intel'}</p>
               </div>
             ))}
-            {markers.length === 0 && (
-              <p style={{ color: palette.muted }}>No markers available yet.</p>
-            )}
+            {!markers.length ? (
+              <div className="intel-empty-card" style={{ marginTop: 12 }}>
+                <Radar size={22} color={palette.blue} style={{ marginBottom: 10 }} />
+                <div style={{ color: palette.muted }}>
+                  No markers available yet. Run IP scans or wait for automated intelligence collection to surface geolocated IPs.
+                </div>
+              </div>
+            ) : null}
           </div>
         </section>
       </div>

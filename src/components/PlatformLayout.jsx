@@ -1,18 +1,16 @@
-import { useMemo, useState } from 'react'
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Globe2,
   ImageIcon,
   Moon,
   Radar,
-  RefreshCw,
   ScanSearch,
   ShieldAlert,
   Sun,
   Waves,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
-import { resetGuestSession } from '../services/api'
 
 const navItems = [
   { label: 'Analysis', path: '/analysis', icon: ShieldAlert },
@@ -25,9 +23,7 @@ const navItems = [
 
 function PlatformLayout() {
   const { theme, toggleTheme } = useTheme()
-  const [resetting, setResetting] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
 
   const surfaceColor = theme === 'dark' ? '#030712' : '#f8fafc'
   const panelColor = theme === 'dark' ? 'rgba(3,7,18,0.72)' : 'rgba(255,255,255,0.9)'
@@ -39,16 +35,6 @@ function PlatformLayout() {
     const active = navItems.find((item) => location.pathname.startsWith(item.path))
     return active?.label || 'Trustive AI'
   }, [location.pathname])
-
-  const startFreshSession = async () => {
-    setResetting(true)
-    try {
-      await resetGuestSession()
-      navigate('/analysis')
-    } finally {
-      setResetting(false)
-    }
-  }
 
   return (
     <div style={{ minHeight: '100vh', background: surfaceColor, color: textColor }}>
@@ -142,25 +128,6 @@ function PlatformLayout() {
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
 
-          <button
-            type="button"
-            onClick={startFreshSession}
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 10,
-              padding: '11px 16px',
-              borderRadius: 999,
-              border: '1px solid rgba(56,189,248,0.22)',
-              background: 'rgba(37,99,235,0.12)',
-              color: '#bae6fd',
-              cursor: resetting ? 'wait' : 'pointer',
-              fontWeight: 800,
-            }}
-          >
-            <RefreshCw size={16} style={resetting ? { animation: 'spin 0.8s linear infinite' } : undefined} />
-            <span>{resetting ? 'Refreshing...' : 'New guest session'}</span>
-          </button>
         </div>
       </nav>
 
@@ -183,16 +150,19 @@ function PlatformLayout() {
         @media (max-width: 900px) {
           .platform-topbar {
             gap: 14px;
+            flex-wrap: wrap;
           }
 
           .platform-topbar-nav {
             overflow-x: auto;
             flex-wrap: nowrap !important;
             padding-bottom: 4px;
+            width: 100%;
+            order: 3;
           }
 
           .platform-topbar-actions {
-            justify-content: space-between;
+            margin-left: auto;
           }
 
           .platform-main {
@@ -206,7 +176,7 @@ function PlatformLayout() {
           }
 
           .platform-topbar-actions {
-            width: 100%;
+            width: auto;
           }
         }
       `}</style>

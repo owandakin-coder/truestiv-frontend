@@ -11,12 +11,10 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
-import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api, getErrorMessage } from '../services/api'
+import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
-  downloadJson,
   getPrimaryIndicator,
   makeStorageList,
   readStorageList,
@@ -199,17 +197,6 @@ export default function Scanner() {
     }
   }
 
-  const exportResult = () => {
-    if (!result) return
-
-    downloadJson(`trustive-scan-${activeTab}-${Date.now()}.json`, {
-      scan_type: activeTab,
-      submitted_at: new Date().toISOString(),
-      request: form,
-      result,
-    })
-  }
-
   const loadRecentScan = (entry) => {
     setActiveTab(entry.type)
     setResult(null)
@@ -223,8 +210,6 @@ export default function Scanner() {
   }
 
   const currentExamples = examples[activeTab]
-  const shareSummary = result?.summary || `Scanner verdict for ${currentValueForTab(activeTab, form)}`
-  const shareUrl = `${API_BASE_URL}/scanner?type=${activeTab}`
   const resultLevelColor = typeColor(result?.threat_level, palette)
 
   return (
@@ -582,31 +567,6 @@ export default function Scanner() {
                     gap: 14,
                   }}
                 >
-                  <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={exportResult}
-                      style={{
-                        borderRadius: 999,
-                        padding: '12px 18px',
-                        border: palette.border,
-                        background: 'transparent',
-                        color: palette.text,
-                        fontWeight: 800,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Export JSON
-                    </button>
-                  </div>
-
-                  <ShareThreatActions
-                    title={`Trustive ${activeTab.toUpperCase()} scan`}
-                    summary={shareSummary}
-                    shareUrl={shareUrl}
-                    hashtags={['TrustiveAI', 'ThreatIntel', activeTab.toUpperCase()]}
-                  />
-
                   {publishState.message ? (
                     <div
                       style={{

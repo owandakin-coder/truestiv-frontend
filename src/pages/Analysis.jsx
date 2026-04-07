@@ -14,12 +14,10 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
-import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api, getErrorMessage } from '../services/api'
+import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
-  downloadJson,
   extractIocsFromText,
   flattenIocs,
   makeStorageList,
@@ -288,16 +286,6 @@ export default function Analysis() {
     }
   }
 
-  const exportAnalysis = () => {
-    downloadJson(`trustive-analysis-${Date.now()}.json`, {
-      request: { channel, ...form },
-      result,
-      extracted_iocs: derivedIocs,
-      ip_intelligence: ipIntel,
-      exported_at: new Date().toISOString(),
-    })
-  }
-
   const publishThreat = async () => {
     if (!result) return
     const primary = primaryIndicator(channel, form, derivedIocs)
@@ -500,11 +488,7 @@ export default function Analysis() {
                       <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                         {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
                       </button>
-                      <button type="button" onClick={exportAnalysis} style={{ borderRadius: 999, padding: '12px 18px', border: `1px solid ${borderColor}`, background: 'transparent', color: textColor, fontWeight: 800, cursor: 'pointer' }}>
-                        Export JSON
-                      </button>
                     </div>
-                    <ShareThreatActions title={`Trustive ${titleCase(channel)} analysis`} summary={result.summary} shareUrl={`${API_BASE_URL}/analysis?analysis=${result.id || 'latest'}`} hashtags={['TrustiveAI', 'ThreatIntel', titleCase(channel)]} />
                     {publishState.message ? (
                       <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
                         {publishState.message}

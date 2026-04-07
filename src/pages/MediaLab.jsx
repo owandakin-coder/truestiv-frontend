@@ -11,12 +11,10 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
-import ShareThreatActions from '../components/ShareThreatActions'
 import { useTheme } from '../components/ThemeProvider'
-import { API_BASE_URL, api, getErrorMessage } from '../services/api'
+import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
-  downloadJson,
   extractIocsFromText,
   flattenIocs,
   getPrimaryIndicator,
@@ -174,18 +172,6 @@ export default function MediaLab() {
         value: item.value,
       })
     }
-  }
-
-  const exportResult = () => {
-    if (!result) return
-    downloadJson(`trustive-media-${Date.now()}.json`, {
-      media_type: activeTab,
-      filename: file?.name,
-      result,
-      notes,
-      extracted_iocs: iocs,
-      exported_at: new Date().toISOString(),
-    })
   }
 
   const publishThreat = async () => {
@@ -467,16 +453,7 @@ export default function MediaLab() {
                     <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                       {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
                     </button>
-                    <button type="button" onClick={exportResult} style={{ borderRadius: 999, padding: '12px 18px', border: palette.border, background: 'transparent', color: palette.text, fontWeight: 800, cursor: 'pointer' }}>
-                      Export JSON
-                    </button>
                   </div>
-                  <ShareThreatActions
-                    title={`Trustive ${activeTab} media analysis`}
-                    summary={result.summary}
-                    shareUrl={`${API_BASE_URL}/scanner?media=${encodeURIComponent(file?.name || 'sample')}`}
-                    hashtags={['TrustiveAI', 'Deepfake', activeTab]}
-                  />
                   {publishState.message ? (
                     <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.orange, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>
                       {publishState.message}

@@ -1,22 +1,23 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import PlatformLayout from './components/PlatformLayout'
-import Analysis from './pages/Analysis'
-import Scanner from './pages/Scanner'
-import MediaLab from './pages/MediaLab'
-import GeoThreatMap from './pages/GeoThreatMap'
-import CommunityIntel from './pages/CommunityIntel'
-import ThreatIntelHub from './pages/ThreatIntelHub'
-import IntelTimeline from './pages/IntelTimeline'
-import IOCDetails from './pages/IOCDetails'
-import IPLookup from './pages/IPLookup'
-import SearchCenter from './pages/SearchCenter'
-import CorrelationGraph from './pages/CorrelationGraph'
-import Login from './pages/Login'
-import Register from './pages/Register'
-import Landing from './pages/Landing'
-import NotFound from './pages/NotFound'
 import { ensureGuestSession } from './services/api'
+
+const Analysis = lazy(() => import('./pages/Analysis'))
+const Scanner = lazy(() => import('./pages/Scanner'))
+const MediaLab = lazy(() => import('./pages/MediaLab'))
+const GeoThreatMap = lazy(() => import('./pages/GeoThreatMap'))
+const CommunityIntel = lazy(() => import('./pages/CommunityIntel'))
+const ThreatIntelHub = lazy(() => import('./pages/ThreatIntelHub'))
+const IntelTimeline = lazy(() => import('./pages/IntelTimeline'))
+const IOCDetails = lazy(() => import('./pages/IOCDetails'))
+const IPLookup = lazy(() => import('./pages/IPLookup'))
+const SearchCenter = lazy(() => import('./pages/SearchCenter'))
+const CorrelationGraph = lazy(() => import('./pages/CorrelationGraph'))
+const Login = lazy(() => import('./pages/Login'))
+const Register = lazy(() => import('./pages/Register'))
+const Landing = lazy(() => import('./pages/Landing'))
+const NotFound = lazy(() => import('./pages/NotFound'))
 
 function BootScreen() {
   return (
@@ -74,34 +75,36 @@ function App() {
   if (!ready) return <BootScreen />
 
   return (
-    <Routes>
-      <Route path="/" element={<Navigate to="/scanner" replace />} />
-      <Route path="/welcome" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+    <Suspense fallback={<BootScreen />}>
+      <Routes>
+        <Route path="/" element={<Navigate to="/scanner" replace />} />
+        <Route path="/welcome" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-      <Route element={<PlatformLayout />}>
-        <Route path="/analysis" element={<Analysis />} />
-        <Route path="/scanner" element={<Scanner />} />
-        <Route path="/media-lab" element={<MediaLab />} />
-        <Route path="/timeline" element={<IntelTimeline />} />
-        <Route path="/propagation" element={<GeoThreatMap />} />
-        <Route path="/ip-lookup" element={<IPLookup />} />
-        <Route path="/ip-lookup/:ip" element={<IPLookup />} />
-        <Route path="/community" element={<CommunityIntel />} />
-        <Route path="/threat-intel" element={<ThreatIntelHub />} />
-        <Route path="/search" element={<SearchCenter />} />
-        <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
-        <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
-      </Route>
+        <Route element={<PlatformLayout />}>
+          <Route path="/analysis" element={<Analysis />} />
+          <Route path="/scanner" element={<Scanner />} />
+          <Route path="/media-lab" element={<MediaLab />} />
+          <Route path="/timeline" element={<IntelTimeline />} />
+          <Route path="/propagation" element={<GeoThreatMap />} />
+          <Route path="/ip-lookup" element={<IPLookup />} />
+          <Route path="/ip-lookup/:ip" element={<IPLookup />} />
+          <Route path="/community" element={<CommunityIntel />} />
+          <Route path="/threat-intel" element={<ThreatIntelHub />} />
+          <Route path="/search" element={<SearchCenter />} />
+          <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
+          <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
+        </Route>
 
-      <Route path="/dashboard" element={<Navigate to="/analysis" replace />} />
-      <Route path="/settings" element={<Navigate to="/analysis" replace />} />
-      <Route path="/developer" element={<Navigate to="/analysis" replace />} />
-      <Route path="/notifications" element={<Navigate to="/analysis" replace />} />
-      <Route path="/app" element={<Navigate to="/analysis" replace />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="/dashboard" element={<Navigate to="/analysis" replace />} />
+        <Route path="/settings" element={<Navigate to="/analysis" replace />} />
+        <Route path="/developer" element={<Navigate to="/analysis" replace />} />
+        <Route path="/notifications" element={<Navigate to="/analysis" replace />} />
+        <Route path="/app" element={<Navigate to="/analysis" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   )
 }
 

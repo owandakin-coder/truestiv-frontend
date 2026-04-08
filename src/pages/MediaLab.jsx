@@ -42,31 +42,6 @@ function paletteFor(theme) {
   }
 }
 
-function mockMediaResult(file, mediaType) {
-  const fileName = file?.name || 'upload'
-  const suspiciousName = /(urgent|wire|invoice|secret|ceo|wallet|login)/i.test(fileName)
-  const riskScore = suspiciousName ? 68 : mediaType === 'audio' ? 42 : 31
-  const threatLevel = riskScore >= 65 ? 'threat' : riskScore >= 40 ? 'suspicious' : 'safe'
-  return {
-    filename: fileName,
-    media_type: mediaType,
-    threat_level: threatLevel,
-    risk_score: riskScore,
-    deepfake_score: mediaType === 'video' ? 71 : mediaType === 'image' ? 58 : 49,
-    ocr_text:
-      mediaType === 'image'
-        ? 'Mock OCR fallback: suspicious payment instructions detected at https://wire-approval-access.example from 185.220.101.4.'
-        : '',
-    detected_objects:
-      mediaType === 'image'
-        ? ['document', 'screen', 'text overlay']
-        : mediaType === 'video'
-          ? ['face', 'screen']
-          : ['voice'],
-    summary: `Fallback analysis for ${fileName} because the media endpoint is unavailable.`,
-  }
-}
-
 function isActionable(level) {
   return ['suspicious', 'threat', 'dangerous'].includes(String(level || '').toLowerCase())
 }
@@ -123,10 +98,10 @@ export default function MediaLab() {
       if (isActionable(data?.threat_level)) {
         await loadHistory()
       }
-    } catch {
-      const fallback = mockMediaResult(selectedFile, activeTab)
-      setResult(fallback)
-      setError('Media endpoint unavailable. Showing a local fallback preview.')
+    } catch (requestError) {
+      setResult(null)
+      setPivot({ loading: false, error: '', result: null, type: 'url', value: '' })
+      setError(getErrorMessage(requestError, 'Media analysis failed. Please try again.'))
     } finally {
       setLoading(false)
     }

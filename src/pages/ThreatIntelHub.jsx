@@ -19,33 +19,46 @@ export default function ThreatIntelHub() {
   const [error, setError] = useState('')
   const [live, setLive] = useState(true)
 
-  const loadIntel = () => {
-    Promise.all([
-      apiRequest('/api/intelligence/sources-status'),
-      apiRequest('/api/community/threats'),
-      apiRequest('/api/intelligence/trends?time_range=30d'),
-      apiRequest('/api/intelligence/jobs/status'),
-    ])
-      .then(([sourcesPayload, feedPayload, trendsPayload, jobsPayload]) => {
-        setSources(sourcesPayload.sources || [])
-        setFeed(feedPayload || [])
-        setTrends(trendsPayload || { by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
-        setJobs(jobsPayload || { jobs: [], retry_queue: [] })
-      })
-      .catch((err) => setError(err.message))
-  }
-
   useEffect(() => {
+    let active = true
+
+    const loadIntel = () => {
+      setError('')
+      Promise.all([
+        apiRequest('/api/intelligence/sources-status'),
+        apiRequest('/api/community/threats'),
+        apiRequest('/api/intelligence/trends?time_range=30d'),
+        apiRequest('/api/intelligence/jobs/status'),
+      ])
+        .then(([sourcesPayload, feedPayload, trendsPayload, jobsPayload]) => {
+          if (!active) return
+          setSources(sourcesPayload.sources || [])
+          setFeed(feedPayload || [])
+          setTrends(trendsPayload || { by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
+          setJobs(jobsPayload || { jobs: [], retry_queue: [] })
+        })
+        .catch((err) => {
+          if (active) setError(err.message)
+        })
+    }
+
     loadIntel()
-  }, [])
 
-  useEffect(() => {
-    if (!live) return undefined
+    if (!live) {
+      return () => {
+        active = false
+      }
+    }
+
     const interval = setInterval(() => {
       loadIntel()
     }, 30000)
-    return () => clearInterval(interval)
-  }, [])
+
+    return () => {
+      active = false
+      clearInterval(interval)
+    }
+  }, [live])
 
   const stats = useMemo(() => {
     const activeSources = sources.length

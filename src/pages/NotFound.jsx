@@ -49,7 +49,7 @@ export default function NotFound() {
             onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 28px rgba(255,107,53,0.5)' }}
             onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 20px rgba(255,107,53,0.35)' }}
           >
-            <Zap size={16} /> Dashboard
+            <Zap size={16} /> Scanner
           </button>
         </div>
       </div>

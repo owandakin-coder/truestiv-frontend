@@ -2,6 +2,7 @@ import axios from 'axios'
 
 const DEFAULT_LOCAL_API_URL = 'http://localhost:8000'
 const DEFAULT_PROD_API_URL = 'https://trustiveai.onrender.com'
+const GUEST_BROWSER_ID_KEY = 'trustive_guest_browser_id'
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL ||
@@ -9,6 +10,19 @@ const API_BASE_URL = (
 ).replace(/\/$/, '')
 
 let guestPromise = null
+
+function getOrCreateGuestBrowserId() {
+  const existing = localStorage.getItem(GUEST_BROWSER_ID_KEY)
+  if (existing) return existing
+
+  const generated =
+    typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `guest-${Math.random().toString(36).slice(2, 14)}`
+
+  localStorage.setItem(GUEST_BROWSER_ID_KEY, generated)
+  return generated
+}
 
 function getStoredToken() {
   return localStorage.getItem('token') || localStorage.getItem('access_token')
@@ -63,7 +77,9 @@ export async function ensureGuestSession(force = false) {
   if (guestPromise && !force) return guestPromise
 
   guestPromise = axios
-    .post(`${API_BASE_URL}/api/auth/guest`)
+    .post(`${API_BASE_URL}/api/auth/guest`, {
+      browser_id: getOrCreateGuestBrowserId(),
+    })
     .then((response) => {
       const token = response.data?.access_token
       if (!token) throw new Error('Guest session token was not returned')

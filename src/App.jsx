@@ -105,11 +105,11 @@ function App() {
           <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
         </Route>
 
-        <Route path="/dashboard" element={<Navigate to="/analysis" replace />} />
-        <Route path="/settings" element={<Navigate to="/analysis" replace />} />
-        <Route path="/developer" element={<Navigate to="/analysis" replace />} />
-        <Route path="/notifications" element={<Navigate to="/analysis" replace />} />
-        <Route path="/app" element={<Navigate to="/analysis" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/scanner" replace />} />
+        <Route path="/settings" element={<Navigate to="/scanner" replace />} />
+        <Route path="/developer" element={<Navigate to="/scanner" replace />} />
+        <Route path="/notifications" element={<Navigate to="/scanner" replace />} />
+        <Route path="/app" element={<Navigate to="/scanner" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

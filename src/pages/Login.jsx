@@ -10,8 +10,8 @@ export default function Login() {
   const enterWorkspace = async () => {
     setLoading(true)
     try {
-      await ensureGuestSession(true)
-      navigate('/analysis')
+      await ensureGuestSession()
+      navigate('/scanner')
     } finally {
       setLoading(false)
     }
@@ -50,7 +50,7 @@ export default function Login() {
             <span className="gradient-text">without an account.</span>
           </h1>
           <p style={{ color: 'rgba(191,219,254,0.74)', lineHeight: 1.8, maxWidth: 560, marginBottom: 26 }}>
-            Trustive now creates a free guest workspace automatically. Launch the dashboard,
+            Trustive now creates a free guest workspace automatically. Launch the scanner,
             run scans, analyze messages, review media, and inspect intelligence feeds instantly.
           </p>
 

@@ -567,9 +567,14 @@ body {
   gap: 16px;
 }
 
+.ip-lookup-action-grid {
+  grid-template-columns: 1fr;
+}
+
 .ip-lookup-action-card {
   grid-template-columns: auto minmax(0, 1fr);
   align-items: flex-start;
+  min-width: 0;
 }
 
 .ip-lookup-action-icon {
@@ -584,6 +589,7 @@ body {
   display: grid;
   gap: 8px;
   min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .ip-lookup-action-body strong {
@@ -594,6 +600,7 @@ body {
 .ip-lookup-action-body p {
   color: rgba(191,219,254,0.72);
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .intel-button {

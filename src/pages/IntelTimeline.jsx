@@ -42,13 +42,14 @@ export default function IntelTimeline() {
   const [stats, setStats] = useState({ total: 0, high_attention: 0, sources: [] })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [live, setLive] = useState(true)
   const [filters, setFilters] = useState({
     source: 'all',
     threat_level: 'all',
     time_range: '30d',
   })
 
-  useEffect(() => {
+  const loadTimeline = () => {
     let active = true
     setLoading(true)
     setError('')
@@ -76,7 +77,19 @@ export default function IntelTimeline() {
     return () => {
       active = false
     }
+  }
+
+  useEffect(() => {
+    return loadTimeline()
   }, [filters])
+
+  useEffect(() => {
+    if (!live) return undefined
+    const interval = setInterval(() => {
+      loadTimeline()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [live, filters])
 
   return (
     <section className="intel-shell">
@@ -90,6 +103,9 @@ export default function IntelTimeline() {
           <p className="intel-copy">
             This timeline is the shared operational surface for Trustive AI. It helps you move from the newest event to the full IOC context without bouncing between pages.
           </p>
+          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+            {live ? 'Live refresh on' : 'Live refresh off'}
+          </button>
         </div>
       </div>
 
@@ -196,6 +212,15 @@ export default function IntelTimeline() {
                     <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>
                       {item.summary}
                     </p>
+                    {item.actor_tags?.length ? (
+                      <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
+                        {item.actor_tags.slice(0, 3).map((tag) => (
+                          <span key={tag.tag} className="intel-tag-chip">
+                            {tag.tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                   <div className="intel-meta">{item.ioc_type || item.event_type}</div>
                   <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
@@ -203,6 +228,9 @@ export default function IntelTimeline() {
                     <span className="platform-badge" style={{ color: accent, borderColor: `${accent}33`, background: `${accent}12` }}>
                       {item.threat_level || 'unknown'}
                     </span>
+                    <div style={{ marginTop: 8, color: palette.subtle, fontSize: 12 }}>
+                      {item.source_confidence_label || 'moderate'} confidence
+                    </div>
                   </div>
                   <div>
                     {path ? (

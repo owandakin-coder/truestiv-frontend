@@ -15,20 +15,36 @@ export default function ThreatIntelHub() {
   const [sources, setSources] = useState([])
   const [feed, setFeed] = useState([])
   const [trends, setTrends] = useState({ by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
+  const [jobs, setJobs] = useState({ jobs: [], retry_queue: [] })
   const [error, setError] = useState('')
+  const [live, setLive] = useState(true)
 
-  useEffect(() => {
+  const loadIntel = () => {
     Promise.all([
       apiRequest('/api/intelligence/sources-status'),
       apiRequest('/api/community/threats'),
       apiRequest('/api/intelligence/trends?time_range=30d'),
+      apiRequest('/api/intelligence/jobs/status'),
     ])
-      .then(([sourcesPayload, feedPayload, trendsPayload]) => {
+      .then(([sourcesPayload, feedPayload, trendsPayload, jobsPayload]) => {
         setSources(sourcesPayload.sources || [])
         setFeed(feedPayload || [])
         setTrends(trendsPayload || { by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
+        setJobs(jobsPayload || { jobs: [], retry_queue: [] })
       })
       .catch((err) => setError(err.message))
+  }
+
+  useEffect(() => {
+    loadIntel()
+  }, [])
+
+  useEffect(() => {
+    if (!live) return undefined
+    const interval = setInterval(() => {
+      loadIntel()
+    }, 30000)
+    return () => clearInterval(interval)
   }, [])
 
   const stats = useMemo(() => {
@@ -50,6 +66,9 @@ export default function ThreatIntelHub() {
           <p className="intel-copy">
             This page is shaped like an intelligence briefing hub. It is focused on public feeds, recent promoted indicators, and source visibility so anyone can understand what the platform is collecting.
           </p>
+          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+            {live ? 'Live refresh on' : 'Live refresh off'}
+          </button>
         </div>
       </div>
 
@@ -129,6 +148,71 @@ export default function ThreatIntelHub() {
               </div>
             ))}
           </article>
+        </div>
+      </section>
+
+      <section className="intel-section-card fade-in-delay-2">
+        <div className="intel-section-head">
+          <div className="intel-eyebrow">
+            <DatabaseZap size={14} />
+            Background Jobs
+          </div>
+          <h2 className="intel-section-title">What succeeded, what failed, and what is waiting in retry</h2>
+          <p className="intel-section-copy">
+            This operational panel tracks the automated feed collection jobs and the retry queue behind the intelligence stream.
+          </p>
+        </div>
+
+        <div className="intel-grid-two">
+          {(jobs.jobs || []).map((item) => (
+            <article key={item.job_name} className="intel-detail-card">
+              <div className="intel-detail-label">{item.job_name}</div>
+              <div className="intel-detail-value">{item.status}</div>
+              <p className="intel-detail-copy">
+                Last run: {item.finished_at || item.started_at || 'Unknown'}
+              </p>
+              <p className="intel-detail-copy">
+                {item.message || 'No message'} {item.stats?.saved !== undefined ? `| saved ${item.stats.saved}` : ''}
+              </p>
+            </article>
+          ))}
+          <article className="intel-detail-card">
+            <div className="intel-detail-label">Retry Queue</div>
+            <div className="intel-detail-value">{(jobs.retry_queue || []).length}</div>
+            <div className="intel-tag-wrap">
+              {(jobs.retry_queue || []).slice(0, 6).map((item) => (
+                <span key={item.id} className="intel-tag-chip">
+                  {item.source} attempt {item.attempts}
+                </span>
+              ))}
+              {!jobs.retry_queue?.length ? <span className="intel-detail-copy">Retry queue is currently empty.</span> : null}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section className="intel-section-card fade-in-delay-2">
+        <div className="intel-section-head">
+          <div className="intel-eyebrow">
+            <DatabaseZap size={14} />
+            Source Confidence
+          </div>
+          <h2 className="intel-section-title">Weighted reliability by source</h2>
+          <p className="intel-section-copy">
+            Not all sources are treated equally. These weights help Trustive AI score findings more realistically.
+          </p>
+        </div>
+        <div className="intel-grid-two">
+          {sources.map((item) => (
+            <article key={item.key || item.name} className="intel-detail-card">
+              <div className="intel-detail-label">{item.name}</div>
+              <div className="intel-detail-value">{Math.round(Number(item.confidence_score || 0) * 100)}%</div>
+              <p className="intel-detail-copy">
+                {item.confidence_label || 'moderate'} confidence | {item.status}
+              </p>
+              {item.last_error ? <p className="intel-detail-copy">{item.last_error}</p> : null}
+            </article>
+          ))}
         </div>
       </section>
 

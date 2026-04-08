@@ -10,6 +10,7 @@ import ThreatIntelHub from './pages/ThreatIntelHub'
 import IntelTimeline from './pages/IntelTimeline'
 import IOCDetails from './pages/IOCDetails'
 import SearchCenter from './pages/SearchCenter'
+import CorrelationGraph from './pages/CorrelationGraph'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Landing from './pages/Landing'
@@ -88,6 +89,7 @@ function App() {
         <Route path="/threat-intel" element={<ThreatIntelHub />} />
         <Route path="/search" element={<SearchCenter />} />
         <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
+        <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
       </Route>
 
       <Route path="/dashboard" element={<Navigate to="/analysis" replace />} />

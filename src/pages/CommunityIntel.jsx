@@ -15,8 +15,9 @@ export default function CommunityIntel() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [live, setLive] = useState(true)
 
-  useEffect(() => {
+  const loadFeed = () => {
     let mounted = true
     apiRequest('/api/community/threats')
       .then((payload) => {
@@ -32,7 +33,21 @@ export default function CommunityIntel() {
     return () => {
       mounted = false
     }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    const cleanup = loadFeed()
+    return cleanup
   }, [])
+
+  useEffect(() => {
+    if (!live) return undefined
+    const interval = setInterval(() => {
+      loadFeed()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [live])
 
   const stats = useMemo(() => {
     const total = items.length
@@ -53,6 +68,9 @@ export default function CommunityIntel() {
           <p className="intel-copy">
             This page is designed as a public-facing intelligence board for anyone using Trustive AI. It keeps the community feed centered, readable, and easy to scan without requiring private analyst context.
           </p>
+          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+            {live ? 'Live refresh on' : 'Live refresh off'}
+          </button>
         </div>
       </div>
 

@@ -73,8 +73,12 @@ export default function GeoThreatMap() {
   const palette = useMemo(() => getPalette(theme), [theme])
   const [markers, setMarkers] = useState([])
   const [facets, setFacets] = useState({ sources: [], countries: [], threat_levels: [] })
+  const [playbackPoints, setPlaybackPoints] = useState([])
+  const [playbackIndex, setPlaybackIndex] = useState(-1)
+  const [countryDetails, setCountryDetails] = useState({ country: '', items: [] })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
+  const [live, setLive] = useState(true)
   const [filters, setFilters] = useState({
     source: 'all',
     country: 'all',
@@ -82,7 +86,7 @@ export default function GeoThreatMap() {
     time_range: '30d',
   })
 
-  useEffect(() => {
+  const loadMap = () => {
     let active = true
     setLoading(true)
     setError('')
@@ -93,6 +97,7 @@ export default function GeoThreatMap() {
         if (!active) return
         setMarkers(data.markers || [])
         setFacets(data.facets || { sources: [], countries: [], threat_levels: [] })
+        setPlaybackPoints(data.playback_points || [])
       })
       .catch((requestError) => {
         if (active) setError(getErrorMessage(requestError, 'Failed to load geo map'))
@@ -103,17 +108,57 @@ export default function GeoThreatMap() {
     return () => {
       active = false
     }
+  }
+
+  useEffect(() => {
+    return loadMap()
   }, [filters])
 
+  useEffect(() => {
+    if (!live) return undefined
+    const interval = setInterval(() => {
+      loadMap()
+    }, 30000)
+    return () => clearInterval(interval)
+  }, [live, filters])
+
+  const playbackMarkers = useMemo(() => {
+    if (playbackIndex < 0 || !playbackPoints.length) return markers
+    const threshold = playbackPoints[Math.min(playbackIndex, playbackPoints.length - 1)]
+    return markers.filter((marker) => String(marker.published_at || '').slice(0, 10) <= threshold)
+  }, [markers, playbackIndex, playbackPoints])
+
   const center = useMemo(() => {
-    const withCoords = markers.filter((marker) => Number.isFinite(Number(marker.latitude)) && Number.isFinite(Number(marker.longitude)))
+    const withCoords = playbackMarkers.filter((marker) => Number.isFinite(Number(marker.latitude)) && Number.isFinite(Number(marker.longitude)))
     if (!withCoords.length) return [20, 0]
     const latitude = withCoords.reduce((sum, marker) => sum + Number(marker.latitude), 0) / withCoords.length
     const longitude = withCoords.reduce((sum, marker) => sum + Number(marker.longitude), 0) / withCoords.length
     return [latitude, longitude]
-  }, [markers])
+  }, [playbackMarkers])
 
-  const mapMarkers = useMemo(() => clusterMarkers(markers), [markers])
+  const mapMarkers = useMemo(() => clusterMarkers(playbackMarkers), [playbackMarkers])
+  const countryFlows = useMemo(() => {
+    const counts = {}
+    playbackMarkers.forEach((marker) => {
+      const key = marker.country || 'Unknown'
+      counts[key] = (counts[key] || 0) + 1
+    })
+    return Object.entries(counts)
+      .map(([country, count]) => ({ country, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6)
+  }, [playbackMarkers])
+
+  const openCountry = async (country) => {
+    try {
+      const { data } = await api().get('/api/intelligence/geo-map/country-drilldown', {
+        params: { country, time_range: filters.time_range },
+      })
+      setCountryDetails({ country, items: data.items || [] })
+    } catch (requestError) {
+      setError(getErrorMessage(requestError, 'Failed to load country drilldown'))
+    }
+  }
 
   return (
     <div className="map-shell">
@@ -130,6 +175,11 @@ export default function GeoThreatMap() {
         <p style={{ color: palette.muted }}>
           Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
         </p>
+        <div style={{ marginTop: 16 }}>
+          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+            {live ? 'Live refresh on' : 'Live refresh off'}
+          </button>
+        </div>
       </section>
 
       <section className="map-panel fade-in-delay-1" style={{ background: palette.card, border: palette.border }}>
@@ -183,6 +233,22 @@ export default function GeoThreatMap() {
             </select>
           </label>
         </div>
+        {playbackPoints.length ? (
+          <div style={{ marginTop: 18 }}>
+            <div className="intel-detail-label" style={{ marginBottom: 10 }}>Time Playback</div>
+            <input
+              type="range"
+              min="-1"
+              max={Math.max(playbackPoints.length - 1, 0)}
+              value={playbackIndex}
+              onChange={(event) => setPlaybackIndex(Number(event.target.value))}
+              style={{ width: '100%' }}
+            />
+            <div style={{ marginTop: 8, color: palette.muted }}>
+              {playbackIndex < 0 ? 'Showing all available periods' : `Showing activity up to ${playbackPoints[playbackIndex]}`}
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {error ? (
@@ -248,7 +314,7 @@ export default function GeoThreatMap() {
               </div>
             ) : null}
             {!loading &&
-              markers.map((marker) => (
+              playbackMarkers.map((marker) => (
                 <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                     <strong style={{ color: palette.text }}>{marker.indicator}</strong>
@@ -256,6 +322,11 @@ export default function GeoThreatMap() {
                   </div>
                   <p style={{ color: palette.muted, marginTop: 8 }}>{marker.location_name || 'Unknown location'}</p>
                   <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score} | Source: {marker.source || 'intel'}</p>
+                  {marker.country ? (
+                    <button type="button" onClick={() => openCountry(marker.country)} className="intel-inline-link" style={{ marginTop: 10 }}>
+                      Drill into {marker.country}
+                    </button>
+                  ) : null}
                   {marker.details_path ? (
                     <Link className="intel-inline-link" style={{ marginTop: 10, display: 'inline-flex' }} to={marker.details_path}>
                       IOC details
@@ -274,6 +345,69 @@ export default function GeoThreatMap() {
           </div>
         </section>
       </div>
+
+      <section className="intel-section-card fade-in-delay-2">
+        <div className="intel-section-head">
+          <div className="intel-eyebrow">
+            <Radar size={14} />
+            Threat Flow
+          </div>
+          <h2 className="intel-section-title">Animated flow across countries</h2>
+          <p className="intel-section-copy">
+            A lightweight flow view that highlights where the current playback window is concentrating the highest amount of threat activity.
+          </p>
+        </div>
+        <div className="intel-grid-two">
+          {countryFlows.map((item) => (
+            <article key={item.country} className="intel-detail-card intel-flow-card">
+              <div className="intel-detail-label">Threat flow</div>
+              <div className="intel-detail-value">{item.country}</div>
+              <div className="intel-flow-line">
+                <div className="intel-flow-pulse" />
+              </div>
+              <p className="intel-detail-copy">{item.count} active markers in the current playback window.</p>
+              <button type="button" className="intel-inline-link" onClick={() => openCountry(item.country)}>
+                Country drilldown
+              </button>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {countryDetails.items.length ? (
+        <section className="intel-section-card fade-in-delay-3">
+          <div className="intel-section-head">
+            <div className="intel-eyebrow">
+              <MapPin size={14} />
+              Country Drilldown
+            </div>
+            <h2 className="intel-section-title">{countryDetails.country}</h2>
+            <p className="intel-section-copy">
+              Indicators and events currently tied to the selected country and time range.
+            </p>
+          </div>
+          <div className="intel-feed-list">
+            {countryDetails.items.map((item) => (
+              <article key={`${item.indicator}-${item.published_at}`} className="intel-feed-row intel-feed-row-wide">
+                <div className="intel-feed-row-main">
+                  <div className="intel-indicator">{item.indicator}</div>
+                  <div className="intel-feed-row-meta">{item.location_name} | {String(item.source || 'intel').toUpperCase()}</div>
+                </div>
+                <div className="intel-meta">{item.ioc_type}</div>
+                <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
+                <div>
+                  <span className="platform-badge" style={{ color: markerColor(item.threat_level, palette), borderColor: `${markerColor(item.threat_level, palette)}33`, background: `${markerColor(item.threat_level, palette)}12` }}>
+                    {item.threat_level}
+                  </span>
+                </div>
+                <div>
+                  {item.details_path ? <Link className="intel-inline-link" to={item.details_path}>IOC details</Link> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </div>
   )
 }

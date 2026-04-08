@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
@@ -116,7 +116,45 @@ export default function IOCDetails() {
               <div className="intel-stat-label">Matched Contexts</div>
               <p className="intel-stat-copy">Total findings tied to this indicator across Trustive AI.</p>
             </article>
+            <article className="intel-stat-card">
+              <Globe2 size={20} color={palette.blue} />
+              <div className="intel-stat-value">{Math.round(Number(ioc.source_confidence || 0) * 100)}%</div>
+              <div className="intel-stat-label">Source Confidence</div>
+              <p className="intel-stat-copy">Weighted reliability score derived from the contributing intelligence sources.</p>
+            </article>
           </div>
+
+          <Section
+            title="Confidence and tagging"
+            eyebrow={<><ShieldAlert size={14} /> Source confidence</>}
+            copy="Trustive AI weights different sources differently so risk is not treated as equally reliable in every context."
+          >
+            <div className="intel-grid-two">
+              <article className="intel-detail-card">
+                <div className="intel-detail-label">Confidence Model</div>
+                <div className="intel-detail-value">{ioc.source_confidence_label || 'moderate'}</div>
+                <p className="intel-detail-copy">
+                  Composite source confidence: {Math.round(Number(ioc.source_confidence || 0) * 100)}%
+                </p>
+              </article>
+              <article className="intel-detail-card">
+                <div className="intel-detail-label">Threat Actor Tags</div>
+                <div className="intel-tag-wrap">
+                  {(ioc.threat_actor_tags || []).map((item) => (
+                    <span key={item.tag} className="intel-tag-chip">
+                      {item.tag} {Math.round(Number(item.confidence || 0) * 100)}%
+                    </span>
+                  ))}
+                  {!ioc.threat_actor_tags?.length ? <span className="intel-detail-copy">No actor tags inferred yet.</span> : null}
+                </div>
+              </article>
+            </div>
+            <div style={{ marginTop: 20 }}>
+              <Link className="intel-inline-link" to={`/correlation/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`}>
+                Open correlation graph
+              </Link>
+            </div>
+          </Section>
 
           {ioc.geo ? (
             <Section

@@ -7,7 +7,7 @@ export function useTheme() {
 }
 
 export default function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark')
+  const theme = 'dark'
   const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue')
 
   const accentMap = {
@@ -40,11 +40,7 @@ export default function ThemeProvider({ children }) {
     document.documentElement.style.setProperty('--accent-purple', colors.secondary)
   }, [accent])
 
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark'
-    setTheme(next)
-    localStorage.setItem('theme', next)
-  }
+  const toggleTheme = () => {}
 
   const changeAccent = (value) => {
     setAccent(value)

@@ -72,6 +72,7 @@ export default function GeoThreatMap() {
   const { theme } = useTheme()
   const palette = useMemo(() => getPalette(theme), [theme])
   const [markers, setMarkers] = useState([])
+  const [feedMarkers, setFeedMarkers] = useState([])
   const [facets, setFacets] = useState({ sources: [], countries: [], threat_levels: [] })
   const [playbackPoints, setPlaybackPoints] = useState([])
   const [playbackIndex, setPlaybackIndex] = useState(-1)
@@ -113,6 +114,29 @@ export default function GeoThreatMap() {
   useEffect(() => {
     return loadMap()
   }, [filters])
+
+  useEffect(() => {
+    let active = true
+    api()
+      .get('/api/intelligence/geo-map', {
+        params: {
+          source: 'all',
+          country: 'all',
+          threat_level: 'all',
+          time_range: filters.time_range,
+          limit: 120,
+        },
+      })
+      .then(({ data }) => {
+        if (active) setFeedMarkers(data.markers || [])
+      })
+      .catch(() => {
+        if (active) setFeedMarkers([])
+      })
+    return () => {
+      active = false
+    }
+  }, [filters.time_range, live])
 
   useEffect(() => {
     if (!live) return undefined
@@ -306,15 +330,18 @@ export default function GeoThreatMap() {
             <MapPin size={20} color={palette.blue} />
             <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>Marker Feed</h2>
           </div>
+          <p style={{ color: palette.muted, marginBottom: 16, lineHeight: 1.7 }}>
+            This feed stays populated from the latest available markers and does not require you to apply filters first.
+          </p>
 
           <div className="map-list">
             {loading ? (
               <div className="intel-empty-card" style={{ marginTop: 12 }}>
-                Loading filtered threat markers...
+                Loading marker feed...
               </div>
             ) : null}
             {!loading &&
-              playbackMarkers.map((marker) => (
+              feedMarkers.map((marker) => (
                 <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                     <strong style={{ color: palette.text }}>{marker.indicator}</strong>
@@ -334,11 +361,11 @@ export default function GeoThreatMap() {
                   ) : null}
                 </div>
               ))}
-            {!loading && !markers.length ? (
+            {!loading && !feedMarkers.length ? (
               <div className="intel-empty-card" style={{ marginTop: 12 }}>
                 <Radar size={22} color={palette.blue} style={{ marginBottom: 10 }} />
                 <div style={{ color: palette.muted }}>
-                  No markers available for the current filters. Try widening the time range or running more IP scans.
+                  No marker feed entries are available yet. Run more IP scans or wait for more public intelligence to be collected.
                 </div>
               </div>
             ) : null}

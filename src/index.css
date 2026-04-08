@@ -412,6 +412,10 @@ body {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.ip-lookup-stat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .intel-grid {
   grid-template-columns: 1fr;
 }
@@ -425,6 +429,10 @@ body {
   border-radius: 24px;
   padding: 22px;
   backdrop-filter: blur(16px);
+  display: grid;
+  gap: 14px;
+  text-decoration: none;
+  color: #eff6ff;
 }
 
 .intel-stat-card {
@@ -551,6 +559,41 @@ body {
   flex-wrap: wrap;
   gap: 12px;
   justify-content: center;
+}
+
+.intel-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.ip-lookup-action-card {
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: flex-start;
+}
+
+.ip-lookup-action-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+}
+
+.ip-lookup-action-body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ip-lookup-action-body strong {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.ip-lookup-action-body p {
+  color: rgba(191,219,254,0.72);
+  line-height: 1.7;
 }
 
 .intel-button {
@@ -897,6 +940,10 @@ body {
     grid-template-columns: 1fr;
     justify-items: start;
   }
+
+  .ip-lookup-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 860px) {
@@ -930,6 +977,27 @@ body {
   .intel-empty-card {
     padding-left: 20px;
     padding-right: 20px;
+  }
+
+  .intel-title {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    line-height: 1.05;
+  }
+
+  .intel-copy,
+  .intel-section-copy,
+  .intel-stat-copy,
+  .intel-muted {
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  .intel-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ip-lookup-action-card {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1033,5 +1101,15 @@ body {
   .intel-detail-grid,
   .intel-provider-grid {
     grid-template-columns: 1fr;
+  }
+
+  .ip-lookup-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-input,
+  .analysis-textarea,
+  .input {
+    font-size: 16px;
   }
 }

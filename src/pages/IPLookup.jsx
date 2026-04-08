@@ -159,7 +159,7 @@ export default function IPLookup() {
 
       {!loading && lookup ? (
         <>
-          <div className="intel-stat-grid fade-in-delay-1">
+          <div className="intel-stat-grid ip-lookup-stat-grid fade-in-delay-1">
             <StatCard
               icon={ShieldAlert}
               label="Threat Level"
@@ -399,24 +399,30 @@ export default function IPLookup() {
               </p>
             </div>
 
-            <div className="intel-action-grid">
-              <Link to={`/scanner`} className="intel-action-card">
-                <ScanSearch size={18} color={palette.blue} />
-                <div>
+            <div className="intel-action-grid ip-lookup-action-grid">
+              <Link to={`/scanner`} className="intel-action-card ip-lookup-action-card">
+                <div className="ip-lookup-action-icon" style={{ background: 'rgba(37,99,235,0.12)', color: palette.blue }}>
+                  <ScanSearch size={18} color={palette.blue} />
+                </div>
+                <div className="ip-lookup-action-body">
                   <strong>Open Scanner</strong>
                   <p>Run a fresh enriched IP scan and compare the result with this dossier.</p>
                 </div>
               </Link>
-              <Link to={pivots.correlation_path || '#'} className="intel-action-card">
-                <Waypoints size={18} color={palette.cyan} />
-                <div>
+              <Link to={pivots.correlation_path || '#'} className="intel-action-card ip-lookup-action-card">
+                <div className="ip-lookup-action-icon" style={{ background: 'rgba(34,211,238,0.12)', color: palette.cyan }}>
+                  <Waypoints size={18} color={palette.cyan} />
+                </div>
+                <div className="ip-lookup-action-body">
                   <strong>Open Correlation Graph</strong>
                   <p>See how this IP connects to scans, publications, analyses, media, and actor tags.</p>
                 </div>
               </Link>
-              <Link to="/propagation" className="intel-action-card">
-                <Globe2 size={18} color={palette.green} />
-                <div>
+              <Link to="/propagation" className="intel-action-card ip-lookup-action-card">
+                <div className="ip-lookup-action-icon" style={{ background: 'rgba(34,197,94,0.12)', color: palette.green }}>
+                  <Globe2 size={18} color={palette.green} />
+                </div>
+                <div className="ip-lookup-action-body">
                   <strong>Open Threat Map</strong>
                   <p>Pivot into the geographic layer to compare this IP with other active infrastructure markers.</p>
                 </div>

@@ -99,8 +99,17 @@ export function buildIocPath(type, indicator) {
 }
 
 export function buildIpLookupPath(indicator) {
-  if (!indicator) return '/ip-lookup'
-  return `/ip-lookup/${encodeURIComponent(indicator)}`
+  if (!indicator) return '/lookup-center/ip'
+  return `/lookup-center/ip/${encodeURIComponent(indicator)}`
+}
+
+export function buildDomainLookupPath(indicator) {
+  if (!indicator) return '/lookup-center/domain'
+  return `/lookup-center/domain/${encodeURIComponent(indicator)}`
+}
+
+export function buildHeaderAnalyzerPath() {
+  return '/lookup-center/email-header'
 }
 
 export function formatRelativeDate(value) {

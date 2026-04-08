@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import PlatformLayout from './components/PlatformLayout'
 import { ensureGuestSession } from './services/api'
 
@@ -11,7 +11,7 @@ const CommunityIntel = lazy(() => import('./pages/CommunityIntel'))
 const ThreatIntelHub = lazy(() => import('./pages/ThreatIntelHub'))
 const IntelTimeline = lazy(() => import('./pages/IntelTimeline'))
 const IOCDetails = lazy(() => import('./pages/IOCDetails'))
-const IPLookup = lazy(() => import('./pages/IPLookup'))
+const LookupCenter = lazy(() => import('./pages/LookupCenter'))
 const SearchCenter = lazy(() => import('./pages/SearchCenter'))
 const CorrelationGraph = lazy(() => import('./pages/CorrelationGraph'))
 const Login = lazy(() => import('./pages/Login'))
@@ -57,6 +57,11 @@ function BootScreen() {
   )
 }
 
+function LegacyIpLookupRedirect() {
+  const { ip = '' } = useParams()
+  return <Navigate to={ip ? `/lookup-center/ip/${encodeURIComponent(ip)}` : '/lookup-center/ip'} replace />
+}
+
 function App() {
   const [ready, setReady] = useState(false)
 
@@ -84,13 +89,16 @@ function App() {
 
         <Route element={<PlatformLayout />}>
           <Route path="/analysis" element={<Analysis />} />
-          <Route path="/scanner" element={<Scanner />} />
-          <Route path="/media-lab" element={<MediaLab />} />
-          <Route path="/timeline" element={<IntelTimeline />} />
-          <Route path="/propagation" element={<GeoThreatMap />} />
-          <Route path="/ip-lookup" element={<IPLookup />} />
-          <Route path="/ip-lookup/:ip" element={<IPLookup />} />
-          <Route path="/community" element={<CommunityIntel />} />
+        <Route path="/scanner" element={<Scanner />} />
+        <Route path="/media-lab" element={<MediaLab />} />
+        <Route path="/timeline" element={<IntelTimeline />} />
+        <Route path="/propagation" element={<GeoThreatMap />} />
+        <Route path="/lookup-center" element={<LookupCenter />} />
+        <Route path="/lookup-center/:mode" element={<LookupCenter />} />
+        <Route path="/lookup-center/:mode/:indicator" element={<LookupCenter />} />
+        <Route path="/ip-lookup" element={<LegacyIpLookupRedirect />} />
+        <Route path="/ip-lookup/:ip" element={<LegacyIpLookupRedirect />} />
+        <Route path="/community" element={<CommunityIntel />} />
           <Route path="/threat-intel" element={<ThreatIntelHub />} />
           <Route path="/search" element={<SearchCenter />} />
           <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />

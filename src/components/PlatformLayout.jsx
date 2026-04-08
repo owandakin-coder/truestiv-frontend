@@ -21,7 +21,7 @@ const navItems = [
   { label: 'Media Lab', path: '/media-lab', icon: ImageIcon },
   { label: 'Timeline', path: '/timeline', icon: Activity },
   { label: 'Threat Map', path: '/propagation', icon: Globe2 },
-  { label: 'IP Lookup', path: '/ip-lookup', icon: MapPinned },
+  { label: 'Lookup Center', path: '/lookup-center', icon: MapPinned },
   { label: 'Community', path: '/community', icon: Radar },
   { label: 'Threat Intel', path: '/threat-intel', icon: ShieldAlert },
   { label: 'Search', path: '/search', icon: Search },

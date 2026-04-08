@@ -932,3 +932,106 @@ body {
     padding-right: 20px;
   }
 }
+
+.intel-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 24px;
+}
+
+.intel-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.intel-mini-list {
+  display: grid;
+  gap: 16px;
+}
+
+.intel-mini-item {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.14);
+}
+
+.intel-pill-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(56,189,248,0.2);
+  background: rgba(37,99,235,0.08);
+  color: #38bdf8;
+  text-decoration: none;
+  font-weight: 800;
+}
+
+.intel-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.intel-provider-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.14);
+}
+
+.intel-provider-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 66px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.18);
+  background: rgba(255,255,255,0.03);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.intel-empty-inline {
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(148,163,184,0.14);
+  color: rgba(191,219,254,0.74);
+}
+
+[data-theme="light"] .intel-mini-item,
+[data-theme="light"] .intel-provider-card,
+[data-theme="light"] .intel-empty-inline {
+  background: rgba(248,250,252,0.96);
+  color: #475569;
+  border-color: rgba(15,23,42,0.08);
+}
+
+@media (max-width: 1040px) {
+  .intel-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .intel-detail-grid,
+  .intel-provider-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .intel-detail-grid,
+  .intel-provider-grid {
+    grid-template-columns: 1fr;
+  }
+}

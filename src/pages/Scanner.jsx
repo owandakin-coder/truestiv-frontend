@@ -7,6 +7,7 @@ import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
+  buildIpLookupPath,
   buildIocPath,
   formatRelativeDate,
   getPrimaryIndicator,
@@ -199,6 +200,10 @@ export default function Scanner() {
   const detailPath = result
     ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
     : ''
+  const ipLookupPath =
+    activeTab === 'ip' && result
+      ? buildIpLookupPath(getPrimaryIndicator('ip', result, currentValueForTab('ip', form)))
+      : ''
 
   return (
     <div style={{ position: 'relative' }}>
@@ -480,21 +485,40 @@ export default function Scanner() {
                         <span style={{ color: palette.subtle, fontSize: 13 }}>
                           {formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => navigate(entry.details_path)}
-                          style={{
-                            borderRadius: 999,
-                            border: '1px solid rgba(56,189,248,0.2)',
-                            background: 'rgba(37,99,235,0.08)',
-                            color: palette.blue,
-                            padding: '8px 12px',
-                            cursor: 'pointer',
-                            fontWeight: 700,
-                          }}
-                        >
-                          IOC details
-                        </button>
+                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                          {entry.scan_type === 'ip' ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(buildIpLookupPath(entry.indicator))}
+                              style={{
+                                borderRadius: 999,
+                                border: '1px solid rgba(34,211,238,0.2)',
+                                background: 'rgba(34,211,238,0.08)',
+                                color: '#22d3ee',
+                                padding: '8px 12px',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                              }}
+                            >
+                              IP lookup
+                            </button>
+                          ) : null}
+                          <button
+                            type="button"
+                            onClick={() => navigate(entry.details_path)}
+                            style={{
+                              borderRadius: 999,
+                              border: '1px solid rgba(56,189,248,0.2)',
+                              background: 'rgba(37,99,235,0.08)',
+                              color: palette.blue,
+                              padding: '8px 12px',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                            }}
+                          >
+                            IOC details
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -565,23 +589,42 @@ export default function Scanner() {
                       <Radar size={16} color={palette.blue} />
                       <span className="analysis-meta-label">Workflow</span>
                     </div>
-                    {detailPath ? (
-                      <button
-                        type="button"
-                        onClick={() => navigate(detailPath)}
-                        style={{
-                          borderRadius: 999,
-                          border: '1px solid rgba(56,189,248,0.2)',
-                          background: 'rgba(37,99,235,0.08)',
-                          color: palette.blue,
-                          padding: '10px 14px',
-                          cursor: 'pointer',
-                          fontWeight: 800,
-                        }}
-                      >
-                        Open IOC details
-                      </button>
-                    ) : null}
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {ipLookupPath ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(ipLookupPath)}
+                          style={{
+                            borderRadius: 999,
+                            border: '1px solid rgba(34,211,238,0.2)',
+                            background: 'rgba(34,211,238,0.08)',
+                            color: '#22d3ee',
+                            padding: '10px 14px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                          }}
+                        >
+                          Open IP lookup
+                        </button>
+                      ) : null}
+                      {detailPath ? (
+                        <button
+                          type="button"
+                          onClick={() => navigate(detailPath)}
+                          style={{
+                            borderRadius: 999,
+                            border: '1px solid rgba(56,189,248,0.2)',
+                            background: 'rgba(37,99,235,0.08)',
+                            color: palette.blue,
+                            padding: '10px 14px',
+                            cursor: 'pointer',
+                            fontWeight: 800,
+                          }}
+                        >
+                          Open IOC details
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
 
                   {publishState.message ? (

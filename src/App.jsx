@@ -9,6 +9,7 @@ import CommunityIntel from './pages/CommunityIntel'
 import ThreatIntelHub from './pages/ThreatIntelHub'
 import IntelTimeline from './pages/IntelTimeline'
 import IOCDetails from './pages/IOCDetails'
+import IPLookup from './pages/IPLookup'
 import SearchCenter from './pages/SearchCenter'
 import CorrelationGraph from './pages/CorrelationGraph'
 import Login from './pages/Login'
@@ -85,6 +86,8 @@ function App() {
         <Route path="/media-lab" element={<MediaLab />} />
         <Route path="/timeline" element={<IntelTimeline />} />
         <Route path="/propagation" element={<GeoThreatMap />} />
+        <Route path="/ip-lookup" element={<IPLookup />} />
+        <Route path="/ip-lookup/:ip" element={<IPLookup />} />
         <Route path="/community" element={<CommunityIntel />} />
         <Route path="/threat-intel" element={<ThreatIntelHub />} />
         <Route path="/search" element={<SearchCenter />} />

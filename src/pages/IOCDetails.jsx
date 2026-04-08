@@ -4,7 +4,7 @@ import { Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
-import { formatRelativeDate } from '../utils/intelTools'
+import { buildIpLookupPath, formatRelativeDate } from '../utils/intelTools'
 
 function paletteFor(theme) {
   const dark = theme !== 'light'
@@ -150,9 +150,16 @@ export default function IOCDetails() {
               </article>
             </div>
             <div style={{ marginTop: 20 }}>
-              <Link className="intel-inline-link" to={`/correlation/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`}>
-                Open correlation graph
-              </Link>
+              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                <Link className="intel-inline-link" to={`/correlation/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`}>
+                  Open correlation graph
+                </Link>
+                {iocType === 'ip' ? (
+                  <Link className="intel-inline-link" to={buildIpLookupPath(indicator)}>
+                    Open IP lookup
+                  </Link>
+                ) : null}
+              </div>
             </div>
           </Section>
 

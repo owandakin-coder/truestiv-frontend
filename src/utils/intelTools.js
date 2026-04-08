@@ -98,6 +98,11 @@ export function buildIocPath(type, indicator) {
   return `/ioc/${encodeURIComponent(type)}/${encodeURIComponent(indicator)}`
 }
 
+export function buildIpLookupPath(indicator) {
+  if (!indicator) return '/ip-lookup'
+  return `/ip-lookup/${encodeURIComponent(indicator)}`
+}
+
 export function formatRelativeDate(value) {
   if (!value) return 'Unknown time'
   try {

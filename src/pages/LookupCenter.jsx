@@ -111,6 +111,16 @@ function LookupCenter() {
   }, [activeMode, indicator])
 
   useEffect(() => {
+    setError('')
+    if (activeMode !== 'ip') setIpPayload(null)
+    if (activeMode !== 'domain') setDomainPayload(null)
+    if (activeMode !== 'email-header') setHeaderPayload(null)
+    if (activeMode === 'email-header' || !indicator) {
+      setLoading(false)
+    }
+  }, [activeMode, indicator])
+
+  useEffect(() => {
     if (activeMode !== 'ip' || !indicator) {
       if (activeMode === 'ip') setIpPayload(null)
       return

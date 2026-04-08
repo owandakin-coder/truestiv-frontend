@@ -29,6 +29,43 @@ function markerColor(level, palette) {
   return palette.green
 }
 
+function clusterMarkers(markers) {
+  if (!markers.length) return []
+  if (markers.length < 30) return markers.map((marker) => ({ ...marker, cluster_count: 1 }))
+
+  const buckets = new Map()
+  markers.forEach((marker) => {
+    const lat = Number(marker.latitude)
+    const lng = Number(marker.longitude)
+    const key = `${lat.toFixed(1)}:${lng.toFixed(1)}`
+    const current = buckets.get(key)
+    if (!current) {
+      buckets.set(key, {
+        ...marker,
+        latitude: lat,
+        longitude: lng,
+        cluster_count: 1,
+        indicators: [marker.indicator],
+      })
+      return
+    }
+
+    current.cluster_count += 1
+    current.indicators.push(marker.indicator)
+    current.risk_score = Math.max(Number(current.risk_score || 0), Number(marker.risk_score || 0))
+    if (String(marker.threat_level || '').toLowerCase() === 'threat') current.threat_level = 'threat'
+    else if (
+      String(marker.threat_level || '').toLowerCase() === 'suspicious' &&
+      String(current.threat_level || '').toLowerCase() !== 'threat'
+    ) {
+      current.threat_level = 'suspicious'
+    }
+    current.source = current.cluster_count > 1 ? 'clustered' : current.source
+    current.details_path = current.cluster_count > 1 ? '' : current.details_path
+  })
+  return Array.from(buckets.values())
+}
+
 const timeRanges = ['24h', '7d', '30d', '90d', 'all']
 
 export default function GeoThreatMap() {
@@ -75,6 +112,8 @@ export default function GeoThreatMap() {
     const longitude = withCoords.reduce((sum, marker) => sum + Number(marker.longitude), 0) / withCoords.length
     return [latitude, longitude]
   }, [markers])
+
+  const mapMarkers = useMemo(() => clusterMarkers(markers), [markers])
 
   return (
     <div className="map-shell">
@@ -165,22 +204,23 @@ export default function GeoThreatMap() {
                 attribution="&copy; OpenStreetMap contributors"
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              {markers.map((marker) => {
+              {mapMarkers.map((marker) => {
                 const color = markerColor(marker.threat_level, palette)
                 return (
                   <CircleMarker
-                    key={`${marker.indicator}-${marker.latitude}-${marker.longitude}`}
+                    key={`${marker.indicator}-${marker.latitude}-${marker.longitude}-${marker.cluster_count || 1}`}
                     center={[Number(marker.latitude), Number(marker.longitude)]}
-                    radius={Math.max(6, Math.min(14, Number(marker.risk_score || 24) / 8))}
+                    radius={Math.max(6, Math.min(18, Number(marker.risk_score || 24) / 8 + Math.min((marker.cluster_count || 1) - 1, 4)))}
                     pathOptions={{ color, fillColor: color, fillOpacity: 0.55, weight: 2 }}
                   >
                     <Popup>
                       <div style={{ minWidth: 200 }}>
-                        <strong>{marker.indicator}</strong>
+                        <strong>{marker.cluster_count > 1 ? `${marker.cluster_count} indicators clustered` : marker.indicator}</strong>
                         <div>{marker.location_name || 'Unknown location'}</div>
                         <div>Risk: {marker.risk_score}</div>
                         <div>Level: {marker.threat_level}</div>
                         <div>Source: {marker.source || 'intel'}</div>
+                        {marker.cluster_count > 1 ? <div>Examples: {(marker.indicators || []).slice(0, 3).join(', ')}</div> : null}
                         {marker.details_path ? (
                           <a href={marker.details_path} style={{ display: 'inline-block', marginTop: 8 }}>
                             Open IOC details

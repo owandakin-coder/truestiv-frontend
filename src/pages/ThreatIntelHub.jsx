@@ -14,16 +14,19 @@ function threatLabel(level) {
 export default function ThreatIntelHub() {
   const [sources, setSources] = useState([])
   const [feed, setFeed] = useState([])
+  const [trends, setTrends] = useState({ by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
   const [error, setError] = useState('')
 
   useEffect(() => {
     Promise.all([
       apiRequest('/api/intelligence/sources-status'),
       apiRequest('/api/community/threats'),
+      apiRequest('/api/intelligence/trends?time_range=30d'),
     ])
-      .then(([sourcesPayload, feedPayload]) => {
+      .then(([sourcesPayload, feedPayload, trendsPayload]) => {
         setSources(sourcesPayload.sources || [])
         setFeed(feedPayload || [])
+        setTrends(trendsPayload || { by_source: [], by_country: [], by_ioc_type: [], timeline: [] })
       })
       .catch((err) => setError(err.message))
   }, [])
@@ -43,7 +46,7 @@ export default function ThreatIntelHub() {
             <span className="intel-eyebrow-dot" />
             Public Threat Intelligence
           </div>
-          <h1 className="intel-title">External feed collection and public indicator monitoring in one centered view.</h1>
+          <h1 className="intel-title">External feed collection and public indicator monitoring<br />in one centered view.</h1>
           <p className="intel-copy">
             This page is shaped like an intelligence briefing hub. It is focused on public feeds, recent promoted indicators, and source visibility so anyone can understand what the platform is collecting.
           </p>
@@ -73,10 +76,66 @@ export default function ThreatIntelHub() {
         </article>
       </div>
 
+      <section className="intel-section-card fade-in-delay-2">
+        <div className="intel-section-head">
+          <div className="intel-eyebrow">
+            <Activity size={14} />
+            Threat Trends
+          </div>
+          <h2 className="intel-section-title">High-signal patterns by source, country, type, and time</h2>
+          <p className="intel-section-copy">
+            These trend views are built only from suspicious and threat findings so the charts stay operationally useful.
+          </p>
+        </div>
+
+        <div className="intel-grid-two">
+          <article className="intel-detail-card">
+            <div className="intel-detail-label">Top Sources</div>
+            {(trends.by_source || []).slice(0, 5).map((item) => (
+              <div key={item.label} className="intel-bar-row">
+                <span>{item.label}</span>
+                <div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 10)}%` }} /></div>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </article>
+          <article className="intel-detail-card">
+            <div className="intel-detail-label">Top Countries</div>
+            {(trends.by_country || []).slice(0, 5).map((item) => (
+              <div key={item.label} className="intel-bar-row">
+                <span>{item.label}</span>
+                <div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </article>
+          <article className="intel-detail-card">
+            <div className="intel-detail-label">IOC Types</div>
+            {(trends.by_ioc_type || []).slice(0, 5).map((item) => (
+              <div key={item.label} className="intel-bar-row">
+                <span>{item.label}</span>
+                <div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </article>
+          <article className="intel-detail-card">
+            <div className="intel-detail-label">Recent Timeline</div>
+            {(trends.timeline || []).slice(-5).map((item) => (
+              <div key={item.label} className="intel-bar-row">
+                <span>{item.label}</span>
+                <div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 16)}%` }} /></div>
+                <strong>{item.count}</strong>
+              </div>
+            ))}
+          </article>
+        </div>
+      </section>
+
       {!feed.length && !error ? (
         <div className="intel-empty-card">No threat intelligence items are available yet.</div>
       ) : (
-        <section className="intel-section-card fade-in-delay-2">
+        <section className="intel-section-card fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
               <Radar size={14} />

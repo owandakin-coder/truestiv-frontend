@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { useMemo, useState } from 'react'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
+  Search,
   Globe2,
   ImageIcon,
   Moon,
@@ -21,11 +22,14 @@ const navItems = [
   { label: 'Threat Map', path: '/propagation', icon: Globe2 },
   { label: 'Community', path: '/community', icon: Radar },
   { label: 'Threat Intel', path: '/threat-intel', icon: ShieldAlert },
+  { label: 'Search', path: '/search', icon: Search },
 ]
 
 function PlatformLayout() {
   const { theme, toggleTheme } = useTheme()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [query, setQuery] = useState('')
 
   const surfaceColor = theme === 'dark' ? '#030712' : '#f8fafc'
   const panelColor = theme === 'dark' ? 'rgba(3,7,18,0.72)' : 'rgba(255,255,255,0.9)'
@@ -37,6 +41,13 @@ function PlatformLayout() {
     const active = navItems.find((item) => location.pathname.startsWith(item.path))
     return active?.label || 'Trustive AI'
   }, [location.pathname])
+
+  const submitSearch = (event) => {
+    event.preventDefault()
+    const normalized = query.trim()
+    if (!normalized) return
+    navigate(`/search?q=${encodeURIComponent(normalized)}`)
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: surfaceColor, color: textColor }}>
@@ -110,6 +121,41 @@ function PlatformLayout() {
         </div>
 
         <div className="platform-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <form onSubmit={submitSearch} className="platform-search" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search IOC, hash, domain..."
+              style={{
+                width: 220,
+                maxWidth: '100%',
+                padding: '10px 14px',
+                borderRadius: 999,
+                border: `1px solid ${borderColor}`,
+                background: 'rgba(15,23,42,0.58)',
+                color: textColor,
+                outline: 'none',
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 42,
+                height: 42,
+                borderRadius: 999,
+                border: `1px solid ${borderColor}`,
+                background: 'rgba(37,99,235,0.12)',
+                color: '#bae6fd',
+                cursor: 'pointer',
+              }}
+              aria-label="Search intelligence"
+            >
+              <Search size={16} />
+            </button>
+          </form>
           <button
             type="button"
             onClick={toggleTheme}
@@ -147,6 +193,10 @@ function PlatformLayout() {
           .platform-topbar-nav {
             justify-content: flex-start;
           }
+
+          .platform-search input {
+            width: 180px !important;
+          }
         }
 
         @media (max-width: 900px) {
@@ -165,10 +215,20 @@ function PlatformLayout() {
 
           .platform-topbar-actions {
             margin-left: auto;
+            width: 100%;
+            justify-content: space-between;
           }
 
           .platform-main {
             padding: 22px 20px 32px !important;
+          }
+
+          .platform-search {
+            flex: 1;
+          }
+
+          .platform-search input {
+            width: 100% !important;
           }
         }
 
@@ -178,7 +238,7 @@ function PlatformLayout() {
           }
 
           .platform-topbar-actions {
-            width: auto;
+            width: 100%;
           }
         }
       `}</style>

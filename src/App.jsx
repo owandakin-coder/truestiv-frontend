@@ -9,6 +9,7 @@ import CommunityIntel from './pages/CommunityIntel'
 import ThreatIntelHub from './pages/ThreatIntelHub'
 import IntelTimeline from './pages/IntelTimeline'
 import IOCDetails from './pages/IOCDetails'
+import SearchCenter from './pages/SearchCenter'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Landing from './pages/Landing'
@@ -85,6 +86,7 @@ function App() {
         <Route path="/propagation" element={<GeoThreatMap />} />
         <Route path="/community" element={<CommunityIntel />} />
         <Route path="/threat-intel" element={<ThreatIntelHub />} />
+        <Route path="/search" element={<SearchCenter />} />
         <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
       </Route>
 

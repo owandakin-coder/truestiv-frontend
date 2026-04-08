@@ -1,16 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import {
-  FileText,
-  Globe,
-  Hash,
-  Link2,
-  Radar,
-  Search,
-  Shield,
-  Sparkles,
-  Zap,
-} from 'lucide-react'
+import { FileText, Globe, Hash, Link2, Radar, Search, Shield, Sparkles, Zap } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
 import { useTheme } from '../components/ThemeProvider'
@@ -28,21 +18,6 @@ const tabs = [
   { id: 'hash', label: 'HASH', icon: Hash },
   { id: 'file', label: 'File', icon: FileText },
 ]
-
-const examples = {
-  url: [
-    'https://paypa1-security-check.example/login',
-    'http://verify-amazon-access.example',
-    'https://google.com',
-  ],
-  ip: ['185.220.101.42', '198.199.100.1', '8.8.8.8'],
-  hash: [
-    '44d88612fea8a8f36de82e1278abb02f',
-    '3395856ce81f2b7382dee72602f798b642f14140',
-    'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
-  ],
-  file: ['invoice_payment.exe', 'report.docm', 'archive.zip'],
-}
 
 const initialState = {
   url: '',
@@ -220,7 +195,6 @@ export default function Scanner() {
     if (entry.scan_type === 'file') updateField('filename', entry.indicator)
   }
 
-  const currentExamples = examples[activeTab]
   const resultLevelColor = typeColor(String(result?.threat_level || '').toLowerCase(), palette)
   const detailPath = result
     ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
@@ -404,37 +378,6 @@ export default function Scanner() {
                 </label>
               </div>
             )}
-
-            <div style={{ marginTop: 22 }}>
-              <span className="analysis-meta-label">Example Inputs</span>
-              <div className="example-grid" style={{ marginTop: 14 }}>
-                {currentExamples.map((example) => (
-                  <button
-                    key={example}
-                    type="button"
-                    onClick={() => {
-                      if (activeTab === 'url') updateField('url', example)
-                      if (activeTab === 'ip') updateField('ip', example)
-                      if (activeTab === 'hash') updateField('hash', example)
-                      if (activeTab === 'file') updateField('filename', example)
-                    }}
-                    style={{
-                      borderRadius: 18,
-                      padding: '12px 14px',
-                      border: palette.border,
-                      background: palette.cardStrong,
-                      color: palette.muted,
-                      textAlign: 'left',
-                      cursor: 'pointer',
-                      fontFamily: activeTab === 'file' ? 'Inter, sans-serif' : 'JetBrains Mono, monospace',
-                      wordBreak: 'break-word',
-                    }}
-                  >
-                    {example}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <button
               type="button"

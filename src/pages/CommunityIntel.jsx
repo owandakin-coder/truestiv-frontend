@@ -49,7 +49,7 @@ export default function CommunityIntel() {
             <span className="intel-eyebrow-dot" />
             Public Community Intelligence
           </div>
-          <h1 className="intel-title">Open threat submissions, promoted findings, and shared public indicators.</h1>
+          <h1 className="intel-title">Open threat submissions, promoted findings,<br />and shared public indicators.</h1>
           <p className="intel-copy">
             This page is designed as a public-facing intelligence board for anyone using Trustive AI. It keeps the community feed centered, readable, and easy to scan without requiring private analyst context.
           </p>

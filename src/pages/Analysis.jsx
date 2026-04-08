@@ -32,25 +32,6 @@ const channelOptions = [
   { id: 'whatsapp', label: 'WhatsApp', icon: Phone },
 ]
 
-const quickScenarios = {
-  email: {
-    sender: 'payroll@secure-mail-alerts.net',
-    subject: 'Urgent bank detail change request',
-    content:
-      'Please update the CEO salary payment account before 17:00 today. Use IP 185.220.101.4 for the secure portal at https://wire-approval-access.example and confirm by reply.',
-  },
-  sms: {
-    phone: '+1 202 555 0117',
-    content:
-      'Your package is on hold. Confirm delivery at https://parcel-check-secure.com immediately or it will be returned.',
-  },
-  whatsapp: {
-    phone: '+1 202 555 0151',
-    content:
-      'Hi, this is finance. I need you to review the attached transfer details now. Server fallback is 45.83.64.22 if the main portal fails.',
-  },
-}
-
 const emptyResultText = 'Run an analysis to generate an AI-backed verdict.'
 
 function toneFor(level) {
@@ -198,17 +179,6 @@ export default function Analysis() {
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
-  const loadExample = () => {
-    const preset = quickScenarios[channel]
-    setForm((current) => ({
-      ...current,
-      sender: preset.sender || '',
-      subject: preset.subject || '',
-      phone: preset.phone || '',
-      content: preset.content || '',
-    }))
-  }
-
   const saveLocalHistory = (normalized) => {
     const next = makeStorageList(
       'trustive_analysis_history',
@@ -347,9 +317,6 @@ export default function Analysis() {
                   <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Intake</div>
                   <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Run Analysis</h2>
                 </div>
-                <button type="button" onClick={loadExample} style={{ borderRadius: 999, border: '1px solid rgba(56,189,248,0.24)', background: 'rgba(37,99,235,0.1)', color: '#bae6fd', padding: '10px 16px', fontWeight: 700, cursor: 'pointer' }}>
-                  Load Example
-                </button>
               </div>
 
               <div className="channel-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>

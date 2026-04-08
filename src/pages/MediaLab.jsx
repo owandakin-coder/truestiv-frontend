@@ -18,9 +18,7 @@ import {
   extractIocsFromText,
   flattenIocs,
   getPrimaryIndicator,
-  makeStorageList,
   normalizeThreatLevel,
-  readStorageList,
 } from '../utils/intelTools'
 
 const mediaTabs = [
@@ -69,6 +67,10 @@ function mockMediaResult(file, mediaType) {
   }
 }
 
+function isActionable(level) {
+  return ['suspicious', 'threat', 'dangerous'].includes(String(level || '').toLowerCase())
+}
+
 export default function MediaLab() {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
@@ -89,8 +91,17 @@ export default function MediaLab() {
     localStorage.setItem('trustive_media_notes', notes)
   }, [notes])
 
+  const loadHistory = async () => {
+    try {
+      const { data } = await api().get('/api/media/history')
+      setHistory(data?.items || [])
+    } catch {
+      setHistory([])
+    }
+  }
+
   useEffect(() => {
-    setHistory(readStorageList('trustive_media_history'))
+    loadHistory()
   }, [])
 
   const runAnalysis = async (selectedFile) => {
@@ -105,39 +116,16 @@ export default function MediaLab() {
     payload.append('file', selectedFile)
 
     try {
-      const { data } = await api().post('/api/scanner/analyze-media', payload, {
+      const { data } = await api().post('/api/media/analyze', payload, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setResult(data)
-      const stored = makeStorageList(
-        'trustive_media_history',
-        {
-          id: crypto.randomUUID(),
-          filename: selectedFile.name,
-          media_type: activeTab,
-          threat_level: data?.threat_level || 'unknown',
-          summary: data?.summary || '',
-          created_at: new Date().toISOString(),
-        },
-        8
-      )
-      setHistory(stored)
+      if (isActionable(data?.threat_level)) {
+        await loadHistory()
+      }
     } catch {
       const fallback = mockMediaResult(selectedFile, activeTab)
       setResult(fallback)
-      const stored = makeStorageList(
-        'trustive_media_history',
-        {
-          id: crypto.randomUUID(),
-          filename: selectedFile.name,
-          media_type: activeTab,
-          threat_level: fallback.threat_level,
-          summary: fallback.summary,
-          created_at: new Date().toISOString(),
-        },
-        8
-      )
-      setHistory(stored)
       setError('Media endpoint unavailable. Showing a local fallback preview.')
     } finally {
       setLoading(false)
@@ -336,7 +324,7 @@ export default function MediaLab() {
               </div>
               {!history.length ? (
                 <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>
-                  Recent uploads are saved locally so you can revisit recurring forensic samples quickly.
+                  Recent media runs appear here only when they are suspicious or malicious.
                 </p>
               ) : (
                 <div style={{ display: 'grid', gap: 10 }}>

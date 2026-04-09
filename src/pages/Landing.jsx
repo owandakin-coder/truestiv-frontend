@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Globe, Image, ScanSearch, Shield, Waves } from 'lucide-react'
-import { ensureGuestSession } from '../services/api'
+import { Activity, ArrowRight, Globe, Image, Radar, ScanSearch, Shield, Sparkles, Waves } from 'lucide-react'
+import { prewarmGuestSession } from '../services/api'
 
 const features = [
   { icon: Shield, title: 'AI message defense', copy: 'Analyze email, SMS, and WhatsApp content with instant verdicts and threat context.' },
@@ -22,9 +22,9 @@ export default function Landing() {
     []
   )
 
-  const enterWorkspace = async () => {
-    await ensureGuestSession()
-    navigate('/analysis')
+  const enterWorkspace = () => {
+    prewarmGuestSession()
+    navigate('/scanner')
   }
 
   return (
@@ -148,8 +148,8 @@ export default function Landing() {
             <button className="btn btn-primary" onClick={enterWorkspace} style={{ padding: '15px 28px', fontSize: 15 }}>
               Launch Free Workspace <ArrowRight size={16} />
             </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/analysis')} style={{ padding: '15px 28px', fontSize: 15 }}>
-              Explore Analysis
+            <button className="btn btn-secondary" onClick={() => navigate('/scanner')} style={{ padding: '15px 28px', fontSize: 15 }}>
+              Explore Scanner
             </button>
           </div>
 

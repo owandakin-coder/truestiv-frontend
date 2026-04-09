@@ -1,20 +1,13 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowRight, Shield, Sparkles, Waves } from 'lucide-react'
-import { ensureGuestSession } from '../services/api'
+import { prewarmGuestSession } from '../services/api'
 
 export default function Login() {
   const navigate = useNavigate()
-  const [loading, setLoading] = useState(false)
 
-  const enterWorkspace = async () => {
-    setLoading(true)
-    try {
-      await ensureGuestSession()
-      navigate('/scanner')
-    } finally {
-      setLoading(false)
-    }
+  const enterWorkspace = () => {
+    prewarmGuestSession()
+    navigate('/scanner')
   }
 
   return (
@@ -67,8 +60,8 @@ export default function Login() {
             ))}
           </div>
 
-          <button className="btn btn-primary" onClick={enterWorkspace} disabled={loading} style={{ padding: '16px 26px', fontSize: 15 }}>
-            {loading ? 'Preparing workspace...' : 'Launch free workspace'}
+          <button className="btn btn-primary" onClick={enterWorkspace} style={{ padding: '16px 26px', fontSize: 15 }}>
+            Launch free workspace
             <ArrowRight size={16} />
           </button>
         </section>

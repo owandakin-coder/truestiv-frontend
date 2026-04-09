@@ -93,6 +93,12 @@ export async function ensureGuestSession(force = false) {
   return guestPromise
 }
 
+export function prewarmGuestSession() {
+  const existing = getStoredToken()
+  if (existing || guestPromise) return
+  ensureGuestSession().catch(() => {})
+}
+
 export async function resetGuestSession() {
   clearToken()
   return ensureGuestSession(true)

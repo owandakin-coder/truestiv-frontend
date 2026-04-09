@@ -1,10 +1,10 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import PlatformLayout from './components/PlatformLayout'
-import { ensureGuestSession } from './services/api'
+import Scanner from './pages/Scanner'
+import { prewarmGuestSession } from './services/api'
 
 const Analysis = lazy(() => import('./pages/Analysis'))
-const Scanner = lazy(() => import('./pages/Scanner'))
 const MediaLab = lazy(() => import('./pages/MediaLab'))
 const GeoThreatMap = lazy(() => import('./pages/GeoThreatMap'))
 const CommunityIntel = lazy(() => import('./pages/CommunityIntel'))
@@ -63,21 +63,9 @@ function LegacyIpLookupRedirect() {
 }
 
 function App() {
-  const [ready, setReady] = useState(false)
-
   useEffect(() => {
-    let mounted = true
-    ensureGuestSession()
-      .catch(() => {})
-      .finally(() => {
-        if (mounted) setReady(true)
-      })
-    return () => {
-      mounted = false
-    }
+    prewarmGuestSession()
   }, [])
-
-  if (!ready) return <BootScreen />
 
   return (
     <Suspense fallback={<BootScreen />}>
@@ -89,16 +77,16 @@ function App() {
 
         <Route element={<PlatformLayout />}>
           <Route path="/analysis" element={<Analysis />} />
-        <Route path="/scanner" element={<Scanner />} />
-        <Route path="/media-lab" element={<MediaLab />} />
-        <Route path="/timeline" element={<IntelTimeline />} />
-        <Route path="/propagation" element={<GeoThreatMap />} />
-        <Route path="/lookup-center" element={<LookupCenter />} />
-        <Route path="/lookup-center/:mode" element={<LookupCenter />} />
-        <Route path="/lookup-center/:mode/:indicator" element={<LookupCenter />} />
-        <Route path="/ip-lookup" element={<LegacyIpLookupRedirect />} />
-        <Route path="/ip-lookup/:ip" element={<LegacyIpLookupRedirect />} />
-        <Route path="/community" element={<CommunityIntel />} />
+          <Route path="/scanner" element={<Scanner />} />
+          <Route path="/media-lab" element={<MediaLab />} />
+          <Route path="/timeline" element={<IntelTimeline />} />
+          <Route path="/propagation" element={<GeoThreatMap />} />
+          <Route path="/lookup-center" element={<LookupCenter />} />
+          <Route path="/lookup-center/:mode" element={<LookupCenter />} />
+          <Route path="/lookup-center/:mode/:indicator" element={<LookupCenter />} />
+          <Route path="/ip-lookup" element={<LegacyIpLookupRedirect />} />
+          <Route path="/ip-lookup/:ip" element={<LegacyIpLookupRedirect />} />
+          <Route path="/community" element={<CommunityIntel />} />
           <Route path="/threat-intel" element={<ThreatIntelHub />} />
           <Route path="/search" element={<SearchCenter />} />
           <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />

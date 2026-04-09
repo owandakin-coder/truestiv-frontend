@@ -57,14 +57,9 @@ export default function MediaLab({ embedded = false }) {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [notes, setNotes] = useState(localStorage.getItem('trustive_media_notes') || '')
   const [history, setHistory] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
-
-  useEffect(() => {
-    localStorage.setItem('trustive_media_notes', notes)
-  }, [notes])
 
   const loadHistory = async () => {
     try {
@@ -289,11 +284,6 @@ export default function MediaLab({ embedded = false }) {
               }}
             />
 
-            <label className="analysis-field" style={{ marginTop: 20 }}>
-              <span>Analyst Notes</span>
-              <textarea value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Capture confidence notes, object anomalies, or follow-up actions." rows={4} className="analysis-textarea" />
-            </label>
-
             <div style={{ marginTop: 20, padding: 18, borderRadius: 20, border: palette.border, background: palette.cardStrong }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <Zap size={16} color={palette.orange} />
@@ -409,7 +399,7 @@ export default function MediaLab({ embedded = false }) {
 
                 <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 14 }}>
                     <div>
-                      <div className="analysis-meta-label">Analyst Actions</div>
+                      <div className="analysis-meta-label">Public Actions</div>
                       <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
                         Promote the strongest media sample to community intelligence when it reveals useful public indicators.
                       </div>

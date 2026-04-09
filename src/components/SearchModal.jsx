@@ -1,18 +1,16 @@
 import { useState, useEffect, useRef } from 'react'
-import { Search, Shield, ScanLine, Users, Globe, BarChart2, Map, Bell, Settings, ArrowRight, X, Activity, Newspaper } from 'lucide-react'
+import { Search, Shield, ScanLine, Globe, Map, ArrowRight, X, Activity, Newspaper, Waypoints } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 const pages = [
-  { label: 'Dashboard', path: '/', icon: <BarChart2 size={16} />, desc: 'Security overview and stats', color: '#ff6b35' },
-  { label: 'Analysis', path: '/analysis', icon: <Shield size={16} />, desc: 'Analyze emails and messages', color: '#ff3b3b' },
-  { label: 'Scanner', path: '/scanner', icon: <ScanLine size={16} />, desc: 'URL, IP and file scanning', color: '#a78bfa' },
-  { label: 'Threat Map', path: '/propagation', icon: <Map size={16} />, desc: 'Threat propagation visualization', color: '#3b82f6' },
-  { label: 'Contacts', path: '/contacts', icon: <Users size={16} />, desc: 'Manage trusted contacts', color: '#00e5a0' },
-  { label: 'Community', path: '/community', icon: <Globe size={16} />, desc: 'Community threat feed', color: '#fbbf24' },
-  { label: 'Notifications', path: '/notifications', icon: <Bell size={16} />, desc: 'Alert center', color: '#ff6b35' },
-  { label: 'Settings', path: '/settings', icon: <Settings size={16} />, desc: 'Account and preferences', color: '#64748b' },
-  { label: 'Performance', path: '/performance', icon: <Activity size={16} />, desc: 'System metrics and AI performance', color: '#00e5a0' },
-  { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Threat insights and triage board', color: '#f97316' },
+  { label: 'Investigation Center', path: '/investigation-center/scanner', icon: <ScanLine size={16} />, desc: 'Scanner, message analysis, media lab, and bulk IOC triage', color: '#38bdf8' },
+  { label: 'Message Analysis', path: '/investigation-center/analysis', icon: <Shield size={16} />, desc: 'Analyze suspicious emails, SMS, and WhatsApp messages', color: '#60a5fa' },
+  { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Public feeds, recurring indicators, and incident briefs', color: '#f97316' },
+  { label: 'Timeline', path: '/timeline', icon: <Activity size={16} />, desc: 'Unified feed of public intelligence events', color: '#22c55e' },
+  { label: 'Threat Map', path: '/propagation', icon: <Map size={16} />, desc: 'Geographic threat propagation and markers', color: '#3b82f6' },
+  { label: 'Lookup Center', path: '/lookup-center', icon: <Waypoints size={16} />, desc: 'IP, domain, and email header investigation', color: '#22d3ee' },
+  { label: 'Community', path: '/community', icon: <Globe size={16} />, desc: 'Public community intelligence feed', color: '#fbbf24' },
+  { label: 'Campaign Clusters', path: '/campaign-clusters', icon: <Newspaper size={16} />, desc: 'Grouped public campaigns and incident clusters', color: '#a78bfa' },
 ]
 
 export default function SearchModal({ open, onClose }) {

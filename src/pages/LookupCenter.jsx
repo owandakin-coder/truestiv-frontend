@@ -328,7 +328,7 @@ function LookupCenter() {
                 </p>
               </div>
               <div className="intel-action-grid ip-lookup-action-grid">
-                <Link to="/scanner" className="intel-action-card ip-lookup-action-card">
+                <Link to="/investigation-center/scanner" className="intel-action-card ip-lookup-action-card">
                   <div className="ip-lookup-action-icon" style={{ background: 'rgba(37,99,235,0.12)' }}>
                     <ScanSearch size={18} color={palette.blue} />
                   </div>

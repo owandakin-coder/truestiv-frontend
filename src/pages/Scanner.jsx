@@ -109,7 +109,6 @@ export default function Scanner({ embedded = false }) {
     }
   }
 
-  useEffect(() => { loadHistory() }, [])
   useEffect(() => {
     setResult(null)
     setError('')

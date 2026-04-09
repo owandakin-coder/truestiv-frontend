@@ -7,7 +7,7 @@ export default function Login() {
 
   const enterWorkspace = () => {
     prewarmGuestSession()
-    navigate('/scanner')
+    navigate('/investigation-center/scanner')
   }
 
   return (

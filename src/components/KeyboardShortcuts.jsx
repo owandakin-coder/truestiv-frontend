@@ -4,18 +4,19 @@ import { Keyboard, X } from 'lucide-react'
 
 const shortcuts = [
   { keys: ['Ctrl', 'K'], action: 'Open Search', category: 'Navigation' },
-  { keys: ['G', 'D'], action: 'Go to Dashboard', category: 'Navigation' },
-  { keys: ['G', 'A'], action: 'Go to Analysis', category: 'Navigation' },
+  { keys: ['G', 'I'], action: 'Go to Investigation Center', category: 'Navigation' },
+  { keys: ['G', 'A'], action: 'Go to Message Analysis', category: 'Navigation' },
   { keys: ['G', 'S'], action: 'Go to Scanner', category: 'Navigation' },
+  { keys: ['G', 'M'], action: 'Go to Media Lab', category: 'Navigation' },
+  { keys: ['G', 'L'], action: 'Go to Lookup Center', category: 'Navigation' },
   { keys: ['G', 'C'], action: 'Go to Community', category: 'Navigation' },
-  { keys: ['G', 'N'], action: 'Go to Notifications', category: 'Navigation' },
-  { keys: ['G', 'P'], action: 'Go to Performance', category: 'Navigation' },
+  { keys: ['G', 'T'], action: 'Go to Threat Intel', category: 'Navigation' },
+  { keys: ['G', 'P'], action: 'Go to Threat Map', category: 'Navigation' },
   { keys: ['?'], action: 'Show Shortcuts', category: 'Help' },
   { keys: ['Esc'], action: 'Close Modal', category: 'General' },
-  { keys: ['Ctrl', 'T'], action: 'Toggle Theme', category: 'General' },
 ]
 
-export default function KeyboardShortcuts({ onToggleTheme }) {
+export default function KeyboardShortcuts() {
   const [show, setShow] = useState(false)
   const [sequence, setSequence] = useState('')
   const navigate = useNavigate()
@@ -31,13 +32,6 @@ export default function KeyboardShortcuts({ onToggleTheme }) {
       // Close
       if (e.key === 'Escape') { setShow(false); return }
 
-      // Theme toggle
-      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
-        e.preventDefault()
-        onToggleTheme?.()
-        return
-      }
-
       // G sequences
       if (e.key === 'g' || e.key === 'G') {
         setSequence('g')
@@ -49,13 +43,14 @@ export default function KeyboardShortcuts({ onToggleTheme }) {
         clearTimeout(timer)
         setSequence('')
         const routes = {
-          'd': '/', 'D': '/',
-          'a': '/analysis', 'A': '/analysis',
-          's': '/scanner', 'S': '/scanner',
+          'i': '/investigation-center/scanner', 'I': '/investigation-center/scanner',
+          'a': '/investigation-center/analysis', 'A': '/investigation-center/analysis',
+          's': '/investigation-center/scanner', 'S': '/investigation-center/scanner',
+          'm': '/investigation-center/media-lab', 'M': '/investigation-center/media-lab',
+          'l': '/lookup-center', 'L': '/lookup-center',
           'c': '/community', 'C': '/community',
-          'n': '/notifications', 'N': '/notifications',
-          'p': '/performance', 'P': '/performance',
-          'm': '/propagation', 'M': '/propagation',
+          't': '/threat-intel', 'T': '/threat-intel',
+          'p': '/propagation', 'P': '/propagation',
         }
         if (routes[e.key]) navigate(routes[e.key])
       }
@@ -63,7 +58,7 @@ export default function KeyboardShortcuts({ onToggleTheme }) {
 
     window.addEventListener('keydown', handler)
     return () => { window.removeEventListener('keydown', handler); clearTimeout(timer) }
-  }, [sequence, navigate, onToggleTheme])
+  }, [sequence, navigate])
 
   if (!show) return null
 

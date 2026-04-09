@@ -24,7 +24,7 @@ export default function Landing() {
 
   const enterWorkspace = () => {
     prewarmGuestSession()
-    navigate('/scanner')
+    navigate('/investigation-center/scanner')
   }
 
   return (
@@ -148,7 +148,7 @@ export default function Landing() {
             <button className="btn btn-primary" onClick={enterWorkspace} style={{ padding: '15px 28px', fontSize: 15 }}>
               Launch Free Workspace <ArrowRight size={16} />
             </button>
-            <button className="btn btn-secondary" onClick={() => navigate('/scanner')} style={{ padding: '15px 28px', fontSize: 15 }}>
+            <button className="btn btn-secondary" onClick={() => navigate('/investigation-center/scanner')} style={{ padding: '15px 28px', fontSize: 15 }}>
               Explore Scanner
             </button>
           </div>

@@ -46,7 +46,7 @@ function isActionable(level) {
   return ['suspicious', 'threat', 'dangerous'].includes(String(level || '').toLowerCase())
 }
 
-export default function MediaLab() {
+export default function MediaLab({ embedded = false }) {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
   const inputRef = useRef(null)
@@ -163,10 +163,11 @@ export default function MediaLab() {
 
   return (
     <div style={{ position: 'relative' }}>
-      <div className="hero-bg" />
-      <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} />
+      {!embedded ? <div className="hero-bg" /> : null}
+      {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
 
       <div style={{ position: 'relative', zIndex: 1 }}>
+        {!embedded ? (
         <section className="fade-in" style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
             <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
@@ -181,6 +182,7 @@ export default function MediaLab() {
             Upload images, videos, or audio for deepfake scoring, OCR extraction, object detection, and quick pivots into URL or IP intelligence.
           </p>
         </section>
+        ) : null}
 
         <div className="analysis-layout">
           <section

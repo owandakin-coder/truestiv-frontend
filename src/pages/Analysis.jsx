@@ -120,7 +120,7 @@ function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
   )
 }
 
-export default function Analysis() {
+export default function Analysis({ embedded = false }) {
   const { theme } = useTheme()
   const client = useMemo(() => api(), [])
   const [channel, setChannel] = useState('email')
@@ -294,10 +294,11 @@ export default function Analysis() {
   }
 
   return (
-    <section style={{ minHeight: 'calc(100vh - 140px)', position: 'relative', color: textColor }}>
-      <div className="hero-bg" />
-      <div className="grid-dots" />
+    <section style={{ minHeight: embedded ? 'auto' : 'calc(100vh - 140px)', position: 'relative', color: textColor }}>
+      {!embedded ? <div className="hero-bg" /> : null}
+      {!embedded ? <div className="grid-dots" /> : null}
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
+        {!embedded ? (
         <div style={{ marginBottom: 6 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.2)', color: '#bae6fd', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
             <span style={{ width: 8, height: 8, borderRadius: 999, background: '#38bdf8', boxShadow: '0 0 18px rgba(56,189,248,0.9)' }} />
@@ -308,6 +309,7 @@ export default function Analysis() {
             This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
           </p>
         </div>
+        ) : null}
 
         <div className="analysis-layout" style={{ display: 'grid', gap: 24, alignItems: 'start' }}>
           <div style={{ display: 'grid', gap: 24 }}>

@@ -4,26 +4,25 @@ import {
   Menu,
   Search,
   Globe2,
-  ImageIcon,
   MapPinned,
   Radar,
   ScanSearch,
   Activity,
   ShieldAlert,
+  GitBranch,
   Waves,
   X,
 } from 'lucide-react'
 import { useTheme } from './ThemeProvider'
 
 const navItems = [
-  { label: 'Analysis', path: '/analysis', icon: ShieldAlert },
-  { label: 'Scanner', path: '/scanner', icon: ScanSearch },
-  { label: 'Media Lab', path: '/media-lab', icon: ImageIcon },
+  { label: 'Investigation Center', path: '/investigation-center', icon: ScanSearch },
   { label: 'Timeline', path: '/timeline', icon: Activity },
   { label: 'Threat Map', path: '/propagation', icon: Globe2 },
   { label: 'Lookup Center', path: '/lookup-center', icon: MapPinned },
   { label: 'Community', path: '/community', icon: Radar },
   { label: 'Threat Intel', path: '/threat-intel', icon: ShieldAlert },
+  { label: 'Campaigns', path: '/campaign-clusters', icon: GitBranch },
   { label: 'Search', path: '/search', icon: Search },
 ]
 

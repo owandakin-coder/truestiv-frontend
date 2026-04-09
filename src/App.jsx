@@ -1,11 +1,10 @@
 import { Suspense, lazy, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
+
 import PlatformLayout from './components/PlatformLayout'
-import Scanner from './pages/Scanner'
+import InvestigationCenter from './pages/InvestigationCenter'
 import { prewarmGuestSession } from './services/api'
 
-const Analysis = lazy(() => import('./pages/Analysis'))
-const MediaLab = lazy(() => import('./pages/MediaLab'))
 const GeoThreatMap = lazy(() => import('./pages/GeoThreatMap'))
 const CommunityIntel = lazy(() => import('./pages/CommunityIntel'))
 const ThreatIntelHub = lazy(() => import('./pages/ThreatIntelHub'))
@@ -14,6 +13,7 @@ const IOCDetails = lazy(() => import('./pages/IOCDetails'))
 const LookupCenter = lazy(() => import('./pages/LookupCenter'))
 const SearchCenter = lazy(() => import('./pages/SearchCenter'))
 const CorrelationGraph = lazy(() => import('./pages/CorrelationGraph'))
+const CampaignClusters = lazy(() => import('./pages/CampaignClusters'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Landing = lazy(() => import('./pages/Landing'))
@@ -70,15 +70,14 @@ function App() {
   return (
     <Suspense fallback={<BootScreen />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/scanner" replace />} />
+        <Route path="/" element={<Navigate to="/investigation-center/scanner" replace />} />
         <Route path="/welcome" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
         <Route element={<PlatformLayout />}>
-          <Route path="/analysis" element={<Analysis />} />
-          <Route path="/scanner" element={<Scanner />} />
-          <Route path="/media-lab" element={<MediaLab />} />
+          <Route path="/investigation-center" element={<Navigate to="/investigation-center/scanner" replace />} />
+          <Route path="/investigation-center/:mode" element={<InvestigationCenter />} />
           <Route path="/timeline" element={<IntelTimeline />} />
           <Route path="/propagation" element={<GeoThreatMap />} />
           <Route path="/lookup-center" element={<LookupCenter />} />
@@ -88,16 +87,20 @@ function App() {
           <Route path="/ip-lookup/:ip" element={<LegacyIpLookupRedirect />} />
           <Route path="/community" element={<CommunityIntel />} />
           <Route path="/threat-intel" element={<ThreatIntelHub />} />
+          <Route path="/campaign-clusters" element={<CampaignClusters />} />
           <Route path="/search" element={<SearchCenter />} />
           <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
           <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
         </Route>
 
-        <Route path="/dashboard" element={<Navigate to="/scanner" replace />} />
-        <Route path="/settings" element={<Navigate to="/scanner" replace />} />
-        <Route path="/developer" element={<Navigate to="/scanner" replace />} />
-        <Route path="/notifications" element={<Navigate to="/scanner" replace />} />
-        <Route path="/app" element={<Navigate to="/scanner" replace />} />
+        <Route path="/analysis" element={<Navigate to="/investigation-center/analysis" replace />} />
+        <Route path="/scanner" element={<Navigate to="/investigation-center/scanner" replace />} />
+        <Route path="/media-lab" element={<Navigate to="/investigation-center/media-lab" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/investigation-center/scanner" replace />} />
+        <Route path="/settings" element={<Navigate to="/investigation-center/scanner" replace />} />
+        <Route path="/developer" element={<Navigate to="/investigation-center/scanner" replace />} />
+        <Route path="/notifications" element={<Navigate to="/investigation-center/scanner" replace />} />
+        <Route path="/app" element={<Navigate to="/investigation-center/scanner" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

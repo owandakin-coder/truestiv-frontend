@@ -1130,6 +1130,37 @@ body {
   border: 1px solid rgba(148,163,184,0.14);
 }
 
+.campaign-cluster-list {
+  gap: 12px;
+}
+
+.campaign-cluster-item {
+  gap: 6px;
+  padding: 14px 16px;
+}
+
+.campaign-cluster-item strong,
+.campaign-cluster-summary,
+.campaign-cluster-meta,
+.campaign-detail-value,
+.campaign-event-meta {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.campaign-detail-value {
+  line-height: 1.45;
+}
+
+.campaign-cluster-events {
+  gap: 12px;
+}
+
+.campaign-cluster-event {
+  gap: 8px;
+}
+
 .intel-pill-button {
   display: inline-flex;
   align-items: center;

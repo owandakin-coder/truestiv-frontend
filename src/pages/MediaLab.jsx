@@ -170,7 +170,7 @@ export default function MediaLab({ embedded = false }) {
               Media Threat Intelligence
             </span>
           </div>
-          <h1 style={{ fontSize: 46, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
+          <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
             Media <span className="gradient-text">Lab</span>
           </h1>
           <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>

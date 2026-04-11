@@ -127,7 +127,7 @@ export default function CampaignClusters() {
                 </p>
               </div>
 
-              <div className="intel-mini-list">
+              <div className="intel-mini-list campaign-cluster-list">
                 {clusters.map((cluster) => {
                   const active = cluster.id === selected?.id
                   return (
@@ -135,7 +135,7 @@ export default function CampaignClusters() {
                       key={cluster.id}
                       type="button"
                       onClick={() => setSearchParams({ cluster: cluster.id })}
-                      className="intel-mini-item"
+                      className="intel-mini-item campaign-cluster-item"
                       style={{
                         textAlign: 'left',
                         border: active ? '1px solid rgba(56,189,248,0.28)' : '1px solid rgba(148,163,184,0.14)',
@@ -156,8 +156,8 @@ export default function CampaignClusters() {
                           {cluster.latest_threat_level}
                         </span>
                       </div>
-                      <span style={{ color: palette.muted, lineHeight: 1.7 }}>{cluster.summary}</span>
-                      <span style={{ color: palette.subtle, fontSize: 13 }}>
+                      <span className="campaign-cluster-summary" style={{ color: palette.muted, lineHeight: 1.55 }}>{cluster.summary}</span>
+                      <span className="campaign-cluster-meta" style={{ color: palette.subtle, fontSize: 13 }}>
                         {cluster.signal_count} signals | {cluster.sources.length} sources
                       </span>
                     </button>
@@ -191,7 +191,7 @@ export default function CampaignClusters() {
                     </div>
                     <div className="intel-detail-card">
                       <span className="intel-meta-label">Latest Seen</span>
-                      <strong>{selected.latest_seen || 'Unknown'}</strong>
+                      <strong className="campaign-detail-value">{selected.latest_seen || 'Unknown'}</strong>
                     </div>
                   </div>
 
@@ -216,16 +216,16 @@ export default function CampaignClusters() {
                     </div>
                   </div>
 
-                  <div className="intel-mini-list">
+                  <div className="intel-mini-list campaign-cluster-events">
                     {(selected.events || []).map((event) => (
-                      <article key={event.id} className="intel-mini-item">
+                      <article key={event.id} className="intel-mini-item campaign-cluster-event">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                           <strong>{event.title}</strong>
                           <span style={{ color: palette.subtle, fontSize: 13 }}>{event.source}</span>
                         </div>
-                        <span style={{ color: palette.muted, lineHeight: 1.7 }}>{event.summary}</span>
+                        <span style={{ color: palette.muted, lineHeight: 1.6 }}>{event.summary}</span>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span style={{ color: palette.subtle, fontSize: 13 }}>
+                          <span className="campaign-event-meta" style={{ color: palette.subtle, fontSize: 13 }}>
                             {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}
                           </span>
                           {event.details_path ? (

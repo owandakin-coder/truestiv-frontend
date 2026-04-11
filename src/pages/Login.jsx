@@ -37,7 +37,7 @@ export default function Login() {
           <div style={{ fontSize: 12, color: '#7dd3fc', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
             No registration required
           </div>
-          <h1 style={{ fontSize: 'clamp(2.6rem, 5vw, 4.4rem)', lineHeight: 1.02, fontWeight: 900, marginBottom: 18 }}>
+          <h1 style={{ fontSize: 'clamp(1.95rem, 3.75vw, 3.3rem)', lineHeight: 1.02, fontWeight: 900, marginBottom: 18 }}>
             Enter the platform
             <br />
             <span className="gradient-text">without an account.</span>

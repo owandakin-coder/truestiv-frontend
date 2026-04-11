@@ -34,6 +34,11 @@ const channelOptions = [
 
 const emptyResultText = 'Run an analysis to generate an AI-backed verdict.'
 
+function isActionable(level) {
+  const value = String(level || '').toLowerCase()
+  return value.includes('suspicious') || value.includes('threat') || value.includes('dangerous')
+}
+
 function toneFor(level) {
   const value = String(level || '').toLowerCase()
   if (value.includes('threat') || value.includes('dangerous') || value.includes('critical')) {
@@ -137,9 +142,9 @@ export default function Analysis({ embedded = false }) {
     const loadHistory = async () => {
       try {
         const response = await client.get('/api/analysis/history', { params: { limit: 6 } })
-        setHistory(response.data || [])
+        setHistory((response.data || []).filter((entry) => isActionable(entry?.threat_level)))
       } catch {
-        setHistory(readStorageList('trustive_analysis_history'))
+        setHistory(readStorageList('trustive_analysis_history').filter((entry) => isActionable(entry?.threat_level)))
       }
     }
     loadHistory()
@@ -180,6 +185,9 @@ export default function Analysis({ embedded = false }) {
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
   const saveLocalHistory = (normalized) => {
+    if (!isActionable(normalized?.threatLevel)) {
+      return
+    }
     const next = makeStorageList(
       'trustive_analysis_history',
       {
@@ -304,7 +312,7 @@ export default function Analysis({ embedded = false }) {
             <span style={{ width: 8, height: 8, borderRadius: 999, background: '#38bdf8', boxShadow: '0 0 18px rgba(56,189,248,0.9)' }} />
             Analysis Studio
           </div>
-          <h1 style={{ margin: 0, fontSize: 'clamp(2rem, 3vw, 3rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
+          <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem, 2.25vw, 2.25rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
           <p style={{ margin: '14px 0 0', maxWidth: 760, color: mutedColor, lineHeight: 1.7 }}>
             This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
           </p>

@@ -33,7 +33,7 @@ export default function NotFound() {
           <Shield size={36} color="#ff6b35" />
         </div>
 
-        <h1 style={{ fontSize: 32, fontWeight: 900, color: '#fff', marginBottom: 12 }}>Page Not Found</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 900, color: '#fff', marginBottom: 12 }}>Page Not Found</h1>
         <p style={{ fontSize: 16, color: 'rgba(255,255,255,0.4)', marginBottom: 40, maxWidth: 400, margin: '0 auto 40px', lineHeight: 1.6 }}>
           The page you are looking for does not exist or has been moved.
         </p>

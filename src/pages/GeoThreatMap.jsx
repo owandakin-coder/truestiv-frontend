@@ -193,7 +193,7 @@ export default function GeoThreatMap() {
             Threat Geography
           </span>
         </div>
-        <h1 style={{ fontSize: 42, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
+        <h1 style={{ fontSize: 32, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
           Geo <span className="gradient-text">Threat Map</span>
         </h1>
         <p style={{ color: palette.muted }}>

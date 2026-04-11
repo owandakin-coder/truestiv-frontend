@@ -201,7 +201,7 @@ export default function Scanner({ embedded = false }) {
               <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
               <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>Public IOC Scanner</span>
             </div>
-            <h1 style={{ fontSize: 46, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
+            <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
             <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
           </section>
         ) : null}

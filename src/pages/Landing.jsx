@@ -132,7 +132,7 @@ export default function Landing() {
             Public Cyber Defense Workspace
           </div>
 
-          <h1 style={{ fontSize: 'clamp(3rem, 6vw, 5.5rem)', lineHeight: 1, fontWeight: 900, marginBottom: 20 }}>
+          <h1 style={{ fontSize: 'clamp(2.25rem, 4.5vw, 4.125rem)', lineHeight: 1, fontWeight: 900, marginBottom: 20 }}>
             Comprehensive protection.
             <br />
             <span className="gradient-text">Blue dark. Open by default.</span>

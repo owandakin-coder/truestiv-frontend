@@ -23,7 +23,6 @@ const navItems = [
   { label: 'Community', path: '/community', icon: Radar },
   { label: 'Threat Intel', path: '/threat-intel', icon: ShieldAlert },
   { label: 'Campaigns', path: '/campaign-clusters', icon: GitBranch },
-  { label: 'Search', path: '/search', icon: Search },
 ]
 
 function PlatformLayout() {
@@ -41,7 +40,9 @@ function PlatformLayout() {
 
   const pageTitle = useMemo(() => {
     const active = navItems.find((item) => location.pathname.startsWith(item.path))
-    return active?.label || 'Trustive AI'
+    if (active) return active.label
+    if (location.pathname.startsWith('/search')) return 'Search'
+    return 'Trustive AI'
   }, [location.pathname])
 
   const submitSearch = (event) => {

@@ -2,6 +2,11 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #1e293b #030712; }
 
+html, body, #root {
+  width: 100%;
+  min-height: 100%;
+}
+
 :root {
   --accent-primary: #2563eb;
   --accent-secondary: #0ea5e9;
@@ -356,7 +361,8 @@ body {
 .map-shell {
   display: grid;
   gap: 22px;
-  width: min(1280px, calc(100vw - 32px));
+  width: min(100%, 1280px);
+  max-width: calc(100vw - 32px);
   margin: 0 auto;
 }
 
@@ -400,7 +406,8 @@ body {
 .intel-shell {
   position: relative;
   z-index: 1;
-  width: min(1180px, calc(100vw - 32px));
+  width: min(100%, 1180px);
+  max-width: calc(100vw - 32px);
   margin: 0 auto;
   display: grid;
   gap: 24px;
@@ -467,7 +474,7 @@ body {
 }
 
 .intel-title {
-  font-size: clamp(2rem, 4vw, 3.35rem);
+  font-size: clamp(1.5rem, 3vw, 2.5rem);
   line-height: 1;
   font-weight: 900;
   max-width: 920px;
@@ -1072,7 +1079,7 @@ body {
   }
 
   .intel-title {
-    font-size: clamp(1.8rem, 8vw, 2.5rem);
+    font-size: clamp(1.35rem, 6vw, 1.9rem);
     line-height: 1.05;
   }
 

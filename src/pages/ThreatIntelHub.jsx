@@ -67,7 +67,7 @@ export default function ThreatIntelHub() {
       <div className="intel-hero-card fade-in">
         <div className="intel-hero-content">
           <div className="intel-eyebrow"><span className="intel-eyebrow-dot" />Public Threat Intelligence</div>
-          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             External feed collection and public incident context<br />in one centered view.
           </h1>
           <p className="intel-copy">This hub now combines live feeds, recurring indicators, public incident briefs, background jobs, and weighted source context for anyone exploring the platform.</p>

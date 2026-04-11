@@ -64,7 +64,7 @@ export default function CommunityIntel() {
             <span className="intel-eyebrow-dot" />
             Public Community Intelligence
           </div>
-          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             Open threat submissions, promoted findings,<br />and shared public indicators.
           </h1>
           <p className="intel-copy">

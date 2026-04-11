@@ -58,7 +58,7 @@ export default function InvestigationCenter() {
             <span className="intel-eyebrow-dot" />
             Investigation Center
           </div>
-          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             {activeTab.title}
           </h1>
           <p className="intel-copy">

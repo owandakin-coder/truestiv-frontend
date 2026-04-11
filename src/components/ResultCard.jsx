@@ -84,9 +84,26 @@ function TypeIcon({ type, color }) {
 function DetailRow({ label, value, palette }) {
   if (value === undefined || value === null || value === '') return null
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 120px) minmax(0, 1fr)',
+        gap: 12,
+        alignItems: 'start',
+      }}
+    >
       <span style={{ color: palette.subtle }}>{label}</span>
-      <span style={{ color: palette.text, textAlign: 'right' }}>{value}</span>
+      <span
+        style={{
+          color: palette.text,
+          textAlign: 'right',
+          minWidth: 0,
+          overflowWrap: 'anywhere',
+          wordBreak: 'break-word',
+        }}
+      >
+        {value}
+      </span>
     </div>
   )
 }

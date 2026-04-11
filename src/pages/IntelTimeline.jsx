@@ -99,7 +99,9 @@ export default function IntelTimeline() {
             <span className="intel-eyebrow-dot" />
             Unified Intel Timeline
           </div>
-          <h1 className="intel-title">One feed for scanner activity, community publishing,<br />analysis verdicts, and media findings.</h1>
+          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+            One feed for scanner activity, community publishing,<br />analysis verdicts, and media findings.
+          </h1>
           <p className="intel-copy">
             This timeline is the shared operational surface for Trustive AI. It helps you move from the newest event to the full IOC context without bouncing between pages.
           </p>

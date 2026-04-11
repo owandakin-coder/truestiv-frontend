@@ -77,7 +77,9 @@ export default function SearchCenter() {
             <span className="intel-eyebrow-dot" />
             Global Search
           </div>
-          <h1 className="intel-title">Find IPs, URLs, hashes, domains, senders, and subjects across Trustive AI.</h1>
+          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+            Find IPs, URLs, hashes, domains, senders, and subjects across Trustive AI.
+          </h1>
           <p className="intel-copy">
             Search once and jump directly into scanner history, community visibility, message analyses, or media findings.
           </p>

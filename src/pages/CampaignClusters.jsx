@@ -75,7 +75,9 @@ export default function CampaignClusters() {
             <span className="intel-eyebrow-dot" />
             Campaign / Cluster View
           </div>
-          <h1 className="intel-title">Related public signals grouped into actionable intelligence clusters.</h1>
+          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
+            Related public signals grouped into actionable intelligence clusters.
+          </h1>
           <p className="intel-copy">
             Clusters bring recurring indicators, actor tags, countries, and source overlap into one public-facing intelligence briefing surface.
           </p>

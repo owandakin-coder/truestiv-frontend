@@ -213,7 +213,7 @@ function LookupCenter() {
             <span className="intel-eyebrow-dot" />
             Lookup Center
           </div>
-          <h1 className="intel-title">
+          <h1 className="intel-title" style={{ fontSize: 16, lineHeight: 1.3 }}>
             One workspace for IP, domain,<br />and email header investigation
           </h1>
           <p className="intel-copy">

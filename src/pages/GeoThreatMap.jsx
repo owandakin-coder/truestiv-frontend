@@ -5,6 +5,7 @@ import { Filter, Globe2, MapPin, Radar } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 import ExpandableFeed from '../components/ExpandableFeed'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 
@@ -173,6 +174,13 @@ export default function GeoThreatMap() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 6)
   }, [playbackMarkers])
+  const stripItems = [
+    { label: 'Markers', value: playbackMarkers.length, copy: 'Visible markers in the current playback window', live: true },
+    { label: 'Countries', value: countryFlows.length, copy: 'Active countries in the current slice' },
+    { label: 'Mode', value: live ? 'Live' : 'Manual', copy: 'Auto refresh state' },
+    { label: 'Playback', value: playbackIndex < 0 ? 'All time slices' : playbackPoints[playbackIndex] || 'Slice', copy: 'Current time playback scope' },
+    { label: 'Feed', value: feedMarkers.length, copy: 'Latest marker feed entries' },
+  ]
 
   const openCountry = async (country) => {
     try {
@@ -201,9 +209,12 @@ export default function GeoThreatMap() {
           <p className="portal-hero-copy" style={{ color: palette.muted }}>
             Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
           </p>
-          <div style={{ marginTop: 16 }}>
-            <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+          <div style={{ marginTop: 18, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <button className="console-cta" type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
+            </button>
+            <button className="console-tab" type="button" onClick={() => setPlaybackIndex(-1)}>
+              Reset playback
             </button>
           </div>
         </div>
@@ -221,10 +232,26 @@ export default function GeoThreatMap() {
         </div>
       </section>
 
-      <section className="map-panel fade-in-delay-1" style={{ background: palette.card, border: palette.border }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-          <Filter size={18} color={palette.blue} />
-          <h2 style={{ color: palette.text, fontSize: 20, fontWeight: 900 }}>Map Filters</h2>
+      <SignalStrip items={stripItems} />
+
+      <section className="console-surface fade-in-delay-1">
+        <div className="console-block" style={{ marginBottom: 18 }}>
+          <div className="console-bar">
+            <span className="console-dot red" />
+            <span className="console-dot amber" />
+            <span className="console-dot green" />
+            <span className="console-title">Threat Geography Console</span>
+          </div>
+          <div className="console-body">
+            <div><span style={{ color: '#5ba3f5' }}>source_filter</span> {filters.source}</div>
+            <div><span style={{ color: '#5ba3f5' }}>country_filter</span> {filters.country}</div>
+            <div><span style={{ color: '#5ba3f5' }}>time_range</span> {filters.time_range}</div>
+          </div>
+        </div>
+
+        <div className="console-heading">
+          <h2>Propagation Filters and Playback</h2>
+          <p>Run the map in live mode, tighten the geography scope, or scrub through the current time window without leaving the main intelligence surface.</p>
         </div>
 
         <div className="intel-filter-grid">
@@ -272,9 +299,10 @@ export default function GeoThreatMap() {
             </select>
           </label>
         </div>
+
         {playbackPoints.length ? (
-          <div style={{ marginTop: 18 }}>
-            <div className="intel-detail-label" style={{ marginBottom: 10 }}>Time Playback</div>
+          <div style={{ marginTop: 18 }} className="brief-panel">
+            <div className="signal-strip-label">Playback</div>
             <input
               type="range"
               min="-1"
@@ -283,7 +311,7 @@ export default function GeoThreatMap() {
               onChange={(event) => setPlaybackIndex(Number(event.target.value))}
               style={{ width: '100%' }}
             />
-            <div style={{ marginTop: 8, color: palette.muted }}>
+            <div style={{ color: palette.muted }}>
               {playbackIndex < 0 ? 'Showing all available periods' : `Showing activity up to ${playbackPoints[playbackIndex]}`}
             </div>
           </div>
@@ -291,16 +319,44 @@ export default function GeoThreatMap() {
       </section>
 
       {error ? (
-        <div style={{ padding: '14px 16px', borderRadius: 18, background: 'rgba(255,92,92,0.10)', border: '1px solid rgba(255,92,92,0.18)', color: palette.red, fontWeight: 600 }}>
+        <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: palette.red }}>
           {error}
         </div>
       ) : null}
 
+      <section className="dossier-surface fade-in-delay-1">
+        <div className="map-summary-grid">
+          <article className="map-stat">
+            <span className="signal-strip-label">Visible markers</span>
+            <strong>{playbackMarkers.length}</strong>
+            <p>Markers currently rendered into the live world view.</p>
+          </article>
+          <article className="map-stat">
+            <span className="signal-strip-label">Clustered points</span>
+            <strong>{mapMarkers.length}</strong>
+            <p>Geo buckets after clustering the current playback slice.</p>
+          </article>
+          <article className="map-stat">
+            <span className="signal-strip-label">Countries</span>
+            <strong>{countryFlows.length}</strong>
+            <p>Active geographies carrying threat pressure right now.</p>
+          </article>
+          <article className="map-stat">
+            <span className="signal-strip-label">Feed markers</span>
+            <strong>{feedMarkers.length}</strong>
+            <p>Latest marker feed rows kept visible without extra filters.</p>
+          </article>
+        </div>
+      </section>
+
       <div className="map-layout">
-        <section className="map-panel" style={{ background: palette.card, border: palette.border }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <Globe2 size={20} color={palette.blue} />
-            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>World Map</h2>
+        <section className="dossier-surface">
+          <div className="console-heading" style={{ marginBottom: 16 }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Globe2 size={18} color={palette.blue} />
+              World Map
+            </h2>
+            <p>The map stretches wider now so the geographic signal is the main event, not a small center card.</p>
           </div>
 
           <div className="map-canvas">
@@ -340,14 +396,16 @@ export default function GeoThreatMap() {
           </div>
         </section>
 
-        <section className="map-panel" style={{ background: palette.card, border: palette.border }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 18 }}>
-            <MapPin size={20} color={palette.blue} />
-            <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900 }}>Marker Feed</h2>
-          </div>
-          <p style={{ color: palette.muted, marginBottom: 16, lineHeight: 1.7 }}>
+        <section className="feed-surface">
+          <div className="console-heading" style={{ marginBottom: 16 }}>
+            <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <MapPin size={18} color={palette.blue} />
+              Marker Feed
+            </h2>
+            <p>
             This feed stays populated from the latest available markers and does not require you to apply filters first.
-          </p>
+            </p>
+          </div>
 
           <div className="map-list">
             {loading ? (
@@ -359,25 +417,42 @@ export default function GeoThreatMap() {
               <ExpandableFeed
                 items={feedMarkers}
                 initialCount={5}
+                className="map-feed-rail"
                 renderItem={(marker) => (
-                <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                    <strong style={{ color: palette.text }}>{marker.indicator}</strong>
-                    <span style={{ color: markerColor(marker.threat_level, palette), fontWeight: 800 }}>{marker.threat_level}</span>
+                  <div key={`${marker.indicator}-${marker.published_at}`} className="map-feed-row">
+                    <div className="map-feed-severity" style={{ background: markerColor(marker.threat_level, palette) }} />
+                    <div className="map-feed-main">
+                      <strong>{marker.indicator}</strong>
+                      <span className="map-feed-meta">
+                        {(marker.location_name || 'Unknown location')} | {String(marker.source || 'intel').toUpperCase()}
+                      </span>
+                      <p className="map-feed-copy">
+                        Risk {marker.risk_score} | {String(marker.threat_level || 'unknown').toUpperCase()}
+                      </p>
+                      <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                        {marker.country ? (
+                          <button type="button" onClick={() => openCountry(marker.country)} className="intel-inline-link">
+                            Drill into {marker.country}
+                          </button>
+                        ) : null}
+                        {marker.details_path ? (
+                          <Link className="intel-inline-link" to={marker.details_path}>
+                            IOC details
+                          </Link>
+                        ) : null}
+                      </div>
+                    </div>
+                    <span
+                      className="platform-badge"
+                      style={{
+                        color: markerColor(marker.threat_level, palette),
+                        borderColor: `${markerColor(marker.threat_level, palette)}33`,
+                        background: `${markerColor(marker.threat_level, palette)}12`,
+                      }}
+                    >
+                      {marker.threat_level}
+                    </span>
                   </div>
-                  <p style={{ color: palette.muted, marginTop: 8 }}>{marker.location_name || 'Unknown location'}</p>
-                  <p style={{ color: palette.subtle, marginTop: 6 }}>Risk score: {marker.risk_score} | Source: {marker.source || 'intel'}</p>
-                  {marker.country ? (
-                    <button type="button" onClick={() => openCountry(marker.country)} className="intel-inline-link" style={{ marginTop: 10 }}>
-                      Drill into {marker.country}
-                    </button>
-                  ) : null}
-                  {marker.details_path ? (
-                    <Link className="intel-inline-link" style={{ marginTop: 10, display: 'inline-flex' }} to={marker.details_path}>
-                      IOC details
-                    </Link>
-                  ) : null}
-                </div>
                 )}
               />
             }
@@ -404,7 +479,7 @@ export default function GeoThreatMap() {
             A lightweight flow view that highlights where the current playback window is concentrating the highest amount of threat activity.
           </p>
         </div>
-        <div className="intel-grid-two">
+        <div className="map-country-grid">
           {countryFlows.map((item) => (
             <article key={item.country} className="intel-detail-card intel-flow-card">
               <div className="intel-detail-label">Threat flow</div>

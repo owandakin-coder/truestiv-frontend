@@ -18,6 +18,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -198,6 +199,13 @@ export default function Analysis({ embedded = false }) {
       .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))
       .slice(0, 3)
   }, [derivedIocs])
+  const stripItems = [
+    { label: 'Channel', value: channel.toUpperCase(), copy: 'Current intake mode' },
+    { label: 'Recent', value: history.length, copy: 'Actionable recent analyses', live: true },
+    { label: 'Verdict', value: result?.threatLevel || 'Waiting', copy: 'Current analysis state' },
+    { label: 'Confidence', value: result ? `${Math.round(result.confidence || 0)}%` : 'Pending', copy: 'Model confidence' },
+    { label: 'IOC Pivots', value: allIocs.length, copy: 'Extracted enrichable artifacts' },
+  ]
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -325,29 +333,61 @@ export default function Analysis({ embedded = false }) {
       {!embedded ? <div className="grid-dots" /> : null}
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
         {!embedded ? (
-        <div style={{ marginBottom: 6 }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.2)', color: '#bae6fd', fontSize: 12, fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 999, background: '#38bdf8', boxShadow: '0 0 18px rgba(56,189,248,0.9)' }} />
-            Analysis Studio
-          </div>
-          <h1 style={{ margin: 0, fontSize: 'clamp(1.5rem, 2.25vw, 2.25rem)', fontWeight: 900 }}>AI message triage built like the scanner.</h1>
-          <p style={{ margin: '14px 0 0', maxWidth: 760, color: mutedColor, lineHeight: 1.7 }}>
-            This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
-          </p>
-        </div>
+          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 8 }}>
+            <div className="portal-hero-main">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800 }}>
+                  Analysis Studio
+                </span>
+              </div>
+              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: textColor, marginBottom: 12 }}>
+                Message <span className="gradient-text">Analysis</span>
+              </h1>
+              <p className="portal-hero-copy" style={{ color: mutedColor }}>
+                This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
+              </p>
+            </div>
+            <div className="portal-hero-rail">
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Best for</span>
+                <strong>Message triage</strong>
+                <p>Email, SMS, and WhatsApp verdicts stay connected to IOC enrichment and public intel context.</p>
+              </article>
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Signal policy</span>
+                <strong>Actionable only</strong>
+                <p>Recent Analyses keeps only suspicious and threat results so the workspace stays operational and uncluttered.</p>
+              </article>
+            </div>
+          </section>
         ) : null}
 
-        <div className="analysis-layout" style={{ display: 'grid', gap: 24, alignItems: 'start' }}>
+        <SignalStrip items={stripItems} />
+
+        <div className="investigation-console-grid" style={{ alignItems: 'start' }}>
           <div style={{ display: 'grid', gap: 24 }}>
-            <div style={{ ...cardStyle, padding: 24 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-                <div>
-                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Intake</div>
-                  <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Run Analysis</h2>
+            <div className="console-surface">
+              <div className="console-block" style={{ marginBottom: 18 }}>
+                <div className="console-bar">
+                  <span className="console-dot red" />
+                  <span className="console-dot amber" />
+                  <span className="console-dot green" />
+                  <span className="console-title">Message Analysis Console</span>
+                </div>
+                <div className="console-body">
+                  <div><span style={{ color: '#5ba3f5' }}>channel</span> {channel}</div>
+                  <div><span style={{ color: '#5ba3f5' }}>policy</span> only suspicious and threat verdicts stay in recent analysis</div>
+                  <div><span style={{ color: '#5ba3f5' }}>enrichment</span> extracted IOCs remain available for pivots</div>
                 </div>
               </div>
 
-              <div className="channel-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12, marginBottom: 20 }}>
+              <div className="console-heading">
+                <h2>Run Analysis</h2>
+                <p>Submit suspicious email, SMS, or WhatsApp content and pivot directly into IOC and infrastructure context.</p>
+              </div>
+
+              <div className="console-tab-grid">
                 {channelOptions.map((option) => {
                   const Icon = option.icon
                   const active = channel === option.id
@@ -356,19 +396,7 @@ export default function Analysis({ embedded = false }) {
                       key={option.id}
                       type="button"
                       onClick={() => setChannel(option.id)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 10,
-                        padding: '14px 16px',
-                        borderRadius: 18,
-                        border: active ? '1px solid rgba(56,189,248,0.45)' : `1px solid ${borderColor}`,
-                        background: active ? 'linear-gradient(135deg, #2563eb, #0ea5e9)' : inputColor,
-                        color: active ? '#fff' : textColor,
-                        cursor: 'pointer',
-                        fontWeight: 800,
-                      }}
+                      className={`console-tab ${active ? 'is-active' : ''}`}
                     >
                       <Icon size={16} />
                       {option.label}
@@ -377,31 +405,31 @@ export default function Analysis({ embedded = false }) {
                 })}
               </div>
 
-              <form onSubmit={runAnalysis} style={{ display: 'grid', gap: 16 }}>
+              <form onSubmit={runAnalysis} className="console-form-grid">
                 {channel === 'email' ? (
                   <>
-                    <label className="analysis-field"><span>Sender</span><input value={form.sender} onChange={(event) => setField('sender', event.target.value)} placeholder="alerts@company-security.com" style={inputStyle} /></label>
-                    <label className="analysis-field"><span>Subject</span><input value={form.subject} onChange={(event) => setField('subject', event.target.value)} placeholder="Urgent payment request" style={inputStyle} /></label>
+                    <label className="console-input-group"><span>Sender</span><input value={form.sender} onChange={(event) => setField('sender', event.target.value)} placeholder="alerts@company-security.com" style={inputStyle} /></label>
+                    <label className="console-input-group"><span>Subject</span><input value={form.subject} onChange={(event) => setField('subject', event.target.value)} placeholder="Urgent payment request" style={inputStyle} /></label>
                   </>
                 ) : (
-                  <label className="analysis-field"><span>Phone Number</span><input value={form.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+1 202 555 0172" style={inputStyle} /></label>
+                  <label className="console-input-group"><span>Phone Number</span><input value={form.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+1 202 555 0172" style={inputStyle} /></label>
                 )}
 
-                <label className="analysis-field">
+                <label className="console-input-group">
                   <span>Content</span>
                   <textarea value={form.content} onChange={(event) => setField('content', event.target.value)} placeholder="Paste the message content here." rows={10} style={{ ...inputStyle, minHeight: 220, resize: 'vertical', fontFamily: 'inherit' }} />
                 </label>
 
-                {error ? <div style={{ borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(248,113,113,0.28)', background: 'rgba(248,113,113,0.12)', color: '#fecaca', lineHeight: 1.6 }}>{error}</div> : null}
+                {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
 
-                <button type="submit" disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, border: 'none', borderRadius: 999, padding: '14px 24px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'wait' : 'pointer', boxShadow: '0 20px 48px rgba(14,165,233,0.28)' }}>
+                <button type="submit" disabled={loading} className="console-cta">
                   {loading ? <Loader2 size={18} className="analysis-spinner" /> : <Sparkles size={18} />}
                   {loading ? 'Analyzing...' : 'Run Analysis'}
                 </button>
               </form>
             </div>
 
-            <div style={{ ...cardStyle, padding: 24 }}>
+            <div className="feed-surface">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <Zap size={16} color="#7dd3fc" />
                 <span className="analysis-meta-label">Recent Analyses</span>
@@ -419,9 +447,11 @@ export default function Analysis({ embedded = false }) {
                 <ExpandableFeed
                   items={history.filter((entry) => isActionable(entry?.threat_level))}
                   initialCount={4}
-                  className="result-stack"
+                  className="recent-rail"
                   renderItem={(entry) => (
-                    <HistoryButton key={`${entry.id}-${entry.created_at || ''}`} entry={entry} onClick={applyHistory} borderColor={borderColor} textColor={textColor} mutedColor={mutedColor} />
+                    <div className="recent-rail-item" key={`${entry.id}-${entry.created_at || ''}`}>
+                      <HistoryButton entry={entry} onClick={applyHistory} borderColor="transparent" textColor={textColor} mutedColor={mutedColor} />
+                    </div>
                   )}
                 />
               )}
@@ -429,7 +459,7 @@ export default function Analysis({ embedded = false }) {
           </div>
 
           <div style={{ display: 'grid', gap: 24 }}>
-            <div style={{ ...cardStyle, padding: 24 }}>
+            <div className="dossier-surface">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <div>
                   <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Verdict</div>
@@ -454,30 +484,32 @@ export default function Analysis({ embedded = false }) {
                   ]}
                 />
               ) : (
-                <div style={{ display: 'grid', gap: 18 }}>
+                <div className="split-dossier">
                   <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                     <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
                       <DetailToggleIcon size={16} />
                       {detailToggleLabel}
                     </button>
                   </div>
-                  <div className="analysis-result-grid" style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
-                    <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18 }}>
-                      <div style={{ color: mutedColor, fontSize: 13, marginBottom: 8 }}>Threat Level</div>
-                      <div style={{ fontSize: 24, fontWeight: 900 }}>{result.threatLevel}</div>
+                  <div className="investigation-stat-grid">
+                    <div className="investigation-stat">
+                      <span className="analysis-meta-label">Threat Level</span>
+                      <strong>{result.threatLevel}</strong>
+                      <p>Current verdict for the submitted message.</p>
                     </div>
-                    <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18 }}>
-                      <div style={{ color: mutedColor, fontSize: 13, marginBottom: 8 }}>Confidence</div>
-                      <div style={{ fontSize: 24, fontWeight: 900 }}>{Math.round(result.confidence || 0)}%</div>
+                    <div className="investigation-stat">
+                      <span className="analysis-meta-label">Confidence</span>
+                      <strong>{Math.round(result.confidence || 0)}%</strong>
+                      <p>Model confidence for this analysis outcome.</p>
                     </div>
                   </div>
 
-                  <div className="intel-reading-block" style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                  <div className="brief-panel intel-reading-block">
                     <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Summary</strong>
                     {result.summary}
                   </div>
 
-                  <div className="intel-reading-block" style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                  <div className="brief-panel intel-reading-block">
                     <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Recommendation</strong>
                     {result.recommendation}
                     {result.related_threats_count > 0 ? (
@@ -489,17 +521,7 @@ export default function Analysis({ embedded = false }) {
                   </div>
 
                   {brandSignals.length ? (
-                    <div
-                      style={{
-                        borderRadius: 22,
-                        border: '1px solid rgba(251,191,36,0.28)',
-                        background: 'rgba(251,191,36,0.12)',
-                        padding: 20,
-                        display: 'grid',
-                        gap: 10,
-                        color: '#fde68a',
-                      }}
-                    >
+                    <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)', color: '#fde68a' }}>
                       <strong style={{ color: '#fef3c7' }}>Possible brand impersonation detected</strong>
                       {brandSignals.map((signal) => (
                         <div key={`${signal.domain}-${signal.brand}`} style={{ color: mutedColor, lineHeight: 1.6 }}>
@@ -514,7 +536,7 @@ export default function Analysis({ embedded = false }) {
                   ) : null}
 
                   {!focusMode ? (
-                    <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
+                    <div className="brief-panel">
                       <div>
                         <div className="analysis-meta-label">Public Actions</div>
                         <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
@@ -536,7 +558,7 @@ export default function Analysis({ embedded = false }) {
             </div>
 
             {!focusMode ? (
-            <div style={{ ...cardStyle, padding: 24 }}>
+            <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
@@ -547,11 +569,11 @@ export default function Analysis({ embedded = false }) {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gap: 18 }}>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                  <div className="artifact-chip-row">
                     {allIocs.map((item) => {
                       const enrichable = ['url', 'ip', 'hash', 'domain'].includes(item.type)
                       return (
-                        <button key={`${item.type}-${item.value}`} type="button" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ padding: '10px 14px', borderRadius: 999, border: `1px solid ${borderColor}`, background: enrichable ? 'rgba(37,99,235,0.08)' : 'rgba(255,255,255,0.03)', color: textColor, fontWeight: 700, cursor: enrichable ? 'pointer' : 'default' }}>
+                        <button key={`${item.type}-${item.value}`} type="button" className="artifact-chip" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ opacity: enrichable ? 1 : 0.55, cursor: enrichable ? 'pointer' : 'default' }}>
                           {item.type.toUpperCase()}: {item.value}
                         </button>
                       )
@@ -566,7 +588,7 @@ export default function Analysis({ embedded = false }) {
             ) : null}
 
             {!focusMode ? (
-            <div style={{ ...cardStyle, padding: 24 }}>
+            <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure pivot</h2>
@@ -578,7 +600,7 @@ export default function Analysis({ embedded = false }) {
               ) : (
                 <div className="result-stack" style={{ display: 'grid', gap: 14 }}>
                   {ipIntel.map((entry) => (
-                    <div key={entry.ip} style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18, display: 'grid', gap: 10 }}>
+                    <div key={entry.ip} className="brief-panel">
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <div style={{ fontWeight: 900, fontSize: 18 }}>{entry.ip}</div>
                         <div style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(56,189,248,0.2)', background: 'rgba(37,99,235,0.1)', color: '#bae6fd', fontWeight: 700 }}>

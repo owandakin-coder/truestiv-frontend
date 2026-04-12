@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import ExpandableFeed from '../components/ExpandableFeed'
 import ResultCard from '../components/ResultCard'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -208,6 +209,13 @@ export default function Scanner({ embedded = false }) {
       onClick: () => updateField('bulk_input', 'https://apple-id-review-center.com\nhttps://secure-fedex-delivery-check.net\nhttps://microsoft-billing-update.info'),
     },
   ]
+  const stripItems = [
+    { label: 'Mode', value: String(activeTab || 'url').toUpperCase(), copy: tabDescription(activeTab) },
+    { label: 'Recent', value: recentScans.length, copy: 'Actionable recent scans only', live: true },
+    { label: 'Auto Publish', value: 'Threat / suspicious', copy: 'Safe results stay out of the feed' },
+    { label: 'Bulk', value: activeTab === 'bulk' ? 'Enabled' : 'Ready', copy: 'Mixed IOC ingestion is available' },
+    { label: 'Focus', value: result ? 'Verdict loaded' : 'Waiting', copy: 'Run a scan to populate the dossier' },
+  ]
 
   return (
     <div style={{ position: 'relative' }}>
@@ -239,18 +247,34 @@ export default function Scanner({ embedded = false }) {
           </section>
         ) : null}
 
-        <div className="analysis-layout">
-          <section className="fade-in" style={{ background: palette.card, border: palette.border, borderRadius: 24, padding: 28, backdropFilter: 'blur(20px)', boxShadow: '0 24px 80px rgba(0,0,0,0.18)' }}>
-            <div style={{ marginBottom: 24 }}>
-              <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>Run Public Scanner</h2>
-              <p style={{ color: palette.muted, fontSize: 14 }}>{tabDescription(activeTab)}</p>
+        <SignalStrip items={stripItems} />
+
+        <div className="investigation-console-grid">
+          <section className="console-surface fade-in">
+            <div className="console-block" style={{ marginBottom: 18 }}>
+              <div className="console-bar">
+                <span className="console-dot red" />
+                <span className="console-dot amber" />
+                <span className="console-dot green" />
+                <span className="console-title">Scanner Console</span>
+              </div>
+              <div className="console-body">
+                <div><span style={{ color: '#5ba3f5' }}>mode</span> {activeTab}</div>
+                <div><span style={{ color: '#5ba3f5' }}>policy</span> actionable results only in recent history</div>
+                <div><span style={{ color: '#5ba3f5' }}>publish</span> suspicious and threat findings auto-promote</div>
+              </div>
             </div>
 
-            <div className="channel-grid" style={{ marginBottom: 20 }}>
+            <div className="console-heading">
+              <h2>Run Public Scanner</h2>
+              <p>{tabDescription(activeTab)}</p>
+            </div>
+
+            <div className="console-tab-grid">
               {tabs.map(({ id, label, icon: Icon }) => {
                 const active = activeTab === id
                 return (
-                  <button key={id} type="button" onClick={() => setActiveTab(id)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, padding: '14px 18px', borderRadius: 18, fontWeight: 800, cursor: 'pointer', border: active ? '1px solid rgba(56,189,248,0.24)' : palette.border, background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : palette.strong, color: active ? palette.text : palette.muted, boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none' }}>
+                  <button key={id} type="button" onClick={() => setActiveTab(id)} className={`console-tab ${active ? 'is-active' : ''}`}>
                     <Icon size={16} color={active ? palette.blue : palette.subtle} />
                     {label}
                   </button>
@@ -258,28 +282,28 @@ export default function Scanner({ embedded = false }) {
               })}
             </div>
 
-            <div style={{ display: 'grid', gap: 16 }}>
-              {activeTab === 'url' ? <label className="analysis-field"><span>URL</span><input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" /></label> : null}
-              {activeTab === 'ip' ? <label className="analysis-field"><span>IP Address</span><input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" /></label> : null}
-              {activeTab === 'hash' ? <label className="analysis-field"><span>MD5 / SHA1 / SHA256</span><input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" /></label> : null}
+            <div className="console-form-grid">
+              {activeTab === 'url' ? <label className="console-input-group"><span>URL</span><input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" /></label> : null}
+              {activeTab === 'ip' ? <label className="console-input-group"><span>IP Address</span><input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" /></label> : null}
+              {activeTab === 'hash' ? <label className="console-input-group"><span>MD5 / SHA1 / SHA256</span><input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" /></label> : null}
               {activeTab === 'file' ? (
                 <>
-                  <label className="analysis-field"><span>Filename</span><input className="analysis-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="invoice-update.docm" /></label>
+                  <label className="console-input-group"><span>Filename</span><input className="analysis-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="invoice-update.docm" /></label>
                   <div className="field-grid">
-                    <label className="analysis-field"><span>File Size</span><input className="analysis-input" value={form.file_size} onChange={(event) => updateField('file_size', event.target.value)} placeholder="102400" /></label>
-                    <label className="analysis-field"><span>Optional Hash</span><input className="analysis-input" value={form.file_hash} onChange={(event) => updateField('file_hash', event.target.value)} placeholder="Optional file hash" /></label>
+                    <label className="console-input-group"><span>File Size</span><input className="analysis-input" value={form.file_size} onChange={(event) => updateField('file_size', event.target.value)} placeholder="102400" /></label>
+                    <label className="console-input-group"><span>Optional Hash</span><input className="analysis-input" value={form.file_hash} onChange={(event) => updateField('file_hash', event.target.value)} placeholder="Optional file hash" /></label>
                   </div>
                 </>
               ) : null}
-              {activeTab === 'bulk' ? <label className="analysis-field"><span>Bulk Indicators</span><textarea className="analysis-textarea" rows={10} value={form.bulk_input} onChange={(event) => updateField('bulk_input', event.target.value)} placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'} style={{ minHeight: 240 }} /></label> : null}
-              {error ? <div style={{ borderRadius: 18, padding: '14px 16px', border: '1px solid rgba(248,113,113,0.28)', background: 'rgba(248,113,113,0.12)', color: '#fecaca', lineHeight: 1.6 }}>{error}</div> : null}
-              <button type="button" onClick={runScan} disabled={loading} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 12, border: 'none', borderRadius: 999, padding: '14px 24px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, fontSize: 15, cursor: loading ? 'wait' : 'pointer', boxShadow: '0 20px 48px rgba(14,165,233,0.28)' }}>
+              {activeTab === 'bulk' ? <label className="console-input-group"><span>Bulk Indicators</span><textarea className="analysis-textarea" rows={10} value={form.bulk_input} onChange={(event) => updateField('bulk_input', event.target.value)} placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'} style={{ minHeight: 240 }} /></label> : null}
+              {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
+              <button type="button" onClick={runScan} disabled={loading} className="console-cta">
                 <Search size={18} />
                 {loading ? 'Scanning...' : activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scan'}
               </button>
             </div>
 
-            <div style={{ marginTop: 24, padding: 18, borderRadius: 20, border: palette.border, background: palette.strong }}>
+            <div className="feed-surface" style={{ marginTop: 24, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Zap size={16} color={palette.blue} /><span className="analysis-meta-label">Recent Scans</span></div>
               {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history from the backend...</p> : !recentScans.length ? (
                 <IntelEmptyState
@@ -294,18 +318,22 @@ export default function Scanner({ embedded = false }) {
                 <ExpandableFeed
                   items={recentScans}
                   initialCount={4}
+                  className="recent-rail"
                   renderItem={(entry) => (
-                    <div key={entry.id} style={{ display: 'grid', gap: 10, padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                        <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', color: palette.text, cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0 }}>
-                          <strong style={{ display: 'block', marginBottom: 4 }}>{String(entry.scan_type || '').toUpperCase()}</strong>
-                          <span style={{ color: palette.muted, wordBreak: 'break-word' }}>{entry.indicator}</span>
+                    <div key={entry.id} className="recent-rail-item">
+                      <div className="recent-rail-top">
+                        <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0, flex: 1 }}>
+                          <div className="recent-rail-main">
+                            <strong>{String(entry.scan_type || '').toUpperCase()}</strong>
+                            <span className="recent-rail-meta">{entry.indicator}</span>
+                          </div>
                         </button>
                         <span style={{ padding: '8px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800, color: levelColor(entry.threat_level, palette), background: `${levelColor(entry.threat_level, palette)}12`, border: `1px solid ${levelColor(entry.threat_level, palette)}28` }}>{entry.threat_level}</span>
                       </div>
+                      <div className="recent-rail-copy">{entry.summary || 'Public actionable scan retained in recent history.'}</div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                        <span style={{ color: palette.subtle, fontSize: 13 }}>{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
-                        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        <span className="recent-rail-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
+                        <div className="investigation-actions">
                           {entry.scan_type === 'ip' ? <button type="button" onClick={() => navigate(buildIpLookupPath(entry.indicator))} className="scanner-inline-button">IP lookup</button> : null}
                           {entry.scan_type === 'domain' ? <button type="button" onClick={() => navigate(buildDomainLookupPath(entry.indicator))} className="scanner-inline-button">Domain lookup</button> : null}
                           <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button">IOC details</button>
@@ -318,10 +346,10 @@ export default function Scanner({ embedded = false }) {
             </div>
           </section>
 
-          <section className="fade-in" style={{ background: palette.card, border: palette.border, borderRadius: 24, padding: 28, backdropFilter: 'blur(20px)', boxShadow: '0 24px 80px rgba(0,0,0,0.18)' }}>
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
-              <p style={{ color: palette.muted, fontSize: 14 }}>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists with direct pivots into public intelligence context.' : 'Results adapt automatically for URL, IP, HASH, and file scans.'}</p>
+          <section className="dossier-surface fade-in">
+            <div className="console-heading">
+              <h2>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
+              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists with direct pivots into public intelligence context.' : 'Results adapt automatically for URL, IP, HASH, and file scans.'}</p>
             </div>
 
             {!result ? (
@@ -365,20 +393,10 @@ export default function Scanner({ embedded = false }) {
                 </div>
               </div>
             ) : (
-              <div style={{ display: 'grid', gap: 18 }}>
+              <div className="split-dossier">
                 <ResultCard result={result} type={activeTab} theme={theme} />
                 {scannerBrandSignal ? (
-                  <div
-                    style={{
-                      padding: '14px 16px',
-                      borderRadius: 18,
-                      border: '1px solid rgba(251,191,36,0.28)',
-                      background: 'rgba(251,191,36,0.12)',
-                      color: palette.yellow,
-                      display: 'grid',
-                      gap: 8,
-                    }}
-                  >
+                  <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
                     <strong>
                       Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
                     </strong>
@@ -387,15 +405,15 @@ export default function Scanner({ embedded = false }) {
                     </span>
                   </div>
                 ) : null}
-                <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
+                <div className="brief-panel">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    <div className="investigation-actions">
                       {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="scanner-inline-button">Open IP lookup</button> : null}
                       {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="scanner-inline-button">Open IOC details</button> : null}
                     </div>
                   </div>
-                  {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette), background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : actionable(result.threat_level) ? <div style={{ padding: '12px 14px', borderRadius: 16, color: levelColor(result.threat_level, palette), background: `${levelColor(result.threat_level, palette)}12`, border: `1px solid ${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
+                  {publishState.message ? <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette) }}>{publishState.message}</div> : actionable(result.threat_level) ? <div className="console-status" style={{ color: levelColor(result.threat_level, palette), borderColor: `${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
                 </div>
               </div>
             )}

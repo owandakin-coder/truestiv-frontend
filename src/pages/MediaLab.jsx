@@ -15,6 +15,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -115,6 +116,13 @@ export default function MediaLab({ embedded = false }) {
 
   const iocs = useMemo(() => flattenIocs(extractIocsFromText(result?.ocr_text, result?.summary, file?.name)), [result, file])
   const FocusIcon = focusMode ? ChevronDown : ChevronUp
+  const stripItems = [
+    { label: 'Media Type', value: activeTab.toUpperCase(), copy: 'Current analysis lane' },
+    { label: 'Recent Runs', value: history.length, copy: 'Suspicious and threat only', live: true },
+    { label: 'Verdict', value: result ? normalizeThreatLevel(result.threat_level) : 'Waiting', copy: 'Current result state' },
+    { label: 'Deepfake', value: result ? `${result.deepfake_score || 0}%` : 'Pending', copy: 'Current deepfake score' },
+    { label: 'Artifacts', value: iocs.length, copy: 'Extracted OCR-driven pivots' },
+  ]
 
   const runPivot = async (item) => {
     const config =
@@ -170,50 +178,72 @@ export default function MediaLab({ embedded = false }) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-        <section className="fade-in" style={{ marginBottom: 32 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
-              Media Threat Intelligence
-            </span>
-          </div>
-          <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
-            Media <span className="gradient-text">Lab</span>
-          </h1>
-          <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>
-            Upload images, videos, or audio for deepfake scoring, OCR extraction, object detection, and quick pivots into URL or IP intelligence.
-          </p>
-        </section>
+          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 32 }}>
+            <div className="portal-hero-main">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
+                  Media Threat Intelligence
+                </span>
+              </div>
+              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
+                Media <span className="gradient-text">Lab</span>
+              </h1>
+              <p className="portal-hero-copy" style={{ color: palette.muted }}>
+                Upload images, videos, or audio for deepfake scoring, OCR extraction, object detection, and quick pivots into URL or IP intelligence.
+              </p>
+            </div>
+            <div className="portal-hero-rail">
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Best for</span>
+                <strong>Visual and audio triage</strong>
+                <p>Deepfake scoring, OCR, object detection, and artifact pivots stay inside the same investigation language as message and IOC triage.</p>
+              </article>
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Signal policy</span>
+                <strong>Actionable only</strong>
+                <p>Recent Media Runs keeps only suspicious and threat findings so the public workspace stays focused.</p>
+              </article>
+            </div>
+          </section>
         ) : null}
 
-        <div className="analysis-layout">
+        <SignalStrip items={stripItems} />
+
+        <div className="investigation-console-grid">
           <section
-            className="fade-in"
-            style={{
-              background: palette.card,
-              border: palette.border,
-              borderRadius: 24,
-              padding: 28,
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
-            }}
+            className="console-surface fade-in"
           >
+            <div className="console-block" style={{ marginBottom: 18 }}>
+              <div className="console-bar">
+                <span className="console-dot red" />
+                <span className="console-dot amber" />
+                <span className="console-dot green" />
+                <span className="console-title">Media Analysis Console</span>
+              </div>
+              <div className="console-body">
+                <div><span style={{ color: '#5ba3f5' }}>media_type</span> {activeTab}</div>
+                <div><span style={{ color: '#5ba3f5' }}>policy</span> only suspicious and threat runs stay in recent history</div>
+                <div><span style={{ color: '#5ba3f5' }}>artifacts</span> OCR pivots remain available for direct enrichment</div>
+              </div>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>
+                <h2 style={{ color: palette.text, fontSize: 18, fontWeight: 500, marginBottom: 6 }}>
                   Upload suspicious media
                 </h2>
                 <p style={{ color: palette.muted, fontSize: 14 }}>
                   Choose a media type, drop a file, and inspect the forensic output.
                 </p>
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 700, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', borderRadius: 999, padding: '10px 14px' }}>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 500, background: '#08111f', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
                 <Sparkles size={16} />
                 Deepfake and OCR
               </div>
             </div>
 
-            <div className="channel-grid" style={{ marginBottom: 24 }}>
+            <div className="console-tab-grid" style={{ marginBottom: 24 }}>
               {mediaTabs.map(({ id, label, icon: Icon }) => {
                 const active = activeTab === id
                 return (
@@ -221,20 +251,7 @@ export default function MediaLab({ embedded = false }) {
                     key={id}
                     type="button"
                     onClick={() => setActiveTab(id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 10,
-                      padding: '14px 18px',
-                      borderRadius: 18,
-                      fontWeight: 800,
-                      cursor: 'pointer',
-                      border: active ? '1px solid rgba(56,189,248,0.24)' : palette.border,
-                      background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : palette.cardStrong,
-                      color: active ? palette.text : palette.muted,
-                      boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
-                    }}
+                    className={`console-tab ${active ? 'is-active' : ''}`}
                   >
                     <Icon size={16} color={active ? palette.orange : palette.subtle} />
                     {label}
@@ -273,7 +290,7 @@ export default function MediaLab({ embedded = false }) {
               <p style={{ color: palette.muted, marginTop: 8 }}>
                 Or click to browse your local files for analysis.
               </p>
-              <div style={{ marginTop: 18, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 40, padding: '12px 24px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, boxShadow: '0 16px 40px rgba(14,165,233,0.24)' }}>
+              <div className="console-cta" style={{ marginTop: 18, display: 'inline-flex' }}>
                 <ScanSearch size={16} />
                 Select File
               </div>
@@ -291,7 +308,7 @@ export default function MediaLab({ embedded = false }) {
               }}
             />
 
-            <div style={{ marginTop: 20, padding: 18, borderRadius: 20, border: palette.border, background: palette.cardStrong }}>
+            <div className="feed-surface" style={{ marginTop: 20, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
                 <Zap size={16} color={palette.orange} />
                 <span className="analysis-meta-label">Recent Media Runs</span>
@@ -309,11 +326,14 @@ export default function MediaLab({ embedded = false }) {
                 <ExpandableFeed
                   items={history.filter((entry) => isActionable(entry?.threat_level))}
                   initialCount={4}
+                  className="recent-rail"
                   renderItem={(entry) => (
-                    <div key={entry.id} style={{ padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent', color: palette.text }}>
-                      <strong style={{ display: 'block', marginBottom: 4 }}>{entry.filename}</strong>
-                      <div style={{ color: palette.muted, marginBottom: 8 }}>{entry.summary}</div>
-                      <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(37,99,235,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12 }}>
+                    <div key={entry.id} className="recent-rail-item">
+                      <div className="recent-rail-main">
+                        <strong>{entry.filename}</strong>
+                        <div className="recent-rail-copy">{entry.summary}</div>
+                      </div>
+                      <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(37,99,235,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12, width: 'fit-content' }}>
                         {normalizeThreatLevel(entry.threat_level)}
                       </span>
                     </div>
@@ -323,22 +343,14 @@ export default function MediaLab({ embedded = false }) {
             </div>
 
             {error ? (
-              <div style={{ marginTop: 20, padding: '14px 16px', borderRadius: 18, background: 'rgba(251,191,36,0.12)', border: '1px solid rgba(251,191,36,0.18)', color: '#fbbf24', fontWeight: 600 }}>
+              <div className="console-status" style={{ marginTop: 20, borderColor: 'rgba(251,191,36,0.18)', color: '#fbbf24', fontWeight: 600 }}>
                 {error}
               </div>
             ) : null}
           </section>
 
           <section
-            className="fade-in"
-            style={{
-              background: palette.card,
-              border: palette.border,
-              borderRadius: 24,
-              padding: 28,
-              backdropFilter: 'blur(20px)',
-              boxShadow: '0 24px 80px rgba(0,0,0,0.18)',
-            }}
+            className="dossier-surface fade-in"
           >
             <div style={{ marginBottom: 20 }}>
               <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>
@@ -371,15 +383,15 @@ export default function MediaLab({ embedded = false }) {
             ) : null}
 
             {result && !loading ? (
-              <div style={{ display: 'grid', gap: 18 }}>
+              <div className="split-dossier">
                 <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                   <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
                     <FocusIcon size={16} />
                     {focusMode ? 'Show technical details' : 'Hide technical details'}
                   </button>
                 </div>
-                <div className="analysis-result-grid">
-                  <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
+                <div className="split-dossier-row">
+                  <div className="brief-panel">
                     <span className="analysis-meta-label">Threat Level</span>
                     <div style={{ marginTop: 12, display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.24)', color: palette.orange, fontWeight: 800 }}>
                       <Sparkles size={16} />
@@ -391,7 +403,7 @@ export default function MediaLab({ embedded = false }) {
                     </div>
                   </div>
 
-                  <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
+                  <div className="brief-panel">
                     <span className="analysis-meta-label">Deepfake Score</span>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12 }}>
                       <div style={{ flex: 1, height: 10, borderRadius: 999, background: palette.dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)' }}>
@@ -408,14 +420,14 @@ export default function MediaLab({ embedded = false }) {
                   </div>
                 </div>
 
-                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
+                {!focusMode ? <div className="brief-panel">
                   <span className="analysis-meta-label">OCR Text</span>
                   <p className="intel-reading-block" style={{ color: palette.muted, marginTop: 8, lineHeight: 1.7 }}>
                     {result.ocr_text || 'No OCR text extracted.'}
                   </p>
                 </div> : null}
 
-                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 14 }}>
+                {!focusMode ? <div className="brief-panel">
                     <div>
                       <div className="analysis-meta-label">Public Actions</div>
                       <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
@@ -434,7 +446,7 @@ export default function MediaLab({ embedded = false }) {
                   ) : null}
                 </div> : null}
 
-                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 16 }}>
+                {!focusMode ? <div className="brief-panel" style={{ display: 'grid', gap: 16 }}>
                   <span className="analysis-meta-label">Extracted Artifacts</span>
                   {!iocs.length ? (
                     <div style={{ color: palette.muted, lineHeight: 1.7 }}>
@@ -442,9 +454,9 @@ export default function MediaLab({ embedded = false }) {
                     </div>
                   ) : (
                     <>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                      <div className="artifact-chip-row">
                         {iocs.map((item) => (
-                          <button key={`${item.type}-${item.value}`} type="button" onClick={() => runPivot(item)} style={{ padding: '10px 14px', borderRadius: 999, border: palette.border, background: 'rgba(37,99,235,0.08)', color: palette.text, fontWeight: 700, cursor: 'pointer' }}>
+                          <button key={`${item.type}-${item.value}`} type="button" className="artifact-chip" onClick={() => runPivot(item)}>
                             {item.type.toUpperCase()}: {item.value}
                           </button>
                         ))}

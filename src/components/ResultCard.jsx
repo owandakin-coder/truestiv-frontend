@@ -13,17 +13,17 @@ function getPalette(theme) {
   const dark = theme !== 'light'
   return {
     dark,
-    panel: dark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.95)',
-    panelStrong: dark ? 'rgba(255,255,255,0.04)' : '#ffffff',
-    border: dark ? '1px solid rgba(255,255,255,0.07)' : '1px solid rgba(15,23,42,0.08)',
-    text: dark ? '#f8fafc' : '#0f172a',
-    muted: dark ? 'rgba(255,255,255,0.62)' : '#475569',
-    subtle: dark ? 'rgba(255,255,255,0.35)' : '#64748b',
-    orange: '#38bdf8',
-    green: '#00e5a0',
-    yellow: '#fbbf24',
-    red: '#ff5c5c',
-    blue: '#60a5fa',
+    panel: dark ? '#07101f' : 'rgba(255,255,255,0.95)',
+    panelStrong: dark ? '#08111f' : '#ffffff',
+    border: dark ? '1px solid #0e2040' : '1px solid rgba(15,23,42,0.08)',
+    text: dark ? '#e8f2ff' : '#0f172a',
+    muted: dark ? '#c8d8f0' : '#475569',
+    subtle: dark ? '#4a7ab5' : '#64748b',
+    orange: '#5ba3f5',
+    green: '#22c55e',
+    yellow: '#f59e0b',
+    red: '#f04040',
+    blue: '#5ba3f5',
   }
 }
 
@@ -150,10 +150,9 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
       style={{
         background: palette.panel,
         border: palette.border,
-        borderRadius: 24,
-        padding: 24,
-        backdropFilter: 'blur(20px)',
-        boxShadow: `0 24px 80px ${level.tint}`,
+        borderRadius: 10,
+        padding: 18,
+        boxShadow: 'none',
       }}
     >
       <div
@@ -162,33 +161,33 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
           alignItems: 'center',
           justifyContent: 'space-between',
           gap: 16,
-          marginBottom: 20,
-          padding: 18,
-          borderRadius: 20,
-          background: level.tint,
-          border: `1px solid ${level.color}25`,
+          marginBottom: 16,
+          padding: 14,
+          borderRadius: 8,
+          background: palette.panelStrong,
+          border: `1px solid ${level.color}33`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <div
             style={{
-              width: 52,
-              height: 52,
-              borderRadius: 18,
+              width: 42,
+              height: 42,
+              borderRadius: 8,
               display: 'grid',
               placeItems: 'center',
               color: level.color,
               background: palette.panelStrong,
-              border: `1px solid ${level.color}20`,
+              border: `1px solid ${level.color}33`,
             }}
           >
             {level.icon}
           </div>
           <div>
-            <p style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+            <p style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'JetBrains Mono, monospace' }}>
               {getTypeLabel(type)}
             </p>
-            <h3 style={{ color: palette.text, fontSize: 24, fontWeight: 900 }}>
+            <h3 style={{ color: palette.text, fontSize: 20, fontWeight: 500, fontFamily: 'JetBrains Mono, monospace' }}>
               {level.label}
             </h3>
           </div>
@@ -196,16 +195,16 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
 
         <div style={{ minWidth: 140 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ color: palette.subtle, fontSize: 12 }}>Risk Score</span>
-            <strong style={{ color: level.color }}>{score}%</strong>
+            <span style={{ color: palette.subtle, fontSize: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: 1.5, textTransform: 'uppercase' }}>Risk Score</span>
+            <strong style={{ color: level.color, fontFamily: 'JetBrains Mono, monospace' }}>{score}%</strong>
           </div>
-          <div style={{ height: 8, borderRadius: 999, background: palette.dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)' }}>
+          <div style={{ height: 8, borderRadius: 2, background: palette.dark ? '#0a1828' : 'rgba(15,23,42,0.08)' }}>
             <div
               style={{
                 width: `${score}%`,
                 height: '100%',
-                borderRadius: 999,
-                background: `linear-gradient(90deg, ${level.color}99, ${level.color})`,
+                borderRadius: 2,
+                background: level.color,
               }}
             />
           </div>
@@ -217,17 +216,17 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
           style={{
             background: palette.panelStrong,
             border: palette.border,
-            borderRadius: 20,
-            padding: 18,
+            borderRadius: 8,
+            padding: 16,
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <TypeIcon type={type} color={palette.orange} />
-            <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+            <span style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
               Identifier
             </span>
           </div>
-          <div style={{ color: palette.text, fontSize: 14, lineHeight: 1.7, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace' }}>
+          <div style={{ color: palette.text, fontSize: 12, lineHeight: 1.8, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace' }}>
             {identifier}
           </div>
           {vtLink && (
@@ -254,13 +253,13 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
           style={{
             background: palette.panelStrong,
             border: palette.border,
-            borderRadius: 20,
-            padding: 18,
+            borderRadius: 8,
+            padding: 16,
             display: 'grid',
             gap: 12,
           }}
         >
-          <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          <span style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
             Result Breakdown
           </span>
           <div className="intel-result-table">
@@ -280,13 +279,13 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
             marginTop: 18,
             background: palette.panelStrong,
             border: palette.border,
-            borderRadius: 20,
-            padding: 18,
+            borderRadius: 8,
+            padding: 16,
             display: 'grid',
             gap: 10,
           }}
         >
-          <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          <span style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
             Geolocation and Network
           </span>
           <div className="intel-result-table">
@@ -312,11 +311,11 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
             marginTop: 18,
             background: palette.panelStrong,
             border: palette.border,
-            borderRadius: 20,
-            padding: 18,
+            borderRadius: 8,
+            padding: 16,
           }}
         >
-          <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
+          <span style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
             Indicators
           </span>
           <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>

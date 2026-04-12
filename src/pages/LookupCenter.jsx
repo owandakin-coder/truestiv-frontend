@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Building2, Globe2, Mail, MapPinned, Radar, ScanSearch, ShieldAlert, Waypoints } from 'lucide-react'
+import { Globe2, ScanSearch, Waypoints } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
@@ -34,17 +35,6 @@ function levelColor(level, palette) {
   if (value === 'suspicious') return palette.yellow
   if (value === 'safe') return palette.green
   return palette.blue
-}
-
-function StatCard({ icon: Icon, label, value, copy, accent }) {
-  return (
-    <article className="intel-stat-card">
-      <Icon size={20} color={accent} />
-      <div className="intel-stat-value">{value}</div>
-      <div className="intel-stat-label">{label}</div>
-      <p className="intel-stat-copy">{copy}</p>
-    </article>
-  )
 }
 
 function RowTag({ value }) {
@@ -87,6 +77,32 @@ function LookupTabs({ activeMode, navigate }) {
         )
       })}
     </div>
+  )
+}
+
+function DossierTable({ rows }) {
+  return (
+    <div className="dossier-table">
+      {rows.map(([label, value]) => (
+        <div key={label} className="dossier-row">
+          <div className="dossier-key">{label}</div>
+          <div className="dossier-value">{value}</div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function DossierSidePanel({ verdict, recommendation, copy, accent, children }) {
+  return (
+    <aside className="dossier-sidepanel">
+      <div className="signal-strip-label">Verdict</div>
+      <div className="dossier-verdict" style={{ color: accent }}>{verdict}</div>
+      <div className="intel-reading-block">{copy}</div>
+      <div className="signal-strip-label">Recommendation</div>
+      <div className="dossier-value">{recommendation}</div>
+      {children}
+    </aside>
   )
 }
 
@@ -210,6 +226,29 @@ function LookupCenter() {
     return domainPayload?.brand_impersonation || domainLookup?.brand_impersonation || detectBrandImpersonation(domainLookup.domain, domainLookup.age_days)
   }, [domainLookup, domainPayload])
   const headerAnalysis = headerPayload?.analysis
+  const stripItems = activeMode === 'ip'
+    ? [
+        { label: 'Mode', value: 'IP dossier', copy: 'Infrastructure enrichment', live: !!ipLookup },
+        { label: 'Threat', value: normalizeThreatLevel(ipLookup?.threat_level || 'pending'), copy: 'Current verdict' },
+        { label: 'Risk', value: `${ipLookup?.risk_score || 0}%`, copy: 'Aggregated provider score' },
+        { label: 'Sightings', value: ipPayload?.sightings?.total || 0, copy: 'Shared platform observations' },
+        { label: 'Location', value: ipLookup?.geo?.country || 'Unknown', copy: ipLookup?.geo?.city || 'Geo context' },
+      ]
+    : activeMode === 'domain'
+      ? [
+          { label: 'Mode', value: 'Domain dossier', copy: 'DNS and reputation enrichment', live: !!domainLookup },
+          { label: 'Threat', value: normalizeThreatLevel(domainLookup?.threat_level || 'pending'), copy: 'Current verdict' },
+          { label: 'Risk', value: `${domainLookup?.risk_score || 0}%`, copy: 'Aggregated provider score' },
+          { label: 'Age', value: domainLookup?.age_days != null ? `${domainLookup.age_days}d` : 'Unknown', copy: 'Observed registration age' },
+          { label: 'Brand', value: domainBrandSignal?.brand || 'None', copy: domainBrandSignal?.active ? 'Possible impersonation' : 'No active signal' },
+        ]
+      : [
+          { label: 'Mode', value: 'Header analysis', copy: 'Sender and auth inspection', live: !!headerAnalysis },
+          { label: 'Threat', value: normalizeThreatLevel(headerAnalysis?.threat_level || 'pending'), copy: 'Current verdict' },
+          { label: 'Risk', value: `${headerAnalysis?.risk_score || 0}%`, copy: 'Header anomaly score' },
+          { label: 'Origin', value: headerAnalysis?.origin_ip || 'Unknown', copy: 'Earliest transport IP' },
+          { label: 'From', value: headerAnalysis?.from_domain || 'Unknown', copy: 'Visible sender domain' },
+        ]
 
   return (
     <section className="intel-shell">
@@ -234,6 +273,8 @@ function LookupCenter() {
           </article>
         </div>
       </div>
+
+      <SignalStrip items={stripItems} />
 
       <section className="intel-section-card fade-in-delay-1">
         <LookupTabs activeMode={activeMode} navigate={navigate} />
@@ -321,14 +362,7 @@ function LookupCenter() {
 
       {!loading && activeMode === 'ip' && ipLookup ? (
         <>
-          <div className="intel-stat-grid ip-lookup-stat-grid fade-in-delay-1">
-            <StatCard icon={ShieldAlert} label="Threat Level" value={normalizeThreatLevel(ipLookup.threat_level)} copy={`Recommended action: ${ipLookup.recommendation || 'allow'}`} accent={levelColor(ipLookup.threat_level, palette)} />
-            <StatCard icon={Radar} label="Risk Score" value={`${ipLookup.risk_score || 0}%`} copy={`${ipLookup.source_count || 0} providers contributed to this dossier.`} accent={palette.blue} />
-            <StatCard icon={ScanSearch} label="Sightings" value={ipPayload?.sightings?.total || 0} copy="Scans, community, analyses, media, and telemetry." accent={palette.cyan} />
-            <StatCard icon={MapPinned} label="Location" value={ipLookup.geo?.location_name || 'Unknown'} copy={ipLookup.geo?.organization || ipLookup.geo?.isp || 'Infrastructure details resolved from active providers.'} accent={palette.green} />
-          </div>
-
-          <div className="intel-two-column">
+          <div className="dossier-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Infrastructure</div>
@@ -337,21 +371,18 @@ function LookupCenter() {
                   Confidence {ipLookup.source_confidence_label || 'moderate'} ({ipLookup.source_confidence || 0}) across aggregated enrichment and internal sightings.
                 </p>
               </div>
-              <div className="intel-detail-grid">
-                {[
+              <DossierTable
+                rows={[
                   ['Country', ipLookup.geo?.country || 'Unknown'],
                   ['Region', ipLookup.geo?.region || 'Unknown'],
                   ['City', ipLookup.geo?.city || 'Unknown'],
                   ['ASN', ipLookup.geo?.asn || 'Unknown'],
                   ['ISP', ipLookup.geo?.isp || 'Unknown'],
                   ['Organization', ipLookup.geo?.organization || 'Unknown'],
-                ].map(([label, value]) => (
-                  <div key={label} className="intel-detail-card">
-                    <span className="intel-meta-label">{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
-              </div>
+                  ['Sightings', String(ipPayload?.sightings?.total || 0)],
+                  ['Confidence', `${Math.round(Number(ipLookup.source_confidence || 0) * 100)}%`],
+                ]}
+              />
               {(ipLookup.threat_actor_tags || []).length ? (
                 <div style={{ marginTop: 18 }}>
                   <div className="intel-meta-label" style={{ marginBottom: 10 }}>Threat actor tags</div>
@@ -364,14 +395,13 @@ function LookupCenter() {
               ) : null}
             </section>
 
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Continue</div>
-                <h2 className="intel-section-title">Continue the investigation</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Move directly into scanner, graph, and map views without copying the indicator between screens.
-                </p>
-              </div>
+            <DossierSidePanel
+              verdict={normalizeThreatLevel(ipLookup.threat_level)}
+              recommendation={ipLookup.recommendation || 'allow'}
+              copy={ipLookup.summary || ipLookup.geo?.organization || 'Infrastructure details resolved from active providers.'}
+              accent={levelColor(ipLookup.threat_level, palette)}
+            >
+              <div className="signal-strip-label">Continue</div>
               <div className="intel-action-grid ip-lookup-action-grid">
                 <Link to="/investigation-center/scanner" className="intel-action-card ip-lookup-action-card">
                   <div className="ip-lookup-action-icon" style={{ background: 'rgba(37,99,235,0.12)' }}>
@@ -401,21 +431,14 @@ function LookupCenter() {
                   </div>
                 </Link>
               </div>
-            </section>
+            </DossierSidePanel>
           </div>
         </>
       ) : null}
 
       {!loading && activeMode === 'domain' && domainLookup ? (
         <>
-          <div className="intel-stat-grid ip-lookup-stat-grid fade-in-delay-1">
-            <StatCard icon={Building2} label="Registrar" value={domainLookup.registrar || 'Unknown'} copy="Registration metadata from RDAP." accent={palette.blue} />
-            <StatCard icon={ShieldAlert} label="Threat Level" value={normalizeThreatLevel(domainLookup.threat_level)} copy={`Recommended action: ${domainLookup.recommendation || 'allow'}`} accent={levelColor(domainLookup.threat_level, palette)} />
-            <StatCard icon={Radar} label="Risk Score" value={`${domainLookup.risk_score || 0}%`} copy={`${domainLookup.source_count || 0} providers contributed to this lookup.`} accent={palette.cyan} />
-            <StatCard icon={MapPinned} label="Age" value={domainLookup.age_days != null ? `${domainLookup.age_days} days` : 'Unknown'} copy="Newly created domains often deserve closer review." accent={palette.green} />
-          </div>
-
-          <div className="intel-two-column">
+          <div className="dossier-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Domain dossier</div>
@@ -424,21 +447,18 @@ function LookupCenter() {
                   DNS, registration age, reputation, and related infrastructure from public intelligence providers.
                 </p>
               </div>
-              <div className="intel-detail-grid">
-                {[
+              <DossierTable
+                rows={[
+                  ['Registrar', domainLookup.registrar || 'Unknown'],
+                  ['Age', domainLookup.age_days != null ? `${domainLookup.age_days} days` : 'Unknown'],
                   ['A Records', (domainPayload?.dns?.a || []).join(', ') || 'None'],
                   ['MX Records', (domainPayload?.dns?.mx || []).join(', ') || 'None'],
                   ['NS Records', (domainPayload?.dns?.ns || []).join(', ') || 'None'],
                   ['TXT Records', (domainPayload?.dns?.txt || []).slice(0, 2).join(' | ') || 'None'],
                   ['Sightings', String(domainPayload?.sightings?.total || 0)],
                   ['Confidence', `${Math.round(Number(domainLookup.source_confidence || 0) * 100)}%`],
-                ].map(([label, value]) => (
-                  <div key={label} className="intel-detail-card">
-                    <span className="intel-meta-label">{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
-              </div>
+                ]}
+              />
               {(domainLookup.threat_actor_tags || []).length ? (
                 <div style={{ marginTop: 18 }}>
                   <div className="intel-meta-label" style={{ marginBottom: 10 }}>Threat actor tags</div>
@@ -490,14 +510,13 @@ function LookupCenter() {
               ) : null}
             </section>
 
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Related IPs</div>
-                <h2 className="intel-section-title">Infrastructure pivots</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Move from the domain into IP enrichment, IOC details, and correlation workflows.
-                </p>
-              </div>
+            <DossierSidePanel
+              verdict={normalizeThreatLevel(domainLookup.threat_level)}
+              recommendation={domainLookup.recommendation || 'allow'}
+              copy={domainBrandSignal?.summary || 'Move from the domain into IP enrichment, IOC details, and correlation workflows.'}
+              accent={levelColor(domainLookup.threat_level, palette)}
+            >
+              <div className="signal-strip-label">Infrastructure pivots</div>
               <div className="intel-mini-list">
                 {(domainPayload?.related_ips || []).length ? (
                   domainPayload.related_ips.map((item) => (
@@ -521,21 +540,14 @@ function LookupCenter() {
                   Open Correlation Graph
                 </Link>
               </div>
-            </section>
+            </DossierSidePanel>
           </div>
         </>
       ) : null}
 
       {!loading && activeMode === 'email-header' && headerAnalysis ? (
         <>
-          <div className="intel-stat-grid ip-lookup-stat-grid fade-in-delay-1">
-            <StatCard icon={Mail} label="Threat Level" value={normalizeThreatLevel(headerAnalysis.threat_level)} copy={`Recommended action: ${headerAnalysis.recommendation || 'review'}`} accent={levelColor(headerAnalysis.threat_level, palette)} />
-            <StatCard icon={ShieldAlert} label="Risk Score" value={`${headerAnalysis.risk_score || 0}%`} copy="Header anomalies, auth failures, and sender alignment signals." accent={palette.blue} />
-            <StatCard icon={Radar} label="Origin IP" value={headerAnalysis.origin_ip || 'Unknown'} copy="Extracted from the Received chain." accent={palette.cyan} />
-            <StatCard icon={Building2} label="From Domain" value={headerAnalysis.from_domain || 'Unknown'} copy="Primary visible sender domain." accent={palette.green} />
-          </div>
-
-          <div className="intel-two-column">
+          <div className="dossier-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Authentication</div>
@@ -544,21 +556,18 @@ function LookupCenter() {
                   Header analysis focuses on sender alignment, auth failures, and the earliest observable transport IP.
                 </p>
               </div>
-              <div className="intel-detail-grid">
-                {[
+              <DossierTable
+                rows={[
                   ['SPF', headerPayload?.authentication?.spf || 'unknown'],
                   ['DKIM', headerPayload?.authentication?.dkim || 'unknown'],
                   ['DMARC', headerPayload?.authentication?.dmarc || 'unknown'],
+                  ['Origin IP', headerAnalysis.origin_ip || 'Unknown'],
                   ['Reply-To', headerAnalysis.reply_to_domain || 'Unknown'],
                   ['Return-Path', headerAnalysis.return_path_domain || 'Unknown'],
                   ['Message-ID', headerAnalysis.message_id || 'Unknown'],
-                ].map(([label, value]) => (
-                  <div key={label} className="intel-detail-card">
-                    <span className="intel-meta-label">{label}</span>
-                    <strong>{value}</strong>
-                  </div>
-                ))}
-              </div>
+                  ['From Domain', headerAnalysis.from_domain || 'Unknown'],
+                ]}
+              />
               <div className="intel-mini-list">
                 {(headerPayload?.findings || []).length ? (
                   headerPayload.findings.map((item, index) => (
@@ -573,14 +582,13 @@ function LookupCenter() {
               </div>
             </section>
 
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Pivots</div>
-                <h2 className="intel-section-title">Continue the investigation</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Jump directly into domain and IP investigation from the extracted header artifacts.
-                </p>
-              </div>
+            <DossierSidePanel
+              verdict={normalizeThreatLevel(headerAnalysis.threat_level)}
+              recommendation={headerAnalysis.recommendation || 'review'}
+              copy={headerAnalysis.summary || 'Jump directly into domain and IP investigation from the extracted header artifacts.'}
+              accent={levelColor(headerAnalysis.threat_level, palette)}
+            >
+              <div className="signal-strip-label">Continue</div>
               <div className="intel-mini-list">
                 <div className="intel-mini-item">
                   <span className="intel-meta-label">Domains</span>
@@ -611,7 +619,7 @@ function LookupCenter() {
                   </div>
                 </div>
               </div>
-            </section>
+            </DossierSidePanel>
           </div>
 
           {(headerPayload?.related_analyses || []).length ? (

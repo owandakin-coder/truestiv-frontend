@@ -4,6 +4,7 @@ import { Activity, DatabaseZap, GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -63,6 +64,23 @@ export default function ThreatIntelHub() {
     const highRisk = feed.filter((item) => ['threat', 'suspicious'].includes(String(item.threat_level || '').toLowerCase())).length
     return { activeSources, publishedFeed, highRisk }
   }, [feed, sources])
+  const featuredBrief = briefs[0] || null
+  const mostActiveCountry = (trends.by_country || [])[0]?.label || 'Pending'
+  const fastestCluster = featuredBrief?.title || (briefs[1]?.title || 'Pending')
+  const topBrand = trending.find((item) => (item.actor_tags || []).some((tag) => /brand|phish|imperson/i.test(String(tag))))?.indicator || 'Pending'
+  const stripItems = [
+    { label: 'Sources', value: stats.activeSources, copy: 'Active public feed connectors', live: true },
+    { label: 'Published', value: stats.publishedFeed, copy: 'Current public indicator count' },
+    { label: 'High Attention', value: stats.highRisk, copy: 'Threat and suspicious items' },
+    { label: 'Retry Queue', value: (jobs.retry_queue || []).length, copy: 'Pending collection retries' },
+    { label: 'Confidence', value: `${Math.round((sources[0]?.confidence_score || 0) * 100)}%`, copy: sources[0]?.name || 'Top weighted source' },
+  ]
+  const editorialCards = [
+    { label: 'What matters now', value: featuredBrief?.title || 'No featured brief yet', copy: featuredBrief?.summary || 'A featured brief will appear here as recurring signals accumulate.' },
+    { label: 'Fastest growing cluster', value: fastestCluster, copy: featuredBrief?.signal_count ? `${featuredBrief.signal_count} related signals` : 'Waiting for enough overlap to name a cluster.' },
+    { label: 'Top impersonated brand', value: topBrand, copy: 'Brand impersonation signals are weighted from domain and URL analysis.' },
+    { label: 'Most active country', value: mostActiveCountry, copy: 'Derived from suspicious and threat findings only.' },
+  ]
 
   return (
     <section className="intel-shell">
@@ -94,13 +112,51 @@ export default function ThreatIntelHub() {
         </div>
       </div>
 
+      <SignalStrip items={stripItems} />
+
       {error ? <div className="intel-empty-card">{error}</div> : null}
 
-      <div className="intel-stat-grid fade-in-delay-1">
-        <article className="intel-stat-card"><DatabaseZap size={20} color="#38bdf8" /><div className="intel-stat-value">{stats.activeSources}</div><div className="intel-stat-label">Active Sources</div><p className="intel-stat-copy">Feeds currently exposed by the backend intelligence status endpoint.</p></article>
-        <article className="intel-stat-card"><Radar size={20} color="#22c55e" /><div className="intel-stat-value">{stats.publishedFeed}</div><div className="intel-stat-label">Published Indicators</div><p className="intel-stat-copy">Recent intelligence items already visible in the shared platform feed.</p></article>
-        <article className="intel-stat-card"><Activity size={20} color="#fbbf24" /><div className="intel-stat-value">{stats.highRisk}</div><div className="intel-stat-label">High Attention Items</div><p className="intel-stat-copy">Indicators currently marked as suspicious or threat in the public stream.</p></article>
-      </div>
+      {featuredBrief ? (
+        <section className="featured-brief fade-in-delay-1">
+          <div className="featured-brief-main">
+            <div className="intel-eyebrow">Featured Incident Brief</div>
+            <h2 className="intel-section-title" style={{ marginTop: 8 }}>{featuredBrief.title}</h2>
+            <p className="intel-reading-block" style={{ marginTop: 12 }}>{featuredBrief.summary}</p>
+            <div className="intel-tag-wrap" style={{ marginTop: 14 }}>
+              {(featuredBrief.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
+              {(featuredBrief.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
+            </div>
+          </div>
+          <div className="featured-brief-side">
+            <article className="editorial-card">
+              <div className="signal-strip-label">Signals</div>
+              <strong>{featuredBrief.signal_count}</strong>
+              <p>Related indicators grouped into this public brief.</p>
+            </article>
+            <article className="editorial-card">
+              <div className="signal-strip-label">Countries</div>
+              <strong>{featuredBrief.countries?.join(', ') || 'Unknown'}</strong>
+              <p>Infrastructure regions observed inside the cluster.</p>
+            </article>
+            <article className="editorial-card">
+              <div className="signal-strip-label">Next step</div>
+              <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
+            </article>
+          </div>
+        </section>
+      ) : null}
+
+      <section className="fade-in-delay-1" style={{ marginTop: 20 }}>
+        <div className="editorial-grid">
+          {editorialCards.map((card) => (
+            <article key={card.label} className="editorial-card">
+              <div className="signal-strip-label">{card.label}</div>
+              <strong>{card.value}</strong>
+              <p>{card.copy}</p>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <section className="intel-section-card fade-in-delay-2">
         <div className="intel-section-head">
@@ -112,9 +168,9 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={trending}
             initialCount={5}
-            className="intel-feed-list"
+            className="feed-rail"
             renderItem={(item) => (
-              <article key={`${item.ioc_type}-${item.indicator}`} className="intel-feed-row intel-feed-row-wide">
+              <article key={`${item.ioc_type}-${item.indicator}`} className={`intel-feed-row intel-feed-row-wide ${threatLabel(item.latest_threat_level)}`}>
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
                   <div className="intel-feed-row-meta">{item.sightings} sightings | {item.sources.join(', ') || 'intel'} {item.countries.length ? `| ${item.countries.join(', ')}` : ''}</div>
@@ -162,11 +218,11 @@ export default function ThreatIntelHub() {
           <h2 className="intel-section-title">High-signal patterns by source, country, type, and time</h2>
           <p className="intel-section-copy intel-reading-block">These trend views are built only from suspicious and threat findings so the charts stay operationally useful.</p>
         </div>
-        <div className="intel-grid-two">
-          <article className="intel-detail-card"><div className="intel-detail-label">Top Sources</div>{(trends.by_source || []).slice(0, 5).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 10)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
-          <article className="intel-detail-card"><div className="intel-detail-label">Top Countries</div>{(trends.by_country || []).slice(0, 5).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
-          <article className="intel-detail-card"><div className="intel-detail-label">IOC Types</div>{(trends.by_ioc_type || []).slice(0, 5).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
-          <article className="intel-detail-card"><div className="intel-detail-label">Recent Timeline</div>{(trends.timeline || []).slice(-5).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 16)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
+        <div className="editorial-grid">
+          <article className="editorial-card"><div className="signal-strip-label">Top Sources</div>{(trends.by_source || []).slice(0, 4).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 10)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
+          <article className="editorial-card"><div className="signal-strip-label">Top Countries</div>{(trends.by_country || []).slice(0, 4).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
+          <article className="editorial-card"><div className="signal-strip-label">IOC Types</div>{(trends.by_ioc_type || []).slice(0, 4).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 12)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
+          <article className="editorial-card"><div className="signal-strip-label">Recent Timeline</div>{(trends.timeline || []).slice(-4).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 16)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
         </div>
       </section>
 
@@ -224,9 +280,9 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={feed}
             initialCount={6}
-            className="intel-feed-list"
+            className="feed-rail"
             renderItem={(item) => (
-              <article key={item.id} className="intel-feed-row intel-feed-row-wide">
+              <article key={item.id} className={`intel-feed-row intel-feed-row-wide ${threatLabel(item.threat_level)}`}>
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
                   <div className="intel-feed-row-meta">Trustive AI currently exposes this indicator as part of the public threat intelligence stream.</div>

@@ -32,11 +32,11 @@ function PlatformLayout() {
   const [query, setQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const surfaceColor = theme === 'dark' ? '#030712' : '#f8fafc'
-  const panelColor = theme === 'dark' ? 'rgba(3,7,18,0.72)' : 'rgba(255,255,255,0.9)'
-  const borderColor = theme === 'dark' ? 'rgba(148,163,184,0.14)' : 'rgba(15,23,42,0.08)'
-  const textColor = theme === 'dark' ? '#eff6ff' : '#0f172a'
-  const mutedColor = theme === 'dark' ? 'rgba(191,219,254,0.72)' : '#475569'
+  const surfaceColor = theme === 'dark' ? '#060c18' : '#f8fafc'
+  const panelColor = theme === 'dark' ? 'rgba(7,16,31,0.96)' : 'rgba(255,255,255,0.9)'
+  const borderColor = theme === 'dark' ? '#0e2040' : 'rgba(15,23,42,0.08)'
+  const textColor = theme === 'dark' ? '#e8f2ff' : '#0f172a'
+  const mutedColor = theme === 'dark' ? '#c8d8f0' : '#475569'
 
   const pageTitle = useMemo(() => {
     const active = navItems.find((item) => location.pathname.startsWith(item.path))
@@ -84,18 +84,19 @@ function PlatformLayout() {
             style={{
               width: 42,
               height: 42,
-              borderRadius: 14,
-              background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+              borderRadius: 8,
+              background: '#07101f',
+              border: `1px solid ${borderColor}`,
               display: 'grid',
               placeItems: 'center',
-              boxShadow: '0 16px 36px rgba(37,99,235,0.32)',
+              boxShadow: 'none',
             }}
           >
-            <Waves size={18} color="#fff" />
+            <Waves size={18} color="#5ba3f5" />
           </div>
           <div>
-            <div style={{ fontSize: 12, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#7dd3fc' }}>Trustive AI</div>
-            <div style={{ fontSize: 16, fontWeight: 900 }}>{pageTitle}</div>
+            <div style={{ fontSize: 9, letterSpacing: '0.22em', textTransform: 'uppercase', color: '#2d5580', fontFamily: 'JetBrains Mono, monospace' }}>Trustive AI</div>
+            <div style={{ fontSize: 16, fontWeight: 500 }}>{pageTitle}</div>
           </div>
         </div>
 
@@ -128,19 +129,20 @@ function PlatformLayout() {
               <NavLink
                 key={item.path}
                 to={item.path}
-                style={({ isActive }) => ({
+            style={({ isActive }) => ({
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 8,
-                  padding: '10px 14px',
-                  borderRadius: 999,
+                  padding: '10px 12px',
+                  borderRadius: 8,
                   textDecoration: 'none',
-                  color: isActive ? '#fff' : textColor,
-                  background: isActive ? 'linear-gradient(135deg, #2563eb, #0ea5e9)' : 'transparent',
-                  border: isActive ? '1px solid rgba(56,189,248,0.35)' : `1px solid ${borderColor}`,
-                  boxShadow: isActive ? '0 14px 32px rgba(14,165,233,0.18)' : 'none',
-                  fontWeight: 700,
-                  fontSize: 14,
+                  color: isActive ? '#5ba3f5' : textColor,
+                  background: isActive ? '#08111f' : 'transparent',
+                  border: isActive ? '1px solid #1e3a5f' : `1px solid ${borderColor}`,
+                  boxShadow: 'none',
+                  fontWeight: 500,
+                  fontSize: 12,
+                  fontFamily: 'JetBrains Mono, monospace',
                 })}
               >
                 <Icon size={15} />
@@ -160,11 +162,12 @@ function PlatformLayout() {
                 width: 220,
                 maxWidth: '100%',
                 padding: '10px 14px',
-                borderRadius: 999,
+                borderRadius: 8,
                 border: `1px solid ${borderColor}`,
-                background: 'rgba(15,23,42,0.58)',
+                background: '#08111f',
                 color: textColor,
                 outline: 'none',
+                fontFamily: 'JetBrains Mono, monospace',
               }}
             />
             <button
@@ -175,10 +178,10 @@ function PlatformLayout() {
                 justifyContent: 'center',
                 width: 42,
                 height: 42,
-                borderRadius: 999,
+                borderRadius: 8,
                 border: `1px solid ${borderColor}`,
-                background: 'rgba(37,99,235,0.12)',
-                color: '#bae6fd',
+                background: '#08111f',
+                color: '#5ba3f5',
                 cursor: 'pointer',
               }}
               aria-label="Search intelligence"
@@ -195,14 +198,14 @@ function PlatformLayout() {
           position: 'sticky',
           top: 79,
           zIndex: 19,
-          display: mobileMenuOpen ? 'none' : 'none',
+          display: mobileMenuOpen ? 'block' : 'none',
           margin: '0 12px',
           padding: '14px',
-          borderRadius: 22,
-          background: 'rgba(3,7,18,0.94)',
+          borderRadius: 10,
+          background: 'rgba(7,16,31,0.98)',
           border: `1px solid ${borderColor}`,
-          backdropFilter: 'blur(18px)',
-          boxShadow: '0 20px 50px rgba(2,8,23,0.28)',
+          backdropFilter: 'none',
+          boxShadow: 'none',
         }}
       >
         <form onSubmit={submitSearch} className="platform-mobile-search" style={{ display: 'grid', gap: 10, marginBottom: 14 }}>
@@ -213,23 +216,26 @@ function PlatformLayout() {
             style={{
               width: '100%',
               padding: '12px 14px',
-              borderRadius: 16,
+              borderRadius: 8,
               border: `1px solid ${borderColor}`,
-              background: 'rgba(15,23,42,0.82)',
+              background: '#08111f',
               color: textColor,
               outline: 'none',
-              fontSize: 15,
+              fontSize: 14,
+              fontFamily: 'JetBrains Mono, monospace',
             }}
           />
           <button
             type="submit"
             style={{
               border: 'none',
-              borderRadius: 16,
+              borderRadius: 8,
               padding: '12px 16px',
-              fontWeight: 800,
+              fontWeight: 500,
               color: '#fff',
-              background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+              background: '#0a1628',
+              border: `1px solid ${borderColor}`,
+              fontFamily: 'JetBrains Mono, monospace',
             }}
           >
             Search
@@ -250,13 +256,14 @@ function PlatformLayout() {
                   alignItems: 'center',
                   gap: 12,
                   padding: '12px 14px',
-                  borderRadius: 16,
+                  borderRadius: 8,
                   textDecoration: 'none',
-                  fontWeight: 700,
-                  fontSize: 15,
-                  color: active ? '#fff' : textColor,
-                  background: active ? 'linear-gradient(135deg, #2563eb, #0ea5e9)' : 'rgba(255,255,255,0.03)',
-                  border: active ? '1px solid rgba(56,189,248,0.35)' : `1px solid ${borderColor}`,
+                  fontWeight: 500,
+                  fontSize: 13,
+                  color: active ? '#5ba3f5' : textColor,
+                  background: active ? '#08111f' : 'rgba(255,255,255,0.03)',
+                  border: active ? '1px solid #1e3a5f' : `1px solid ${borderColor}`,
+                  fontFamily: 'JetBrains Mono, monospace',
                 }}
               >
                 <Icon size={17} />

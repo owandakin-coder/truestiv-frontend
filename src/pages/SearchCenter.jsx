@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Radar, Search, ShieldAlert } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { formatRelativeDate } from '../utils/intelTools'
@@ -37,6 +38,13 @@ export default function SearchCenter() {
   const [error, setError] = useState('')
 
   const activeQuery = searchParams.get('q') || ''
+  const stripItems = [
+    { label: 'Query', value: activeQuery || 'Awaiting input', copy: 'Active portal search string', live: Boolean(activeQuery) },
+    { label: 'Results', value: items.length, copy: 'Actionable matches only' },
+    { label: 'Scope', value: 'Public intel', copy: 'Search spans shared findings' },
+    { label: 'Types', value: 'IOC / subject', copy: 'Indicators, senders, subjects, summaries' },
+    { label: 'Mode', value: 'High signal', copy: 'Safe data stays out of the feed' },
+  ]
 
   useEffect(() => {
     if (!activeQuery || activeQuery.trim().length < 2) {
@@ -87,6 +95,8 @@ export default function SearchCenter() {
         </div>
       </div>
 
+      <SignalStrip items={stripItems} />
+
       <section className="intel-section-card fade-in-delay-1">
         <form onSubmit={submit} className="intel-search-row">
           <input
@@ -126,9 +136,9 @@ export default function SearchCenter() {
             </p>
           </div>
 
-          <div className="intel-feed-list">
+          <div className="feed-rail">
             {items.map((item) => (
-              <article key={item.id} className="intel-feed-row intel-feed-row-wide">
+              <article key={item.id} className={`intel-feed-row intel-feed-row-wide ${String(item.threat_level || 'info').toLowerCase()}`}>
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.title}</div>
                   <div className="intel-feed-row-meta">

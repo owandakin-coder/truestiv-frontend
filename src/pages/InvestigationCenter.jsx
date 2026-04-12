@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FileImage, ScanSearch, ShieldAlert } from 'lucide-react'
 
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import Analysis from './Analysis'
 import MediaLab from './MediaLab'
@@ -49,6 +50,13 @@ export default function InvestigationCenter() {
   const navigate = useNavigate()
 
   const activeTab = investigationTabs.find((item) => item.id === mode) || investigationTabs[1]
+  const stripItems = [
+    { label: 'Surface', value: activeTab.label, copy: 'Current active lane' },
+    { label: 'Workflow', value: 'Public triage', copy: 'No private workspace required' },
+    { label: 'Entry Point', value: 'Scanner first', copy: 'Fast IOC triage remains primary' },
+    { label: 'History', value: 'Actionable only', copy: 'Safe results stay out of recent queues' },
+    { label: 'Mode', value: 'Investigation console', copy: 'Analysis, scanner, and media stay connected', live: true },
+  ]
 
   return (
     <section className="intel-shell">
@@ -79,8 +87,23 @@ export default function InvestigationCenter() {
         </div>
       </div>
 
+      <SignalStrip items={stripItems} />
+
       <section className="intel-section-card fade-in-delay-1">
-        <div className="investigation-tab-row">
+        <div className="console-block">
+          <div className="console-bar">
+            <span className="console-dot red" />
+            <span className="console-dot amber" />
+            <span className="console-dot green" />
+            <span className="console-title">Investigation Console</span>
+          </div>
+          <div className="console-body">
+            <div><span style={{ color: '#5ba3f5' }}>active_lane</span> {activeTab.label}</div>
+            <div><span style={{ color: '#5ba3f5' }}>purpose</span> public message, IOC, and media triage</div>
+            <div><span style={{ color: '#5ba3f5' }}>policy</span> actionable-only recent history</div>
+          </div>
+        </div>
+        <div className="investigation-tab-row" style={{ marginTop: 18 }}>
           {investigationTabs.map((tab) => {
             const Icon = tab.icon
             const active = tab.id === activeTab.id

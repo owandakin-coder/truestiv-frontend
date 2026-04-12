@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { GitBranch, Radar, Waypoints } from 'lucide-react'
+import { GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
@@ -68,6 +69,13 @@ export default function CampaignClusters() {
 
   const clusters = payload?.items || []
   const selected = payload?.selected || null
+  const stripItems = [
+    { label: 'Clusters', value: clusters.length, copy: 'Visible public dossiers', live: true },
+    { label: 'Signals', value: selected?.signal_count || 0, copy: 'Indicators in the selected brief' },
+    { label: 'Sources', value: selected?.sources?.length || 0, copy: 'Distinct contributing feeds' },
+    { label: 'Threat Level', value: selected?.latest_threat_level || 'pending', copy: 'Current selected cluster verdict' },
+    { label: 'Countries', value: selected?.countries?.length || 0, copy: 'Observed geographic spread' },
+  ]
 
   return (
     <section className="intel-shell">
@@ -98,6 +106,8 @@ export default function CampaignClusters() {
         </div>
       </div>
 
+      <SignalStrip items={stripItems} />
+
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading campaign clusters...</div> : null}
 
@@ -112,27 +122,6 @@ export default function CampaignClusters() {
 
       {!loading && clusters.length ? (
         <>
-          <div className="intel-stat-grid fade-in-delay-1">
-            <article className="intel-stat-card">
-              <GitBranch size={20} color={palette.blue} />
-              <div className="intel-stat-value">{clusters.length}</div>
-              <div className="intel-stat-label">Visible Clusters</div>
-              <p className="intel-stat-copy">Grouped public signals currently exposed by the campaign model.</p>
-            </article>
-            <article className="intel-stat-card">
-              <Radar size={20} color={palette.yellow} />
-              <div className="intel-stat-value">{selected?.signal_count || 0}</div>
-              <div className="intel-stat-label">Signals In Focus</div>
-              <p className="intel-stat-copy">Indicators and sightings attached to the selected public brief.</p>
-            </article>
-            <article className="intel-stat-card">
-              <Waypoints size={20} color={palette.cyan} />
-              <div className="intel-stat-value">{selected?.sources?.length || 0}</div>
-              <div className="intel-stat-label">Source Overlap</div>
-              <p className="intel-stat-copy">Distinct signal sources contributing to the selected cluster.</p>
-            </article>
-          </div>
-
           <div className="intel-two-column fade-in-delay-2">
             <section className="intel-section-card">
               <div className="intel-section-head">
@@ -160,8 +149,8 @@ export default function CampaignClusters() {
                       className="intel-mini-item campaign-cluster-item"
                       style={{
                         textAlign: 'left',
-                        border: active ? '1px solid rgba(56,189,248,0.28)' : '1px solid rgba(148,163,184,0.14)',
-                        background: active ? 'rgba(37,99,235,0.12)' : 'rgba(255,255,255,0.03)',
+                        border: active ? '1px solid rgba(91,163,245,0.32)' : '1px solid rgba(14,32,64,1)',
+                        background: active ? '#08111f' : '#07101f',
                         cursor: 'pointer',
                       }}
                     >
@@ -178,7 +167,7 @@ export default function CampaignClusters() {
                           {cluster.latest_threat_level}
                         </span>
                       </div>
-                      <span className="campaign-cluster-summary" style={{ color: palette.muted, lineHeight: 1.55 }}>{cluster.summary}</span>
+                      <span className="campaign-cluster-summary campaign-dossier-body">{cluster.summary}</span>
                       <span className="campaign-cluster-meta" style={{ color: palette.subtle, fontSize: 13 }}>
                         {cluster.signal_count} signals | {cluster.sources.length} sources
                       </span>
@@ -202,62 +191,47 @@ export default function CampaignClusters() {
 
               {selected ? (
                 <>
-                  <div className="intel-detail-grid">
-                    <div className="intel-detail-card">
-                      <span className="intel-meta-label">Latest Threat</span>
-                      <strong>{selected.latest_threat_level}</strong>
+                  <article className="campaign-dossier" style={{ ['--severity-color']: levelColor(selected.latest_threat_level, palette) }}>
+                    <div className="campaign-dossier-meta">
+                      <span>{selected.latest_threat_level}</span>
+                      <span>risk {selected.max_risk_score}</span>
+                      <span>latest seen {selected.latest_seen || 'unknown'}</span>
                     </div>
-                    <div className="intel-detail-card">
-                      <span className="intel-meta-label">Max Risk Score</span>
-                      <strong>{selected.max_risk_score}</strong>
-                    </div>
-                    <div className="intel-detail-card">
-                      <span className="intel-meta-label">Latest Seen</span>
-                      <strong className="campaign-detail-value">{selected.latest_seen || 'Unknown'}</strong>
-                    </div>
-                  </div>
-
-                  <div className="intel-tag-wrap">
-                    {(selected.actor_tags || []).map((tag) => (
-                      <span key={tag} className="intel-tag-chip">{tag}</span>
-                    ))}
-                    {(selected.countries || []).map((country) => (
-                      <span key={country} className="intel-tag-chip">{country}</span>
-                    ))}
-                    {(selected.sources || []).map((source) => (
-                      <span key={source} className="intel-tag-chip">{source}</span>
-                    ))}
-                  </div>
-
-                  <div>
-                    <div className="intel-meta-label" style={{ marginBottom: 10 }}>Related Indicators</div>
+                    <div className="campaign-dossier-body">{selected.summary}</div>
                     <div className="intel-tag-wrap">
-                      {(selected.related_indicators || []).map((indicator) => (
-                        <span key={indicator} className="intel-tag-chip">{indicator}</span>
+                      {(selected.actor_tags || []).map((tag) => (
+                        <span key={tag} className="intel-tag-chip">{tag}</span>
+                      ))}
+                      {(selected.countries || []).map((country) => (
+                        <span key={country} className="intel-tag-chip">{country}</span>
+                      ))}
+                      {(selected.sources || []).map((source) => (
+                        <span key={source} className="intel-tag-chip">{source}</span>
                       ))}
                     </div>
-                  </div>
+                    <div>
+                      <div className="intel-meta-label" style={{ marginBottom: 10 }}>Related Indicators</div>
+                      <div className="intel-tag-wrap">
+                        {(selected.related_indicators || []).map((indicator) => (
+                          <span key={indicator} className="intel-tag-chip">{indicator}</span>
+                        ))}
+                      </div>
+                    </div>
+                  </article>
 
                   <ExpandableFeed
                     items={selected.events || []}
                     initialCount={4}
-                    className="intel-mini-list campaign-cluster-events"
+                    className="feed-rail campaign-cluster-events"
                     renderItem={(event) => (
-                      <article key={event.id} className="intel-mini-item campaign-cluster-event">
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                          <strong>{event.title}</strong>
-                          <span style={{ color: palette.subtle, fontSize: 13 }}>{event.source}</span>
+                      <article key={event.id} className={`intel-feed-row ${String(event.threat_level || selected.latest_threat_level || 'info').toLowerCase()}`}>
+                        <div className="intel-feed-row-main">
+                          <div className="intel-indicator">{event.title}</div>
+                          <div className="intel-feed-row-meta">{event.source} | {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}</div>
+                          <span className="intel-reading-block" style={{ marginTop: 8 }}>{event.summary}</span>
                         </div>
-                        <span className="intel-reading-block" style={{ color: palette.muted, lineHeight: 1.6 }}>{event.summary}</span>
-                        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                          <span className="campaign-event-meta" style={{ color: palette.subtle, fontSize: 13 }}>
-                            {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}
-                          </span>
-                          {event.details_path ? (
-                            <Link className="intel-inline-link" to={event.details_path}>
-                              IOC details
-                            </Link>
-                          ) : null}
+                        <div>
+                          {event.details_path ? <Link className="intel-inline-link" to={event.details_path}>IOC details</Link> : null}
                         </div>
                       </article>
                     )}

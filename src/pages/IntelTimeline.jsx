@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Activity, Clock3, Radar, ShieldAlert, Waves } from 'lucide-react'
+import { Activity, Clock3, Waves } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
@@ -93,6 +94,15 @@ export default function IntelTimeline() {
     return () => clearInterval(interval)
   }, [live, filters])
 
+  const spotlight = items[0] || null
+  const stripItems = [
+    { label: 'Visible Events', value: stats.total || items.length, copy: 'Matching current filters', live },
+    { label: 'High Attention', value: stats.high_attention || 0, copy: 'Threat and suspicious only' },
+    { label: 'Streams', value: (stats.sources || []).length, copy: 'Distinct event source classes' },
+    { label: 'Range', value: filters.time_range.toUpperCase(), copy: 'Current time window' },
+    { label: 'Source', value: filters.source.toUpperCase(), copy: 'Focused stream filter' },
+  ]
+
   return (
     <section className="intel-shell">
       <div className="intel-hero-card portal-hero timeline-hero fade-in">
@@ -120,26 +130,17 @@ export default function IntelTimeline() {
         </div>
       </div>
 
-      <div className="intel-stat-grid fade-in-delay-1">
-        <article className="intel-stat-card">
-          <Activity size={20} color={palette.blue} />
-          <div className="intel-stat-value">{stats.total || items.length}</div>
-          <div className="intel-stat-label">Visible Events</div>
-          <p className="intel-stat-copy">Items currently matching the selected filters.</p>
-        </article>
-        <article className="intel-stat-card">
-          <ShieldAlert size={20} color={palette.yellow} />
-          <div className="intel-stat-value">{stats.high_attention || 0}</div>
-          <div className="intel-stat-label">High Attention</div>
-          <p className="intel-stat-copy">Events marked suspicious or threat.</p>
-        </article>
-        <article className="intel-stat-card">
-          <Radar size={20} color={palette.green} />
-          <div className="intel-stat-value">{(stats.sources || []).length}</div>
-          <div className="intel-stat-label">Active Streams</div>
-          <p className="intel-stat-copy">Distinct source classes visible in the filtered timeline.</p>
-        </article>
-      </div>
+      <SignalStrip items={stripItems} />
+
+      {spotlight ? (
+        <section className="intel-section-card fade-in-delay-1" style={{ borderLeft: '3px solid #5ba3f5' }}>
+          <div className="intel-section-head">
+            <div className="intel-eyebrow"><Activity size={14} />Spotlight Event</div>
+            <h2 className="intel-section-title">{spotlight.title}</h2>
+            <p className="intel-section-copy intel-reading-block">{spotlight.summary}</p>
+          </div>
+        </section>
+      ) : null}
 
       <section className="intel-section-card fade-in-delay-2">
         <div className="intel-section-head">
@@ -215,50 +216,38 @@ export default function IntelTimeline() {
           <ExpandableFeed
             items={items}
             initialCount={6}
-            className="intel-feed-list"
+            className="timeline-rail"
             renderItem={(item) => {
               const path =
                 item.details_path ||
                 (item.ioc_type && item.indicator ? buildIocPath(item.ioc_type, item.indicator) : '')
               const accent = levelColor(item.threat_level, palette)
               return (
-                <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                  <div className="intel-feed-row-main">
-                    <div className="intel-indicator">{item.indicator || item.title}</div>
-                    <div className="intel-feed-row-meta">
-                      {item.title} | {formatRelativeDate(item.created_at)} | source {String(item.event_type || item.source || 'intel').toUpperCase()}
+                <article key={item.id} className={`timeline-row ${String(item.threat_level || 'info').toLowerCase()}`}>
+                  <div className="timeline-time">{formatRelativeDate(item.created_at)}</div>
+                  <div className="timeline-connector">
+                    <div className="timeline-track" />
+                    <div className="timeline-dot" />
+                  </div>
+                  <div className="timeline-card">
+                    <div className="timeline-card-title">{item.indicator || item.title}</div>
+                    <div className="timeline-card-meta">
+                      {item.title} | source {String(item.event_type || item.source || 'intel').toUpperCase()} | {item.ioc_type || item.event_type} | risk {item.risk_score || 0}
                     </div>
-                    <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>
+                    <p className="intel-reading-block" style={{ marginTop: 10 }}>
                       {item.summary}
                     </p>
-                    {item.actor_tags?.length ? (
-                      <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
-                        {item.actor_tags.slice(0, 3).map((tag) => (
-                          <span key={tag.tag} className="intel-tag-chip">
-                            {tag.tag}
-                          </span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
+                      <div className="intel-tag-wrap">
+                        {item.actor_tags?.slice(0, 3).map((tag) => (
+                          <span key={tag.tag} className="intel-tag-chip">{tag.tag}</span>
                         ))}
+                        <span className="platform-badge" style={{ color: accent, borderColor: `${accent}33`, background: `${accent}12` }}>
+                          {item.threat_level || 'unknown'}
+                        </span>
                       </div>
-                    ) : null}
-                  </div>
-                  <div className="intel-meta">{item.ioc_type || item.event_type}</div>
-                  <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
-                  <div>
-                    <span className="platform-badge" style={{ color: accent, borderColor: `${accent}33`, background: `${accent}12` }}>
-                      {item.threat_level || 'unknown'}
-                    </span>
-                    <div style={{ marginTop: 8, color: palette.subtle, fontSize: 12 }}>
-                      {item.source_confidence_label || 'moderate'} confidence
+                      {path ? <Link className="intel-inline-link" to={path}>IOC details</Link> : <span className="intel-inline-link intel-inline-link-disabled">Context only</span>}
                     </div>
-                  </div>
-                  <div>
-                    {path ? (
-                      <Link className="intel-inline-link" to={path}>
-                        IOC details
-                      </Link>
-                    ) : (
-                      <span className="intel-inline-link intel-inline-link-disabled">Context only</span>
-                    )}
                   </div>
                 </article>
               )

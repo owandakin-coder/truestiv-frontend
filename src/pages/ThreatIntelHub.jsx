@@ -117,39 +117,57 @@ export default function ThreatIntelHub() {
       {error ? <div className="intel-empty-card">{error}</div> : null}
 
       {featuredBrief ? (
-        <section className="featured-brief fade-in-delay-1">
-          <div className="featured-brief-main">
+        <section className="featured-brief featured-brief-large fade-in-delay-1">
+          <div className="featured-brief-summary">
             <div className="intel-eyebrow">Featured Incident Brief</div>
             <h2 className="intel-section-title" style={{ marginTop: 8 }}>{featuredBrief.title}</h2>
-            <p className="intel-reading-block" style={{ marginTop: 12 }}>{featuredBrief.summary}</p>
-            <div className="intel-tag-wrap" style={{ marginTop: 14 }}>
+            <p className="intel-reading-block" style={{ marginTop: 4 }}>{featuredBrief.summary}</p>
+            <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
               {(featuredBrief.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
               {(featuredBrief.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
             </div>
+            <div className="brief-panel" style={{ marginTop: 8 }}>
+              <strong>Why it matters now</strong>
+              <p>
+                This brief is currently the clearest public narrative inside the portal because it combines recurring signals, geographic spread, and overlapping source attribution in one place.
+              </p>
+              <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+                <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
+                <Link className="intel-inline-link" to="/timeline">Open timeline context</Link>
+              </div>
+            </div>
           </div>
           <div className="featured-brief-side">
-            <article className="editorial-card">
-              <div className="signal-strip-label">Signals</div>
-              <strong>{featuredBrief.signal_count}</strong>
-              <p>Related indicators grouped into this public brief.</p>
-            </article>
-            <article className="editorial-card">
-              <div className="signal-strip-label">Countries</div>
-              <strong>{featuredBrief.countries?.join(', ') || 'Unknown'}</strong>
-              <p>Infrastructure regions observed inside the cluster.</p>
-            </article>
-            <article className="editorial-card">
-              <div className="signal-strip-label">Next step</div>
-              <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
-            </article>
+            <div className="featured-brief-signal-grid">
+              <article className="editorial-card compact">
+                <div className="signal-strip-label">Signals</div>
+                <strong>{featuredBrief.signal_count}</strong>
+                <p>Indicators grouped into this public brief.</p>
+              </article>
+              <article className="editorial-card compact">
+                <div className="signal-strip-label">Countries</div>
+                <strong>{featuredBrief.countries?.length || 0}</strong>
+                <p>{featuredBrief.countries?.join(', ') || 'Unknown regions'}</p>
+              </article>
+              <article className="editorial-card compact">
+                <div className="signal-strip-label">Actor tags</div>
+                <strong>{featuredBrief.actor_tags?.length || 0}</strong>
+                <p>{(featuredBrief.actor_tags || []).slice(0, 2).join(', ') || 'Pending tags'}</p>
+              </article>
+              <article className="editorial-card compact">
+                <div className="signal-strip-label">Follow-up</div>
+                <strong>Campaign view</strong>
+                <p>Use the cluster surface to inspect the full relationship set.</p>
+              </article>
+            </div>
           </div>
         </section>
       ) : null}
 
       <section className="fade-in-delay-1" style={{ marginTop: 20 }}>
-        <div className="editorial-grid">
+        <div className="editorial-strip">
           {editorialCards.map((card) => (
-            <article key={card.label} className="editorial-card">
+            <article key={card.label} className="editorial-card compact">
               <div className="signal-strip-label">{card.label}</div>
               <strong>{card.value}</strong>
               <p>{card.copy}</p>
@@ -168,15 +186,16 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={trending}
             initialCount={5}
-            className="feed-rail"
+            className="flat-rail"
             renderItem={(item) => (
-              <article key={`${item.ioc_type}-${item.indicator}`} className={`intel-feed-row intel-feed-row-wide ${threatLabel(item.latest_threat_level)}`}>
-                <div className="intel-feed-row-main">
-                  <div className="intel-indicator">{item.indicator}</div>
-                  <div className="intel-feed-row-meta">{item.sightings} sightings | {item.sources.join(', ') || 'intel'} {item.countries.length ? `| ${item.countries.join(', ')}` : ''}</div>
+              <article key={`${item.ioc_type}-${item.indicator}`} className={`flat-rail-row ${threatLabel(item.latest_threat_level)}`}>
+                <div className="flat-rail-main">
+                  <div className="flat-rail-title">{item.indicator}</div>
+                  <div className="flat-rail-meta">{item.sightings} sightings | {item.sources.join(', ') || 'intel'} {item.countries.length ? `| ${item.countries.join(', ')}` : ''}</div>
+                  <div className="flat-rail-copy">Recurring across the public intelligence surface and therefore worth immediate pivoting into IOC details or campaign context.</div>
                 </div>
-                <div className="intel-meta">{item.ioc_type}</div>
-                <div className="intel-feed-row-risk">Risk {item.max_risk_score}</div>
+                <div className="flat-rail-side">{item.ioc_type}</div>
+                <div className="flat-rail-side">Risk {item.max_risk_score}</div>
                 <div><span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span></div>
                 <div><Link className="intel-inline-link" to={item.details_path || buildIocPath(item.ioc_type, item.indicator)}>IOC details</Link></div>
               </article>
@@ -195,17 +214,20 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={briefs}
             initialCount={4}
-            className="intel-grid-two"
+            className="flat-rail"
             renderItem={(item) => (
-              <article key={item.id} className="intel-detail-card">
-                <div className="intel-detail-label">{item.title}</div>
-                <div className="intel-detail-value">{item.signal_count} signals</div>
-                <p className="intel-detail-copy intel-reading-block">{item.summary}</p>
-                <div className="intel-tag-wrap">
-                  {(item.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
-                  {(item.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
+              <article key={item.id} className={`flat-rail-row ${threatLabel(item.latest_threat_level)}`}>
+                <div className="flat-rail-main">
+                  <div className="flat-rail-title">{item.title}</div>
+                  <div className="flat-rail-meta">
+                    {item.signal_count} signals {item.countries?.length ? `| ${item.countries.join(', ')}` : ''} {item.actor_tags?.length ? `| ${item.actor_tags.join(', ')}` : ''}
+                  </div>
+                  <div className="flat-rail-copy">{item.summary}</div>
                 </div>
-                <Link className="intel-inline-link" to={item.details_path || '/campaign-clusters'}>Open cluster brief</Link>
+                <div className="flat-rail-side">Brief</div>
+                <div className="flat-rail-side">{item.signal_count} signals</div>
+                <div><span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span></div>
+                <div><Link className="intel-inline-link" to={item.details_path || '/campaign-clusters'}>Open cluster brief</Link></div>
               </article>
             )}
           />
@@ -280,15 +302,16 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={feed}
             initialCount={6}
-            className="feed-rail"
+            className="flat-rail"
             renderItem={(item) => (
-              <article key={item.id} className={`intel-feed-row intel-feed-row-wide ${threatLabel(item.threat_level)}`}>
-                <div className="intel-feed-row-main">
-                  <div className="intel-indicator">{item.indicator}</div>
-                  <div className="intel-feed-row-meta">Trustive AI currently exposes this indicator as part of the public threat intelligence stream.</div>
+              <article key={item.id} className={`flat-rail-row ${threatLabel(item.threat_level)}`}>
+                <div className="flat-rail-main">
+                  <div className="flat-rail-title">{item.indicator}</div>
+                  <div className="flat-rail-meta">Trustive AI public intelligence stream</div>
+                  <div className="flat-rail-copy">Latest published indicator from automated collection or community promotion.</div>
                 </div>
-                <div className="intel-meta">{item.threat_type}</div>
-                <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
+                <div className="flat-rail-side">{item.threat_type}</div>
+                <div className="flat-rail-side">Risk {item.risk_score}</div>
                 <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>
                 <div><Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>IOC details</Link></div>
               </article>

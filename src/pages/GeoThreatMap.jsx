@@ -468,71 +468,74 @@ export default function GeoThreatMap() {
         </section>
       </div>
 
-      <section className="intel-section-card fade-in-delay-2">
-        <div className="intel-section-head">
-          <div className="intel-eyebrow">
-            <Radar size={14} />
-            Threat Flow
+      <div className="intel-two-column fade-in-delay-2">
+        <section className="operations-card">
+          <div className="intel-section-head">
+            <div className="intel-eyebrow">
+              <Radar size={14} />
+              Threat Flow
+            </div>
+            <h2 className="intel-section-title">Active geography rail</h2>
+            <p className="intel-section-copy">
+              A tighter operational list that highlights where the current playback window is concentrating threat activity.
+            </p>
           </div>
-          <h2 className="intel-section-title">Animated flow across countries</h2>
-          <p className="intel-section-copy">
-            A lightweight flow view that highlights where the current playback window is concentrating the highest amount of threat activity.
-          </p>
-        </div>
-        <div className="map-country-grid">
-          {countryFlows.map((item) => (
-            <article key={item.country} className="intel-detail-card intel-flow-card">
-              <div className="intel-detail-label">Threat flow</div>
-              <div className="intel-detail-value">{item.country}</div>
-              <div className="intel-flow-line">
-                <div className="intel-flow-pulse" />
-              </div>
-              <p className="intel-detail-copy">{item.count} active markers in the current playback window.</p>
-              <button type="button" className="intel-inline-link" onClick={() => openCountry(item.country)}>
-                Country drilldown
-              </button>
-            </article>
-          ))}
-        </div>
-      </section>
+          <div className="country-flow-rail">
+            {countryFlows.map((item) => (
+              <article key={item.country} className="country-flow-row">
+                <div className="country-flow-main">
+                  <strong>{item.country}</strong>
+                  <span>{item.count} active markers in the current playback window.</span>
+                </div>
+                <button type="button" className="intel-inline-link" onClick={() => openCountry(item.country)}>
+                  Country drilldown
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
 
-      {countryDetails.items.length ? (
-        <section className="intel-section-card fade-in-delay-3">
+        <section className="operations-card">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
               <MapPin size={14} />
               Country Drilldown
             </div>
-            <h2 className="intel-section-title">{countryDetails.country}</h2>
+            <h2 className="intel-section-title">{countryDetails.country || 'Select a country from the map feed'}</h2>
             <p className="intel-section-copy">
-              Indicators and events currently tied to the selected country and time range.
+              Indicators and events tied to the selected country and time range are surfaced here in a tighter operations rail.
             </p>
           </div>
-          <ExpandableFeed
-            items={countryDetails.items}
-            initialCount={5}
-            className="intel-feed-list"
-            renderItem={(item) => (
-              <article key={`${item.indicator}-${item.published_at}`} className="intel-feed-row intel-feed-row-wide">
-                <div className="intel-feed-row-main">
-                  <div className="intel-indicator">{item.indicator}</div>
-                  <div className="intel-feed-row-meta">{item.location_name} | {String(item.source || 'intel').toUpperCase()}</div>
-                </div>
-                <div className="intel-meta">{item.ioc_type}</div>
-                <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
-                <div>
-                  <span className="platform-badge" style={{ color: markerColor(item.threat_level, palette), borderColor: `${markerColor(item.threat_level, palette)}33`, background: `${markerColor(item.threat_level, palette)}12` }}>
-                    {item.threat_level}
-                  </span>
-                </div>
-                <div>
-                  {item.details_path ? <Link className="intel-inline-link" to={item.details_path}>IOC details</Link> : null}
-                </div>
-              </article>
-            )}
-          />
+          {countryDetails.items.length ? (
+            <ExpandableFeed
+              items={countryDetails.items}
+              initialCount={5}
+              className="flat-rail"
+              renderItem={(item) => (
+                <article key={`${item.indicator}-${item.published_at}`} className={`flat-rail-row ${String(item.threat_level || 'info').toLowerCase()}`}>
+                  <div className="flat-rail-main">
+                    <div className="flat-rail-title">{item.indicator}</div>
+                    <div className="flat-rail-meta">{item.location_name} | {String(item.source || 'intel').toUpperCase()}</div>
+                    <div className="flat-rail-copy">Risk {item.risk_score} | {item.ioc_type}</div>
+                  </div>
+                  <div className="flat-rail-side">{item.ioc_type}</div>
+                  <div className="flat-rail-side">Risk {item.risk_score}</div>
+                  <div>
+                    <span className="platform-badge" style={{ color: markerColor(item.threat_level, palette), borderColor: `${markerColor(item.threat_level, palette)}33`, background: `${markerColor(item.threat_level, palette)}12` }}>
+                      {item.threat_level}
+                    </span>
+                  </div>
+                  <div>
+                    {item.details_path ? <Link className="intel-inline-link" to={item.details_path}>IOC details</Link> : null}
+                  </div>
+                </article>
+              )}
+            />
+          ) : (
+            <div className="intel-empty-inline">No country selected yet. Use the marker feed or threat flow rail to open a country drilldown.</div>
+          )}
         </section>
-      ) : null}
+      </div>
     </div>
   )
 }

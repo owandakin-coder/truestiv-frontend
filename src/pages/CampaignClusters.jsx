@@ -146,10 +146,9 @@ export default function CampaignClusters() {
                       key={cluster.id}
                       type="button"
                       onClick={() => setSearchParams({ cluster: cluster.id })}
-                      className="intel-mini-item campaign-cluster-item"
+                      className={`intel-mini-item campaign-cluster-item ${active ? 'is-active' : ''}`}
                       style={{
                         textAlign: 'left',
-                        border: active ? '1px solid rgba(91,163,245,0.32)' : '1px solid rgba(14,32,64,1)',
                         background: active ? '#08111f' : '#07101f',
                         cursor: 'pointer',
                       }}
@@ -192,10 +191,30 @@ export default function CampaignClusters() {
               {selected ? (
                 <>
                   <article className="campaign-dossier" style={{ ['--severity-color']: levelColor(selected.latest_threat_level, palette) }}>
-                    <div className="campaign-dossier-meta">
-                      <span>{selected.latest_threat_level}</span>
-                      <span>risk {selected.max_risk_score}</span>
-                      <span>latest seen {selected.latest_seen || 'unknown'}</span>
+                    <div className="campaign-dossier-header">
+                      <div className="campaign-dossier-meta">
+                        <span>{selected.latest_threat_level}</span>
+                        <span>risk {selected.max_risk_score}</span>
+                        <span>latest seen {selected.latest_seen || 'unknown'}</span>
+                      </div>
+                      <div className="cluster-summary-strip">
+                        <article className="cluster-stat-chip">
+                          <div className="signal-strip-label">Signals</div>
+                          <strong>{selected.signal_count}</strong>
+                        </article>
+                        <article className="cluster-stat-chip">
+                          <div className="signal-strip-label">Sources</div>
+                          <strong>{selected.sources?.length || 0}</strong>
+                        </article>
+                        <article className="cluster-stat-chip">
+                          <div className="signal-strip-label">Countries</div>
+                          <strong>{selected.countries?.length || 0}</strong>
+                        </article>
+                        <article className="cluster-stat-chip">
+                          <div className="signal-strip-label">Tags</div>
+                          <strong>{selected.actor_tags?.length || 0}</strong>
+                        </article>
+                      </div>
                     </div>
                     <div className="campaign-dossier-body">{selected.summary}</div>
                     <div className="intel-tag-wrap">
@@ -222,13 +241,27 @@ export default function CampaignClusters() {
                   <ExpandableFeed
                     items={selected.events || []}
                     initialCount={4}
-                    className="feed-rail campaign-cluster-events"
+                    className="flat-rail campaign-cluster-events"
                     renderItem={(event) => (
-                      <article key={event.id} className={`intel-feed-row ${String(event.threat_level || selected.latest_threat_level || 'info').toLowerCase()}`}>
-                        <div className="intel-feed-row-main">
-                          <div className="intel-indicator">{event.title}</div>
-                          <div className="intel-feed-row-meta">{event.source} | {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}</div>
-                          <span className="intel-reading-block" style={{ marginTop: 8 }}>{event.summary}</span>
+                      <article key={event.id} className={`flat-rail-row ${String(event.threat_level || selected.latest_threat_level || 'info').toLowerCase()}`}>
+                        <div className="flat-rail-main">
+                          <div className="flat-rail-title">{event.title}</div>
+                          <div className="flat-rail-meta">{event.source} | {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}</div>
+                          <span className="flat-rail-copy">{event.summary}</span>
+                        </div>
+                        <div className="flat-rail-side">{event.ioc_type}</div>
+                        <div className="flat-rail-side">Risk {event.risk_score}</div>
+                        <div>
+                          <span
+                            className="platform-badge"
+                            style={{
+                              color: levelColor(event.threat_level || selected.latest_threat_level, palette),
+                              borderColor: `${levelColor(event.threat_level || selected.latest_threat_level, palette)}33`,
+                              background: `${levelColor(event.threat_level || selected.latest_threat_level, palette)}12`,
+                            }}
+                          >
+                            {event.threat_level || selected.latest_threat_level}
+                          </span>
                         </div>
                         <div>
                           {event.details_path ? <Link className="intel-inline-link" to={event.details_path}>IOC details</Link> : null}

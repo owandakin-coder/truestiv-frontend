@@ -7,6 +7,7 @@ import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
+  detectBrandImpersonation,
   buildDomainLookupPath,
   buildIpLookupPath,
   buildIocPath,
@@ -189,6 +190,12 @@ export default function Scanner({ embedded = false }) {
     ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
     : ''
   const ipLookupPath = activeTab === 'ip' && result ? buildIpLookupPath(getPrimaryIndicator('ip', result, form.ip)) : ''
+  const scannerBrandSignal = useMemo(() => {
+    if (!result || activeTab !== 'url') return null
+    const candidate = result?.brand_impersonation || detectBrandImpersonation(result?.domain || result?.url || form.url)
+    if (!candidate || !candidate.active) return null
+    return candidate
+  }, [activeTab, form.url, result])
 
   return (
     <div style={{ position: 'relative' }}>
@@ -312,6 +319,26 @@ export default function Scanner({ embedded = false }) {
             ) : (
               <div style={{ display: 'grid', gap: 18 }}>
                 <ResultCard result={result} type={activeTab} theme={theme} />
+                {scannerBrandSignal ? (
+                  <div
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: 18,
+                      border: '1px solid rgba(251,191,36,0.28)',
+                      background: 'rgba(251,191,36,0.12)',
+                      color: palette.yellow,
+                      display: 'grid',
+                      gap: 8,
+                    }}
+                  >
+                    <strong>
+                      Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
+                    </strong>
+                    <span style={{ color: palette.muted, lineHeight: 1.6 }}>
+                      {(scannerBrandSignal.summary || '').trim() || 'This URL contains typo or lure patterns commonly used in brand impersonation campaigns.'}
+                    </span>
+                  </div>
+                ) : null}
                 <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>

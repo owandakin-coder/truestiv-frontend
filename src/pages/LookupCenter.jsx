@@ -8,6 +8,7 @@ import {
   buildDomainLookupPath,
   buildHeaderAnalyzerPath,
   buildIpLookupPath,
+  detectBrandImpersonation,
   formatRelativeDate,
   normalizeThreatLevel,
 } from '../utils/intelTools'
@@ -203,6 +204,10 @@ function LookupCenter() {
 
   const ipLookup = ipPayload?.lookup
   const domainLookup = domainPayload?.lookup
+  const domainBrandSignal = useMemo(() => {
+    if (!domainLookup?.domain) return null
+    return domainPayload?.brand_impersonation || domainLookup?.brand_impersonation || detectBrandImpersonation(domainLookup.domain, domainLookup.age_days)
+  }, [domainLookup, domainPayload])
   const headerAnalysis = headerPayload?.analysis
 
   return (
@@ -402,6 +407,45 @@ function LookupCenter() {
                       <RowTag key={tag.tag} value={`${tag.tag} ${(tag.confidence * 100).toFixed(0)}%`} />
                     ))}
                   </div>
+                </div>
+              ) : null}
+              {domainBrandSignal ? (
+                <div
+                  style={{
+                    marginTop: 18,
+                    borderRadius: 18,
+                    border: domainBrandSignal.active
+                      ? '1px solid rgba(251,191,36,0.3)'
+                      : '1px solid rgba(148,163,184,0.2)',
+                    background: domainBrandSignal.active
+                      ? 'rgba(251,191,36,0.12)'
+                      : 'rgba(255,255,255,0.03)',
+                    padding: 16,
+                    display: 'grid',
+                    gap: 8,
+                  }}
+                >
+                  <span className="intel-meta-label">Brand Impersonation</span>
+                  <strong style={{ color: domainBrandSignal.active ? palette.yellow : palette.muted }}>
+                    {domainBrandSignal.active
+                      ? `Possible brand impersonation detected${domainBrandSignal.brand ? `: ${domainBrandSignal.brand}` : ''}`
+                      : 'No high-risk brand impersonation pattern was detected.'}
+                  </strong>
+                  {domainBrandSignal.active ? (
+                    <>
+                      <div style={{ color: palette.muted, lineHeight: 1.6 }}>
+                        {(domainBrandSignal.summary || '').trim() || 'This domain matches typo and lure patterns that are common in phishing operations.'}
+                      </div>
+                      {(domainBrandSignal.reasons || []).length ? (
+                        <div style={{ color: palette.subtle, lineHeight: 1.6 }}>
+                          {(domainBrandSignal.reasons || []).slice(0, 3).join(' ')}
+                        </div>
+                      ) : null}
+                      <div style={{ color: palette.subtle }}>
+                        Score: {domainBrandSignal.score || 0}
+                      </div>
+                    </>
+                  ) : null}
                 </div>
               ) : null}
             </section>

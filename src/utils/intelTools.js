@@ -120,3 +120,158 @@ export function formatRelativeDate(value) {
     return String(value)
   }
 }
+
+const BRAND_CATALOG = [
+  { brand: 'Microsoft', tokens: ['microsoft', 'office', 'outlook', 'live'] },
+  { brand: 'Google', tokens: ['google', 'gmail', 'googledrive'] },
+  { brand: 'Apple', tokens: ['apple', 'icloud', 'itunes'] },
+  { brand: 'Amazon', tokens: ['amazon', 'aws'] },
+  { brand: 'PayPal', tokens: ['paypal'] },
+  { brand: 'Meta', tokens: ['facebook', 'instagram', 'whatsapp', 'meta'] },
+  { brand: 'Bank of America', tokens: ['bankofamerica', 'bofa'] },
+  { brand: 'Chase', tokens: ['chase', 'jpmorgan'] },
+  { brand: 'Netflix', tokens: ['netflix'] },
+  { brand: 'DHL', tokens: ['dhl'] },
+]
+
+const DOMAIN_LURE_TERMS = new Set([
+  'login', 'secure', 'verify', 'verification', 'support', 'billing',
+  'update', 'account', 'payment', 'wallet', 'reset', 'auth', 'signin',
+])
+
+const SUSPICIOUS_TLDS = new Set(['xyz', 'top', 'click', 'shop', 'gq', 'cf', 'ml', 'ga', 'tk'])
+
+function compactLabel(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+}
+
+function normalizeLookalikes(value) {
+  return compactLabel(value)
+    .replace(/rn/g, 'm')
+    .replace(/vv/g, 'w')
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'l')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/5/g, 's')
+    .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/9/g, 'g')
+}
+
+function extractDomain(value) {
+  const candidate = String(value || '').trim().toLowerCase()
+  if (!candidate) return ''
+  try {
+    const withProtocol = candidate.includes('://') ? candidate : `https://${candidate}`
+    const parsed = new URL(withProtocol)
+    return parsed.hostname.replace(/\.$/, '')
+  } catch {
+    return candidate.split('/')[0].split(':')[0].replace(/\.$/, '')
+  }
+}
+
+function editDistance(left, right) {
+  if (left === right) return 0
+  if (!left) return right.length
+  if (!right) return left.length
+  const previous = Array.from({ length: right.length + 1 }, (_, index) => index)
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex]
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      const substitution = previous[rightIndex - 1] + (left[leftIndex - 1] === right[rightIndex - 1] ? 0 : 1)
+      current.push(
+        Math.min(
+          previous[rightIndex] + 1,
+          current[rightIndex - 1] + 1,
+          substitution
+        )
+      )
+    }
+    for (let i = 0; i < current.length; i += 1) previous[i] = current[i]
+  }
+  return previous[previous.length - 1]
+}
+
+export function detectBrandImpersonation(value, ageDays = null) {
+  const domain = extractDomain(value)
+  if (!domain || !domain.includes('.')) {
+    return { active: false, score: 0, threat_level: 'safe', reasons: [], domain: '' }
+  }
+
+  const labels = domain.split('.')
+  const rootLabel = labels.length >= 2 ? labels[labels.length - 2] : ''
+  const tld = labels[labels.length - 1] || ''
+  const compact = compactLabel(rootLabel)
+  const normalized = normalizeLookalikes(rootLabel)
+  const suspiciousTerms = Array.from(DOMAIN_LURE_TERMS).filter((term) => compact.includes(term))
+  let best = null
+
+  for (const entry of BRAND_CATALOG) {
+    for (const token of entry.tokens) {
+      const tokenCompact = compactLabel(token)
+      const exact = compact === tokenCompact
+      const normalizedExact = normalized === tokenCompact && compact !== tokenCompact
+      const containsBrand = tokenCompact && compact.includes(tokenCompact) && compact !== tokenCompact
+      const distance = editDistance(normalized, tokenCompact)
+      const lookalike = distance <= 1 && compact !== tokenCompact
+      if (exact && !suspiciousTerms.length) continue
+
+      let score = 0
+      const reasons = []
+      if (normalizedExact) {
+        score += 48
+        reasons.push(`Character substitution makes the domain look like ${entry.brand}.`)
+      } else if (lookalike) {
+        score += 40
+        reasons.push(`Domain label is one edit away from ${entry.brand}.`)
+      }
+      if (containsBrand) {
+        score += 26
+        reasons.push(`Brand token for ${entry.brand} appears inside the domain label.`)
+      }
+      if (suspiciousTerms.length) {
+        score += Math.min(24, suspiciousTerms.length * 8)
+        reasons.push(`Suspicious lure terms detected: ${suspiciousTerms.join(', ')}.`)
+      }
+      if (SUSPICIOUS_TLDS.has(tld)) {
+        score += 12
+        reasons.push(`Suspicious TLD detected: .${tld}.`)
+      }
+      if (typeof ageDays === 'number' && ageDays <= 30) {
+        score += 10
+        reasons.push('Domain age is very new for a branded service.')
+      }
+      if (score <= 0) continue
+      const candidate = {
+        active: score >= 35,
+        score: Math.min(100, score),
+        threat_level: score >= 70 ? 'threat' : (score >= 35 ? 'suspicious' : 'safe'),
+        brand: entry.brand,
+        domain,
+        matched_label: rootLabel,
+        reasons,
+        suspicious_terms: suspiciousTerms,
+      }
+      if (!best || candidate.score > best.score) best = candidate
+    }
+  }
+
+  if (!best) {
+    return {
+      active: false,
+      score: 0,
+      threat_level: 'safe',
+      domain,
+      reasons: [],
+      suspicious_terms: suspiciousTerms,
+    }
+  }
+
+  return {
+    ...best,
+    summary: best.active
+      ? `${best.domain} may be impersonating ${best.brand}.`
+      : `${best.domain} shares some naming traits with ${best.brand}.`,
+  }
+}

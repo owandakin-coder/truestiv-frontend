@@ -18,6 +18,7 @@ import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
+  detectBrandImpersonation,
   extractIocsFromText,
   flattenIocs,
   makeStorageList,
@@ -181,6 +182,15 @@ export default function Analysis({ embedded = false }) {
     [form.sender, form.subject, form.content, result?.indicators]
   )
   const allIocs = useMemo(() => flattenIocs(derivedIocs), [derivedIocs])
+  const brandSignals = useMemo(() => {
+    const candidates = [...(derivedIocs.domains || []), ...(derivedIocs.urls || [])]
+    const unique = Array.from(new Set(candidates.map((item) => String(item || '').trim()).filter(Boolean)))
+    return unique
+      .map((value) => detectBrandImpersonation(value))
+      .filter((signal) => signal?.active)
+      .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))
+      .slice(0, 3)
+  }, [derivedIocs])
 
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -455,6 +465,31 @@ export default function Analysis({ embedded = false }) {
                       </div>
                     ) : null}
                   </div>
+
+                  {brandSignals.length ? (
+                    <div
+                      style={{
+                        borderRadius: 22,
+                        border: '1px solid rgba(251,191,36,0.28)',
+                        background: 'rgba(251,191,36,0.12)',
+                        padding: 20,
+                        display: 'grid',
+                        gap: 10,
+                        color: '#fde68a',
+                      }}
+                    >
+                      <strong style={{ color: '#fef3c7' }}>Possible brand impersonation detected</strong>
+                      {brandSignals.map((signal) => (
+                        <div key={`${signal.domain}-${signal.brand}`} style={{ color: mutedColor, lineHeight: 1.6 }}>
+                          <span style={{ color: textColor, fontWeight: 700 }}>
+                            {signal.domain}
+                          </span>
+                          {signal.brand ? ` may be impersonating ${signal.brand}.` : ' shows typo/lure patterns.'}{' '}
+                          Score: {signal.score || 0}
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
 
                   <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
                     <div>

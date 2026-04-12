@@ -108,6 +108,30 @@ function DetailRow({ label, value, palette }) {
   )
 }
 
+function buildSummaryRows(result, type, score, sourceCount) {
+  const rows = [
+    ['Threat level', String(result.threat_level || 'unknown').toUpperCase()],
+    ['Risk score', `${score}%`],
+    ['Summary', result.summary || 'No summary provided.'],
+  ]
+
+  if (type === 'hash') {
+    rows.push(['Detections', `${result.positives ?? 0} / ${result.total ?? 0}`])
+    rows.push(['Recommendation', result.recommendation || 'allow'])
+  } else if (type === 'url') {
+    rows.push(['Confidence', `${result.confidence ?? score}%`])
+    rows.push(['Recommendation', result.recommendation || 'allow'])
+  } else if (type === 'ip') {
+    rows.push(['Recommendation', result.recommendation || 'allow'])
+    rows.push(['Sources', String(sourceCount)])
+  } else if (type === 'file') {
+    rows.push(['Recommendation', result.recommendation || 'allow'])
+    rows.push(['Detected type', result.file_type || result.detected_type || 'Unknown'])
+  }
+
+  return rows
+}
+
 export default function ResultCard({ result, type, theme = 'dark' }) {
   if (!result) return null
 
@@ -118,6 +142,7 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
   const vtLink = result.permalink
   const geo = result.geo || {}
   const sourceCount = Array.isArray(result.sources) ? result.sources.length : 0
+  const summaryRows = buildSummaryRows(result, type, score, sourceCount)
 
   return (
     <article
@@ -232,33 +257,20 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
             borderRadius: 20,
             padding: 18,
             display: 'grid',
-            gap: 10,
+            gap: 12,
           }}
         >
           <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
-            Summary
+            Result Breakdown
           </span>
-          <p style={{ color: palette.muted, lineHeight: 1.7 }}>
-            {result.summary || 'No summary provided.'}
-          </p>
-          {type === 'hash' && (
-            <>
-              <DetailRow label="Detections" value={`${result.positives ?? 0} / ${result.total ?? 0}`} palette={palette} />
-              <DetailRow label="Recommendation" value={result.recommendation || 'allow'} palette={palette} />
-            </>
-          )}
-          {type === 'url' && (
-            <>
-              <DetailRow label="Confidence" value={`${result.confidence ?? score}%`} palette={palette} />
-              <DetailRow label="Recommendation" value={result.recommendation || 'allow'} palette={palette} />
-            </>
-          )}
-          {type === 'ip' && (
-            <>
-              <DetailRow label="Recommendation" value={result.recommendation || 'allow'} palette={palette} />
-              <DetailRow label="Sources" value={sourceCount} palette={palette} />
-            </>
-          )}
+          <div className="intel-result-table">
+            {summaryRows.map(([label, value]) => (
+              <div key={label} className="intel-result-row">
+                <div className="intel-result-key">{label}</div>
+                <div className="intel-result-value">{value}</div>
+              </div>
+            ))}
+          </div>
         </section>
       </div>
 
@@ -277,11 +289,20 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
           <span style={{ color: palette.subtle, fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1.2 }}>
             Geolocation and Network
           </span>
-          <DetailRow label="Country" value={geo.country || 'Unknown'} palette={palette} />
-          <DetailRow label="City" value={geo.city || 'Unknown'} palette={palette} />
-          <DetailRow label="ISP" value={geo.isp || 'Unknown'} palette={palette} />
-          <DetailRow label="Organization" value={geo.organization || geo.org || 'Unknown'} palette={palette} />
-          <DetailRow label="ASN" value={geo.asn || 'Unknown'} palette={palette} />
+          <div className="intel-result-table">
+            {[
+              ['Country', geo.country || 'Unknown'],
+              ['City', geo.city || 'Unknown'],
+              ['ISP', geo.isp || 'Unknown'],
+              ['Organization', geo.organization || geo.org || 'Unknown'],
+              ['ASN', geo.asn || 'Unknown'],
+            ].map(([label, value]) => (
+              <div key={label} className="intel-result-row">
+                <div className="intel-result-key">{label}</div>
+                <div className="intel-result-value">{value}</div>
+              </div>
+            ))}
+          </div>
         </section>
       )}
 

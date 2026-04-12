@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Globe2, RadioTower, ShieldAlert, Users } from 'lucide-react'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
@@ -59,8 +60,8 @@ export default function CommunityIntel() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero community-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
             Public Community Intelligence
@@ -74,6 +75,13 @@ export default function CommunityIntel() {
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Public board</span>
+            <strong>Community-submitted signals</strong>
+            <p>Only moderated suspicious and threat indicators appear in this open feed.</p>
+          </article>
         </div>
       </div>
 
@@ -121,8 +129,11 @@ export default function CommunityIntel() {
             actionTo="/investigation-center/scanner"
           />
         ) : (
-          <div className="intel-feed-list">
-            {items.map((item) => (
+          <ExpandableFeed
+            items={items}
+            initialCount={6}
+            className="intel-feed-list"
+            renderItem={(item) => (
               <article key={item.id} className="intel-feed-row intel-feed-row-wide">
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
@@ -141,8 +152,8 @@ export default function CommunityIntel() {
                   </Link>
                 </div>
               </article>
-            ))}
-          </div>
+            )}
+          />
         )}
       </section>
     </section>

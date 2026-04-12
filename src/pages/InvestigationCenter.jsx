@@ -52,8 +52,8 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero investigation-shell-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
             Investigation Center
@@ -61,9 +61,21 @@ export default function InvestigationCenter() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             {activeTab.title}
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             {activeTab.copy}
           </p>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Current lane</span>
+            <strong>{activeTab.label}</strong>
+            <p>{activeTab.title}</p>
+          </article>
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Shared workspace</span>
+            <strong>One investigation surface</strong>
+            <p>Message analysis, IOC scanning, and media triage now feel like one connected desk instead of separate pages.</p>
+          </article>
         </div>
       </div>
 

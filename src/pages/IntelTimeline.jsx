@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Clock3, Radar, ShieldAlert, Waves } from 'lucide-react'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
@@ -94,8 +95,8 @@ export default function IntelTimeline() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero timeline-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
             Unified Intel Timeline
@@ -109,6 +110,13 @@ export default function IntelTimeline() {
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Timeline mode</span>
+            <strong>Operational rail</strong>
+            <p>Recent scanner, community, analysis, and media events stay merged into one high-signal stream.</p>
+          </article>
         </div>
       </div>
 
@@ -204,8 +212,11 @@ export default function IntelTimeline() {
             </p>
           </div>
 
-          <div className="intel-feed-list">
-            {items.map((item) => {
+          <ExpandableFeed
+            items={items}
+            initialCount={6}
+            className="intel-feed-list"
+            renderItem={(item) => {
               const path =
                 item.details_path ||
                 (item.ioc_type && item.indicator ? buildIocPath(item.ioc_type, item.indicator) : '')
@@ -251,8 +262,8 @@ export default function IntelTimeline() {
                   </div>
                 </article>
               )
-            })}
-          </div>
+            }}
+          />
         </section>
       ) : null}
     </section>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Boxes, ChevronDown, ChevronUp, FileText, Globe, Hash, Link2, Radar, Search, Shield, Zap } from 'lucide-react'
+import { Boxes, FileText, Globe, Hash, Link2, Radar, Search, Shield, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import ResultCard from '../components/ResultCard'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
@@ -94,7 +95,6 @@ export default function Scanner({ embedded = false }) {
   const [error, setError] = useState('')
   const [recentScans, setRecentScans] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
-  const [focusMode, setFocusMode] = useState(true)
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -104,7 +104,7 @@ export default function Scanner({ embedded = false }) {
       const response = await client.get('/api/intelligence/scan-history', {
         params: { limit: 8, time_range: '30d', scan_type: scanType === 'bulk' ? 'all' : scanType },
       })
-      setRecentScans(response.data?.items || [])
+      setRecentScans((response.data?.items || []).filter((item) => actionable(item?.threat_level)))
     } catch {
       setRecentScans([])
     } finally {
@@ -158,7 +158,6 @@ export default function Scanner({ embedded = false }) {
       else response = await client.post('/api/scanner/bulk', { input: form.bulk_input })
 
       setResult(response.data)
-      setFocusMode(true)
       await loadHistory(activeTab)
 
       if (activeTab === 'bulk') {
@@ -199,7 +198,6 @@ export default function Scanner({ embedded = false }) {
     if (!candidate || !candidate.active) return null
     return candidate
   }, [activeTab, form.url, result])
-  const FocusIcon = focusMode ? ChevronDown : ChevronUp
   const bulkExamples = [
     {
       label: 'Mixed phishing set',
@@ -217,13 +215,27 @@ export default function Scanner({ embedded = false }) {
       {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-          <section className="fade-in" style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-              <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>Public IOC Scanner</span>
+          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 32 }}>
+            <div className="portal-hero-main">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+                <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>Public IOC Scanner</span>
+              </div>
+              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
+              <p className="portal-hero-copy" style={{ color: palette.muted }}>Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
             </div>
-            <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
-            <p style={{ color: palette.muted, maxWidth: 780, fontSize: 15 }}>Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
+            <div className="portal-hero-rail">
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Best for</span>
+                <strong>Fast triage</strong>
+                <p>Single IOC verdicts, bulk enrichment, and direct pivots into community and intel context.</p>
+              </article>
+              <article className="portal-spotlight-card">
+                <span className="portal-spotlight-kicker">Signal policy</span>
+                <strong>Actionable only</strong>
+                <p>Recent Scans keeps only suspicious and threat results so the workspace stays clean and operational.</p>
+              </article>
+            </div>
           </section>
         ) : null}
 
@@ -279,8 +291,10 @@ export default function Scanner({ embedded = false }) {
                   ]}
                 />
               ) : (
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {recentScans.map((entry) => (
+                <ExpandableFeed
+                  items={recentScans}
+                  initialCount={4}
+                  renderItem={(entry) => (
                     <div key={entry.id} style={{ display: 'grid', gap: 10, padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', color: palette.text, cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0 }}>
@@ -298,8 +312,8 @@ export default function Scanner({ embedded = false }) {
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               )}
             </div>
           </section>
@@ -327,19 +341,13 @@ export default function Scanner({ embedded = false }) {
               />
             ) : activeTab === 'bulk' ? (
               <div style={{ display: 'grid', gap: 18 }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
-                    <FocusIcon size={16} />
-                    {focusMode ? 'Show batch details' : 'Hide batch details'}
-                  </button>
-                </div>
                 <div className="scanner-bulk-grid">
                   <Stat label="Processed" value={result.summary?.processed || 0} copy={`${result.summary?.submitted || 0} lines submitted after de-duplication and normalization.`} accent={palette.blue} />
                   <Stat label="Actionable" value={result.summary?.actionable || 0} copy="Only suspicious or threat findings are auto-published into the public feed." accent={palette.yellow} />
                   <Stat label="Types Seen" value={Object.values(result.summary?.by_type || {}).filter(Boolean).length} copy="Unique IOC classes detected inside the pasted list." accent={palette.cyan} />
                 </div>
                 {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.yellow, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : null}
-                {!focusMode ? <div className="scanner-bulk-table">
+                <div className="scanner-bulk-table">
                   <div className="scanner-bulk-table-head"><span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Next Step</span></div>
                   {(result.items || []).map((item) => (
                     <article key={`${item.ioc_type}-${item.indicator}`} className="scanner-bulk-row">
@@ -354,32 +362,11 @@ export default function Scanner({ embedded = false }) {
                       </div>
                     </article>
                   ))}
-                </div> : null}
+                </div>
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 18 }}>
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
-                    <FocusIcon size={16} />
-                    {focusMode ? 'Show technical details' : 'Hide technical details'}
-                  </button>
-                </div>
-                <div className="scanner-focus-grid">
-                  <article className="intel-detail-card">
-                    <span className="intel-detail-label">Verdict</span>
-                    <div className="intel-detail-value">{String(result.threat_level || 'unknown').toUpperCase()}</div>
-                  </article>
-                  <article className="intel-detail-card">
-                    <span className="intel-detail-label">Recommendation</span>
-                    <div className="intel-detail-value">{result.recommendation || 'Review manually before trusting this indicator.'}</div>
-                  </article>
-                </div>
-                <div className="intel-reading-block" style={{ padding: 20, borderRadius: 22, background: palette.strong, border: palette.border }}>
-                  <div className="intel-detail-label" style={{ marginBottom: 10 }}>Summary</div>
-                  <div style={{ color: palette.muted, lineHeight: 1.75 }}>
-                    {result.summary || 'No summary provided for this indicator.'}
-                  </div>
-                </div>
+                <ResultCard result={result} type={activeTab} theme={theme} />
                 {scannerBrandSignal ? (
                   <div
                     style={{
@@ -400,8 +387,7 @@ export default function Scanner({ embedded = false }) {
                     </span>
                   </div>
                 ) : null}
-                {!focusMode ? <ResultCard result={result} type={activeTab} theme={theme} /> : null}
-                {!focusMode ? <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
+                <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -410,7 +396,7 @@ export default function Scanner({ embedded = false }) {
                     </div>
                   </div>
                   {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette), background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : actionable(result.threat_level) ? <div style={{ padding: '12px 14px', borderRadius: 16, color: levelColor(result.threat_level, palette), background: `${levelColor(result.threat_level, palette)}12`, border: `1px solid ${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
-                </div> : null}
+                </div>
               </div>
             )}
           </section>

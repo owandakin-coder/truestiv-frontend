@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, DatabaseZap, GitBranch, Radar } from 'lucide-react'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
@@ -65,8 +66,8 @@ export default function ThreatIntelHub() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero threat-intel-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow"><span className="intel-eyebrow-dot" />Public Threat Intelligence</div>
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             External feed collection and public incident context<br />in one centered view.
@@ -78,6 +79,18 @@ export default function ThreatIntelHub() {
             </button>
             <Link className="intel-button ghost" to="/campaign-clusters">Open campaign view</Link>
           </div>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Collection</span>
+            <strong>Automated public feeds</strong>
+            <p>OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community signals converge here.</p>
+          </article>
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Briefing style</span>
+            <strong>Signal first</strong>
+            <p>Trending indicators, briefs, jobs, and weighted sources surface in a more editorial layout instead of one flat feed.</p>
+          </article>
         </div>
       </div>
 
@@ -96,8 +109,11 @@ export default function ThreatIntelHub() {
           <p className="intel-section-copy intel-reading-block">These rows highlight indicators that continue to reappear across published signals, making them strong candidates for immediate investigation.</p>
         </div>
         {!trending.length ? <IntelEmptyState title="Trending indicators are still warming up" copy="As public signals accumulate, recurring IPs, URLs, domains, and hashes will start clustering here automatically. Try the scanner or bulk IOC flow to seed more intelligence." actionLabel="Open Investigation Center" actionTo="/investigation-center/scanner" /> : (
-          <div className="intel-feed-list">
-            {trending.map((item) => (
+          <ExpandableFeed
+            items={trending}
+            initialCount={5}
+            className="intel-feed-list"
+            renderItem={(item) => (
               <article key={`${item.ioc_type}-${item.indicator}`} className="intel-feed-row intel-feed-row-wide">
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
@@ -108,8 +124,8 @@ export default function ThreatIntelHub() {
                 <div><span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span></div>
                 <div><Link className="intel-inline-link" to={item.details_path || buildIocPath(item.ioc_type, item.indicator)}>IOC details</Link></div>
               </article>
-            ))}
-          </div>
+            )}
+          />
         )}
       </section>
 
@@ -120,8 +136,11 @@ export default function ThreatIntelHub() {
           <p className="intel-section-copy intel-reading-block">Each brief aggregates related indicators, sources, countries, and actor tags into one public-facing narrative snapshot.</p>
         </div>
         {!briefs.length ? <IntelEmptyState title="No public incident briefs yet" copy="Briefs appear after recurring indicators, shared actor tags, and overlapping sources form a cluster worth surfacing as public context." actionLabel="Open Campaign View" actionTo="/campaign-clusters" /> : (
-          <div className="intel-grid-two">
-            {briefs.map((item) => (
+          <ExpandableFeed
+            items={briefs}
+            initialCount={4}
+            className="intel-grid-two"
+            renderItem={(item) => (
               <article key={item.id} className="intel-detail-card">
                 <div className="intel-detail-label">{item.title}</div>
                 <div className="intel-detail-value">{item.signal_count} signals</div>
@@ -132,8 +151,8 @@ export default function ThreatIntelHub() {
                 </div>
                 <Link className="intel-inline-link" to={item.details_path || '/campaign-clusters'}>Open cluster brief</Link>
               </article>
-            ))}
-          </div>
+            )}
+          />
         )}
       </section>
 
@@ -202,8 +221,11 @@ export default function ThreatIntelHub() {
             <h2 className="intel-section-title">Most recent published indicators</h2>
             <p className="intel-section-copy intel-reading-block">A centered summary of the newest indicators coming from automated collection and community promotion.</p>
           </div>
-          <div className="intel-feed-list">
-            {feed.slice(0, 8).map((item) => (
+          <ExpandableFeed
+            items={feed}
+            initialCount={6}
+            className="intel-feed-list"
+            renderItem={(item) => (
               <article key={item.id} className="intel-feed-row intel-feed-row-wide">
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
@@ -214,8 +236,8 @@ export default function ThreatIntelHub() {
                 <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>
                 <div><Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>IOC details</Link></div>
               </article>
-            ))}
-          </div>
+            )}
+          />
         </section>
       )}
     </section>

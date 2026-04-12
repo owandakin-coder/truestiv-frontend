@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
@@ -415,11 +416,14 @@ export default function Analysis({ embedded = false }) {
                   ]}
                 />
               ) : (
-                <div className="result-stack" style={{ display: 'grid', gap: 10 }}>
-                  {history.map((entry) => (
+                <ExpandableFeed
+                  items={history.filter((entry) => isActionable(entry?.threat_level))}
+                  initialCount={4}
+                  className="result-stack"
+                  renderItem={(entry) => (
                     <HistoryButton key={`${entry.id}-${entry.created_at || ''}`} entry={entry} onClick={applyHistory} borderColor={borderColor} textColor={textColor} mutedColor={mutedColor} />
-                  ))}
-                </div>
+                  )}
+                />
               )}
             </div>
           </div>

@@ -4,6 +4,7 @@ import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
 import { Filter, Globe2, MapPin, Radar } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 
@@ -186,23 +187,37 @@ export default function GeoThreatMap() {
 
   return (
     <div className="map-shell">
-      <section className="fade-in">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-          <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-          <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>
-            Threat Geography
-          </span>
+      <section className="portal-hero map-hero fade-in">
+        <div className="portal-hero-main">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
+            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>
+              Threat Geography
+            </span>
+          </div>
+          <h1 style={{ fontSize: 32, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
+            Geo <span className="gradient-text">Threat Map</span>
+          </h1>
+          <p className="portal-hero-copy" style={{ color: palette.muted }}>
+            Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
+          </p>
+          <div style={{ marginTop: 16 }}>
+            <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+              {live ? 'Live refresh on' : 'Live refresh off'}
+            </button>
+          </div>
         </div>
-        <h1 style={{ fontSize: 32, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
-          Geo <span className="gradient-text">Threat Map</span>
-        </h1>
-        <p style={{ color: palette.muted }}>
-          Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
-        </p>
-        <div style={{ marginTop: 16 }}>
-          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
-            {live ? 'Live refresh on' : 'Live refresh off'}
-          </button>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Map mode</span>
+            <strong>Live geography</strong>
+            <p>Clusters and playback show where public indicators are concentrating right now.</p>
+          </article>
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Feed behavior</span>
+            <strong>Trimmed marker list</strong>
+            <p>The marker feed now opens with a short, readable slice and expands only when needed.</p>
+          </article>
         </div>
       </section>
 
@@ -341,7 +356,10 @@ export default function GeoThreatMap() {
               </div>
             ) : null}
             {!loading &&
-              feedMarkers.map((marker) => (
+              <ExpandableFeed
+                items={feedMarkers}
+                initialCount={5}
+                renderItem={(marker) => (
                 <div key={`${marker.indicator}-${marker.published_at}`} className="map-list-item" style={{ border: palette.border }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                     <strong style={{ color: palette.text }}>{marker.indicator}</strong>
@@ -360,7 +378,9 @@ export default function GeoThreatMap() {
                     </Link>
                   ) : null}
                 </div>
-              ))}
+                )}
+              />
+            }
             {!loading && !feedMarkers.length ? (
               <div className="intel-empty-card" style={{ marginTop: 12 }}>
                 <Radar size={22} color={palette.blue} style={{ marginBottom: 10 }} />
@@ -413,8 +433,11 @@ export default function GeoThreatMap() {
               Indicators and events currently tied to the selected country and time range.
             </p>
           </div>
-          <div className="intel-feed-list">
-            {countryDetails.items.map((item) => (
+          <ExpandableFeed
+            items={countryDetails.items}
+            initialCount={5}
+            className="intel-feed-list"
+            renderItem={(item) => (
               <article key={`${item.indicator}-${item.published_at}`} className="intel-feed-row intel-feed-row-wide">
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.indicator}</div>
@@ -431,8 +454,8 @@ export default function GeoThreatMap() {
                   {item.details_path ? <Link className="intel-inline-link" to={item.details_path}>IOC details</Link> : null}
                 </div>
               </article>
-            ))}
-          </div>
+            )}
+          />
         </section>
       ) : null}
     </div>

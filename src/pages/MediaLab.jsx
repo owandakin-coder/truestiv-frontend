@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
@@ -68,7 +69,7 @@ export default function MediaLab({ embedded = false }) {
   const loadHistory = async () => {
     try {
       const { data } = await api().get('/api/media/history')
-      setHistory(data?.items || [])
+      setHistory((data?.items || []).filter((item) => isActionable(item?.threat_level)))
     } catch {
       setHistory([])
     }
@@ -305,8 +306,10 @@ export default function MediaLab({ embedded = false }) {
                   ]}
                 />
               ) : (
-                <div style={{ display: 'grid', gap: 10 }}>
-                  {history.map((entry) => (
+                <ExpandableFeed
+                  items={history.filter((entry) => isActionable(entry?.threat_level))}
+                  initialCount={4}
+                  renderItem={(entry) => (
                     <div key={entry.id} style={{ padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent', color: palette.text }}>
                       <strong style={{ display: 'block', marginBottom: 4 }}>{entry.filename}</strong>
                       <div style={{ color: palette.muted, marginBottom: 8 }}>{entry.summary}</div>
@@ -314,8 +317,8 @@ export default function MediaLab({ embedded = false }) {
                         {normalizeThreatLevel(entry.threat_level)}
                       </span>
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               )}
             </div>
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { GitBranch, Radar, Waypoints } from 'lucide-react'
 
+import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
@@ -70,8 +71,8 @@ export default function CampaignClusters() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero campaign-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
             Campaign / Cluster View
@@ -82,6 +83,18 @@ export default function CampaignClusters() {
           <p className="intel-copy intel-reading-block">
             Clusters bring recurring indicators, actor tags, countries, and source overlap into one public-facing intelligence briefing surface.
           </p>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Cluster logic</span>
+            <strong>Related signals grouped</strong>
+            <p>Campaigns collect repeated indicators and sources into public-facing narrative clusters.</p>
+          </article>
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Reading mode</span>
+            <strong>Short list first</strong>
+            <p>Large cluster lists and event stacks now open in a tighter slice and expand only on demand.</p>
+          </article>
         </div>
       </div>
 
@@ -133,8 +146,11 @@ export default function CampaignClusters() {
                 </p>
               </div>
 
-              <div className="intel-mini-list campaign-cluster-list">
-                {clusters.map((cluster) => {
+              <ExpandableFeed
+                items={clusters}
+                initialCount={5}
+                className="intel-mini-list campaign-cluster-list"
+                renderItem={(cluster) => {
                   const active = cluster.id === selected?.id
                   return (
                     <button
@@ -168,8 +184,8 @@ export default function CampaignClusters() {
                       </span>
                     </button>
                   )
-                })}
-              </div>
+                }}
+              />
             </section>
 
             <section className="intel-section-card">
@@ -222,8 +238,11 @@ export default function CampaignClusters() {
                     </div>
                   </div>
 
-                  <div className="intel-mini-list campaign-cluster-events">
-                    {(selected.events || []).map((event) => (
+                  <ExpandableFeed
+                    items={selected.events || []}
+                    initialCount={4}
+                    className="intel-mini-list campaign-cluster-events"
+                    renderItem={(event) => (
                       <article key={event.id} className="intel-mini-item campaign-cluster-event">
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                           <strong>{event.title}</strong>
@@ -241,8 +260,8 @@ export default function CampaignClusters() {
                           ) : null}
                         </div>
                       </article>
-                    ))}
-                  </div>
+                    )}
+                  />
                 </>
               ) : (
                 <div className="intel-empty-inline">Select a cluster from the left to inspect the public brief.</div>

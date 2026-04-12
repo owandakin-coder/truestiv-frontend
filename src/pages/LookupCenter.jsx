@@ -213,8 +213,8 @@ function LookupCenter() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
+      <div className="intel-hero-card portal-hero lookup-hero fade-in">
+        <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
             Lookup Center
@@ -225,6 +225,13 @@ function LookupCenter() {
           <p className="intel-copy intel-reading-block">
             Move between infrastructure enrichment and email-auth analysis without crowding the main navigation. Every tab keeps pivots into IOC details, threat map, and correlation workflows.
           </p>
+        </div>
+        <div className="portal-hero-rail">
+          <article className="portal-spotlight-card">
+            <span className="portal-spotlight-kicker">Lookup lane</span>
+            <strong>Infrastructure and sender pivots</strong>
+            <p>IP, domain, and raw header workflows stay together so enrichment feels like one continuous workspace.</p>
+          </article>
         </div>
       </div>
 

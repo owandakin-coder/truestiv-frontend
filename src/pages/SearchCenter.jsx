@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Radar, Search, ShieldAlert } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { formatRelativeDate } from '../utils/intelTools'
@@ -80,7 +81,7 @@ export default function SearchCenter() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             Find IPs, URLs, hashes, domains, senders, and subjects across Trustive AI.
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             Search once and jump directly into scanner history, community visibility, message analyses, or media findings.
           </p>
         </div>
@@ -104,7 +105,12 @@ export default function SearchCenter() {
       {loading ? <div className="intel-empty-card">Searching intelligence context...</div> : null}
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {!loading && activeQuery && !items.length ? (
-        <div className="intel-empty-card">No actionable intelligence matched "{activeQuery}".</div>
+        <IntelEmptyState
+          title={`No actionable intelligence matched "${activeQuery}"`}
+          copy="Search results are limited to suspicious and threat signals so the portal stays high-signal. Try an IP, a phishing domain, a known hash, or a sender domain instead."
+          actionLabel="Open Threat Intel"
+          actionTo="/threat-intel"
+        />
       ) : null}
 
       {!loading && !!items.length ? (
@@ -115,7 +121,7 @@ export default function SearchCenter() {
               Search Results
             </div>
             <h2 className="intel-section-title">Matched intelligence context</h2>
-            <p className="intel-section-copy">
+            <p className="intel-section-copy intel-reading-block">
               Results are restricted to suspicious and threat findings so the search surface stays high-signal.
             </p>
           </div>
@@ -128,7 +134,7 @@ export default function SearchCenter() {
                   <div className="intel-feed-row-meta">
                     {String(item.kind || 'result').toUpperCase()} | {formatRelativeDate(item.created_at)}
                   </div>
-                  <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
+                  <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
                 </div>
                 <div className="intel-meta">{item.kind}</div>
                 <div />

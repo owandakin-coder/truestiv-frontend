@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, DatabaseZap, GitBranch, Radar } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -70,7 +71,7 @@ export default function ThreatIntelHub() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             External feed collection and public incident context<br />in one centered view.
           </h1>
-          <p className="intel-copy">This hub now combines live feeds, recurring indicators, public incident briefs, background jobs, and weighted source context for anyone exploring the platform.</p>
+          <p className="intel-copy intel-reading-block">This hub now combines live feeds, recurring indicators, public incident briefs, background jobs, and weighted source context for anyone exploring the platform.</p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
@@ -92,9 +93,9 @@ export default function ThreatIntelHub() {
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Radar size={14} />Trending Indicators</div>
           <h2 className="intel-section-title">Repeated indicators across the public intelligence surface</h2>
-          <p className="intel-section-copy">These rows highlight indicators that continue to reappear across published signals, making them strong candidates for immediate investigation.</p>
+          <p className="intel-section-copy intel-reading-block">These rows highlight indicators that continue to reappear across published signals, making them strong candidates for immediate investigation.</p>
         </div>
-        {!trending.length ? <div className="intel-empty-inline">No trending indicators are available yet.</div> : (
+        {!trending.length ? <IntelEmptyState title="Trending indicators are still warming up" copy="As public signals accumulate, recurring IPs, URLs, domains, and hashes will start clustering here automatically. Try the scanner or bulk IOC flow to seed more intelligence." actionLabel="Open Investigation Center" actionTo="/investigation-center/scanner" /> : (
           <div className="intel-feed-list">
             {trending.map((item) => (
               <article key={`${item.ioc_type}-${item.indicator}`} className="intel-feed-row intel-feed-row-wide">
@@ -116,15 +117,15 @@ export default function ThreatIntelHub() {
         <div className="intel-section-head">
           <div className="intel-eyebrow"><GitBranch size={14} />Public Incident Briefs</div>
           <h2 className="intel-section-title">Clustered briefs built from recurring public signals</h2>
-          <p className="intel-section-copy">Each brief aggregates related indicators, sources, countries, and actor tags into one public-facing narrative snapshot.</p>
+          <p className="intel-section-copy intel-reading-block">Each brief aggregates related indicators, sources, countries, and actor tags into one public-facing narrative snapshot.</p>
         </div>
-        {!briefs.length ? <div className="intel-empty-inline">No public incident briefs are available yet.</div> : (
+        {!briefs.length ? <IntelEmptyState title="No public incident briefs yet" copy="Briefs appear after recurring indicators, shared actor tags, and overlapping sources form a cluster worth surfacing as public context." actionLabel="Open Campaign View" actionTo="/campaign-clusters" /> : (
           <div className="intel-grid-two">
             {briefs.map((item) => (
               <article key={item.id} className="intel-detail-card">
                 <div className="intel-detail-label">{item.title}</div>
                 <div className="intel-detail-value">{item.signal_count} signals</div>
-                <p className="intel-detail-copy">{item.summary}</p>
+                <p className="intel-detail-copy intel-reading-block">{item.summary}</p>
                 <div className="intel-tag-wrap">
                   {(item.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
                   {(item.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
@@ -140,7 +141,7 @@ export default function ThreatIntelHub() {
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Activity size={14} />Threat Trends</div>
           <h2 className="intel-section-title">High-signal patterns by source, country, type, and time</h2>
-          <p className="intel-section-copy">These trend views are built only from suspicious and threat findings so the charts stay operationally useful.</p>
+          <p className="intel-section-copy intel-reading-block">These trend views are built only from suspicious and threat findings so the charts stay operationally useful.</p>
         </div>
         <div className="intel-grid-two">
           <article className="intel-detail-card"><div className="intel-detail-label">Top Sources</div>{(trends.by_source || []).slice(0, 5).map((item) => <div key={item.label} className="intel-bar-row"><span>{item.label}</span><div className="intel-bar-track"><div className="intel-bar-fill" style={{ width: `${Math.min(100, item.count * 10)}%` }} /></div><strong>{item.count}</strong></div>)}</article>
@@ -154,7 +155,7 @@ export default function ThreatIntelHub() {
         <div className="intel-section-head">
           <div className="intel-eyebrow"><DatabaseZap size={14} />Background Jobs</div>
           <h2 className="intel-section-title">What succeeded, what failed, and what is waiting in retry</h2>
-          <p className="intel-section-copy">This operational panel tracks the automated feed collection jobs and the retry queue behind the intelligence stream.</p>
+          <p className="intel-section-copy intel-reading-block">This operational panel tracks the automated feed collection jobs and the retry queue behind the intelligence stream.</p>
         </div>
         <div className="intel-grid-two">
           {(jobs.jobs || []).map((item) => (
@@ -180,7 +181,7 @@ export default function ThreatIntelHub() {
         <div className="intel-section-head">
           <div className="intel-eyebrow"><DatabaseZap size={14} />Source Confidence</div>
           <h2 className="intel-section-title">Weighted reliability by source</h2>
-          <p className="intel-section-copy">Not all sources are treated equally. These weights help Trustive AI score findings more realistically.</p>
+          <p className="intel-section-copy intel-reading-block">Not all sources are treated equally. These weights help Trustive AI score findings more realistically.</p>
         </div>
         <div className="intel-grid-two">
           {sources.map((item) => (
@@ -194,12 +195,12 @@ export default function ThreatIntelHub() {
         </div>
       </section>
 
-      {!feed.length && !error ? <div className="intel-empty-card">No threat intelligence items are available yet.</div> : (
+      {!feed.length && !error ? <IntelEmptyState title="No published intelligence items yet" copy="The automated feed collector is active. Fresh indicators from OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community findings will appear here as soon as actionable signals land." actionLabel="View Timeline" actionTo="/timeline" /> : (
         <section className="intel-section-card fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Radar size={14} />Latest Intelligence</div>
             <h2 className="intel-section-title">Most recent published indicators</h2>
-            <p className="intel-section-copy">A centered summary of the newest indicators coming from automated collection and community promotion.</p>
+            <p className="intel-section-copy intel-reading-block">A centered summary of the newest indicators coming from automated collection and community promotion.</p>
           </div>
           <div className="intel-feed-list">
             {feed.slice(0, 8).map((item) => (

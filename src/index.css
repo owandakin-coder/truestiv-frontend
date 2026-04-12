@@ -487,6 +487,16 @@ body {
   font-size: 15px;
 }
 
+.intel-reading-block {
+  max-width: 68ch;
+}
+
+.intel-hero-content .intel-reading-block,
+.intel-section-head .intel-reading-block {
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .intel-stat-grid,
 .intel-grid {
   display: grid;
@@ -773,6 +783,55 @@ body {
   line-height: 1.7;
 }
 
+.intel-empty-state {
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+  text-align: center;
+  padding: 12px;
+}
+
+.intel-empty-state-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  color: #7dd3fc;
+  background: radial-gradient(circle at 30% 30%, rgba(56,189,248,0.22), rgba(37,99,235,0.12));
+  border: 1px solid rgba(56,189,248,0.2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 18px 36px rgba(14,165,233,0.12);
+}
+
+.intel-empty-state-title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #eff6ff;
+}
+
+.intel-empty-state-copy {
+  max-width: 60ch;
+  color: rgba(191,219,254,0.74);
+  line-height: 1.75;
+}
+
+.intel-empty-state-examples {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.intel-empty-state-chip {
+  border: 1px solid rgba(56,189,248,0.18);
+  background: rgba(37,99,235,0.08);
+  color: #dbeafe;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .intel-filter-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -841,6 +900,12 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
+}
+
+.scanner-focus-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .intel-detail-card {
@@ -1307,6 +1372,14 @@ body {
   border-color: rgba(15,23,42,0.08);
 }
 
+[data-theme="light"] .intel-empty-state-title {
+  color: #0f172a;
+}
+
+[data-theme="light"] .intel-empty-state-copy {
+  color: #475569;
+}
+
 @media (max-width: 1040px) {
   .intel-two-column {
     grid-template-columns: 1fr;
@@ -1320,7 +1393,8 @@ body {
 
 @media (max-width: 720px) {
   .intel-detail-grid,
-  .intel-provider-grid {
+  .intel-provider-grid,
+  .scanner-focus-grid {
     grid-template-columns: 1fr;
   }
 

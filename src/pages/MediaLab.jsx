@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AudioLines,
+  ChevronDown,
+  ChevronUp,
   FileImage,
   Film,
   Loader2,
@@ -11,6 +13,7 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -60,6 +63,7 @@ export default function MediaLab({ embedded = false }) {
   const [history, setHistory] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
+  const [focusMode, setFocusMode] = useState(true)
 
   const loadHistory = async () => {
     try {
@@ -90,6 +94,7 @@ export default function MediaLab({ embedded = false }) {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setResult(data)
+      setFocusMode(true)
       if (isActionable(data?.threat_level)) {
         await loadHistory()
       }
@@ -108,6 +113,7 @@ export default function MediaLab({ embedded = false }) {
   }
 
   const iocs = useMemo(() => flattenIocs(extractIocsFromText(result?.ocr_text, result?.summary, file?.name)), [result, file])
+  const FocusIcon = focusMode ? ChevronDown : ChevronUp
 
   const runPivot = async (item) => {
     const config =
@@ -290,9 +296,14 @@ export default function MediaLab({ embedded = false }) {
                 <span className="analysis-meta-label">Recent Media Runs</span>
               </div>
               {!history.length ? (
-                <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>
-                  Recent media runs appear here only when they are suspicious or malicious.
-                </p>
+                <IntelEmptyState
+                  title="No suspicious media runs yet"
+                  copy="Only suspicious and threat media analyses are stored here. Try an image with embedded text, a suspicious voice clip, or a manipulated-looking video frame."
+                  examples={[
+                    { label: 'Try image analysis', onClick: () => setActiveTab('image') },
+                    { label: 'Switch to audio triage', onClick: () => setActiveTab('audio') },
+                  ]}
+                />
               ) : (
                 <div style={{ display: 'grid', gap: 10 }}>
                   {history.map((entry) => (
@@ -336,17 +347,15 @@ export default function MediaLab({ embedded = false }) {
             </div>
 
             {!result && !loading ? (
-              <div style={{ minHeight: 280, borderRadius: 22, border: palette.border, background: palette.cardStrong, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24 }}>
-                <div>
-                  <ScanSearch size={42} color={palette.orange} style={{ marginBottom: 14 }} />
-                  <h3 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
-                    Upload media to begin analysis
-                  </h3>
-                  <p style={{ color: palette.muted }}>
-                    The result panel will populate after a successful upload.
-                  </p>
-                </div>
-              </div>
+              <IntelEmptyState
+                title="Upload media to begin analysis"
+                copy="The result view will first surface verdict, summary, and recommended action. OCR text, artifacts, and community promotion stay tucked behind an expandable technical layer."
+                icon={ScanSearch}
+                examples={[
+                  { label: 'Image workflow', onClick: () => setActiveTab('image') },
+                  { label: 'Video workflow', onClick: () => setActiveTab('video') },
+                ]}
+              />
             ) : null}
 
             {loading ? (
@@ -360,6 +369,12 @@ export default function MediaLab({ embedded = false }) {
 
             {result && !loading ? (
               <div style={{ display: 'grid', gap: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
+                    <FocusIcon size={16} />
+                    {focusMode ? 'Show technical details' : 'Hide technical details'}
+                  </button>
+                </div>
                 <div className="analysis-result-grid">
                   <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
                     <span className="analysis-meta-label">Threat Level</span>
@@ -367,7 +382,7 @@ export default function MediaLab({ embedded = false }) {
                       <Sparkles size={16} />
                       {normalizeThreatLevel(result.threat_level)}
                     </div>
-                    <div style={{ marginTop: 18 }}>
+                    <div className="intel-reading-block" style={{ marginTop: 18 }}>
                       <span className="analysis-meta-label">Summary</span>
                       <p style={{ color: palette.muted, lineHeight: 1.7, marginTop: 8 }}>{result.summary}</p>
                     </div>
@@ -390,14 +405,14 @@ export default function MediaLab({ embedded = false }) {
                   </div>
                 </div>
 
-                <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
+                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20 }}>
                   <span className="analysis-meta-label">OCR Text</span>
-                  <p style={{ color: palette.muted, marginTop: 8, lineHeight: 1.7 }}>
+                  <p className="intel-reading-block" style={{ color: palette.muted, marginTop: 8, lineHeight: 1.7 }}>
                     {result.ocr_text || 'No OCR text extracted.'}
                   </p>
-                </div>
+                </div> : null}
 
-                <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 14 }}>
+                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 14 }}>
                     <div>
                       <div className="analysis-meta-label">Public Actions</div>
                       <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
@@ -414,9 +429,9 @@ export default function MediaLab({ embedded = false }) {
                       {publishState.message}
                     </div>
                   ) : null}
-                </div>
+                </div> : null}
 
-                <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 16 }}>
+                {!focusMode ? <div style={{ background: palette.cardStrong, border: palette.border, borderRadius: 20, padding: 20, display: 'grid', gap: 16 }}>
                   <span className="analysis-meta-label">Extracted Artifacts</span>
                   {!iocs.length ? (
                     <div style={{ color: palette.muted, lineHeight: 1.7 }}>
@@ -436,7 +451,7 @@ export default function MediaLab({ embedded = false }) {
                       {pivot.result ? <ResultCard result={pivot.result} type={pivot.type} theme={theme} /> : null}
                     </>
                   )}
-                </div>
+                </div> : null}
               </div>
             ) : null}
           </section>

@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ExternalLink,
   Loader2,
   Mail,
@@ -14,6 +16,7 @@ import {
 } from 'lucide-react'
 
 import ResultCard from '../components/ResultCard'
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -138,6 +141,7 @@ export default function Analysis({ embedded = false }) {
   const [error, setError] = useState('')
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
+  const [focusMode, setFocusMode] = useState(true)
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -166,6 +170,8 @@ export default function Analysis({ embedded = false }) {
     backdropFilter: 'blur(18px)',
     boxShadow: '0 24px 70px rgba(0,0,0,0.24)',
   }
+  const detailToggleLabel = focusMode ? 'Show technical context' : 'Hide technical context'
+  const DetailToggleIcon = focusMode ? ChevronDown : ChevronUp
   const inputStyle = {
     width: '100%',
     borderRadius: 18,
@@ -245,6 +251,7 @@ export default function Analysis({ embedded = false }) {
       })
       const normalized = normalizeAnalysis(response.data)
       setResult(normalized)
+      setFocusMode(true)
       saveLocalHistory(normalized)
       const iocs = extractIocsFromText(form.sender, form.subject, form.content, ...(normalized.indicators || []))
       await fetchIpIntel(iocs.ips)
@@ -399,9 +406,14 @@ export default function Analysis({ embedded = false }) {
                 <span className="analysis-meta-label">Recent Analyses</span>
               </div>
               {!history.length ? (
-                <div style={{ color: mutedColor, lineHeight: 1.7 }}>
-                  Previous verdicts will appear here so you can quickly reuse common investigation contexts.
-                </div>
+                <IntelEmptyState
+                  title="No recent high-signal analyses yet"
+                  copy="Only suspicious and threat verdicts are kept here. Try a phishing-style subject or a message that includes a suspicious link to seed the public analysis flow."
+                  examples={[
+                    { label: 'Urgent payroll verification', onClick: () => setForm((current) => ({ ...current, subject: 'Urgent payroll verification request' })) },
+                    { label: 'Paste suspicious login URL', onClick: () => setForm((current) => ({ ...current, content: 'Please verify your account at https://secure-paypaI-login-check.com immediately.' })) },
+                  ]}
+                />
               ) : (
                 <div className="result-stack" style={{ display: 'grid', gap: 10 }}>
                   {history.map((entry) => (
@@ -428,17 +440,23 @@ export default function Analysis({ embedded = false }) {
               </div>
 
               {!result ? (
-                <div style={{ minHeight: 320, borderRadius: 22, border: `1px dashed ${borderColor}`, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24, color: mutedColor, lineHeight: 1.7 }}>
-                  <div style={{ display: 'grid', gap: 16, justifyItems: 'center', maxWidth: 420 }}>
-                    <div style={{ width: 72, height: 72, borderRadius: 999, display: 'grid', placeItems: 'center', background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#7dd3fc' }}>
-                      <Radar size={28} />
-                    </div>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: textColor }}>Run an analysis to generate an AI-backed verdict.</div>
-                    <div>{emptyResultText}</div>
-                  </div>
-                </div>
+                <IntelEmptyState
+                  title="Run an analysis to generate an AI-backed verdict"
+                  copy="Try a finance-themed phishing message, a suspicious SMS, or a WhatsApp lure with a short link. The result pane will highlight only the verdict first, then let you expand into technical detail."
+                  icon={Radar}
+                  examples={[
+                    { label: 'Email fraud example', onClick: () => { setChannel('email'); setForm({ sender: 'finance-update@secure-paypaI.com', subject: 'Urgent invoice confirmation', phone: '', content: 'Review the updated invoice at https://secure-paypaI-login-check.com before end of day.' }) } },
+                    { label: 'SMS lure example', onClick: () => { setChannel('sms'); setForm({ sender: '', subject: '', phone: '+1 202 555 0172', content: 'Your package is pending. Confirm delivery at https://fedex-secure-track-check.com' }) } },
+                  ]}
+                />
               ) : (
                 <div style={{ display: 'grid', gap: 18 }}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
+                      <DetailToggleIcon size={16} />
+                      {detailToggleLabel}
+                    </button>
+                  </div>
                   <div className="analysis-result-grid" style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(2, minmax(0, 1fr))' }}>
                     <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 18 }}>
                       <div style={{ color: mutedColor, fontSize: 13, marginBottom: 8 }}>Threat Level</div>
@@ -450,12 +468,12 @@ export default function Analysis({ embedded = false }) {
                     </div>
                   </div>
 
-                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                  <div className="intel-reading-block" style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
                     <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Summary</strong>
                     {result.summary}
                   </div>
 
-                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
+                  <div className="intel-reading-block" style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
                     <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Recommendation</strong>
                     {result.recommendation}
                     {result.related_threats_count > 0 ? (
@@ -491,26 +509,29 @@ export default function Analysis({ embedded = false }) {
                     </div>
                   ) : null}
 
-                  <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
-                    <div>
-                      <div className="analysis-meta-label">Analyst Actions</div>
-                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                      <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
-                        {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
-                      </button>
-                    </div>
-                    {publishState.message ? (
-                      <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
-                        {publishState.message}
+                  {!focusMode ? (
+                    <div style={{ borderRadius: 22, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, display: 'grid', gap: 14 }}>
+                      <div>
+                        <div className="analysis-meta-label">Public Actions</div>
+                        <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
                       </div>
-                    ) : null}
-                  </div>
+                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                        <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+                          {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
+                        </button>
+                      </div>
+                      {publishState.message ? (
+                        <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
+                          {publishState.message}
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>
 
+            {!focusMode ? (
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
@@ -538,7 +559,9 @@ export default function Analysis({ embedded = false }) {
                 </div>
               )}
             </div>
+            ) : null}
 
+            {!focusMode ? (
             <div style={{ ...cardStyle, padding: 24 }}>
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
@@ -564,6 +587,7 @@ export default function Analysis({ embedded = false }) {
                 </div>
               )}
             </div>
+            ) : null}
           </div>
         </div>
       </div>

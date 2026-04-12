@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Globe2, RadioTower, ShieldAlert, Users } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -67,7 +68,7 @@ export default function CommunityIntel() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             Open threat submissions, promoted findings,<br />and shared public indicators.
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             This page is designed as a public-facing intelligence board for anyone using Trustive AI. It keeps the community feed centered, readable, and easy to scan without requiring private analyst context.
           </p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
@@ -107,13 +108,18 @@ export default function CommunityIntel() {
             Community Feed
           </div>
           <h2 className="intel-section-title">Centered view of recent community intelligence</h2>
-          <p className="intel-section-copy">
+          <p className="intel-section-copy intel-reading-block">
             Anyone can browse this feed to understand what the platform and its users are surfacing most recently.
           </p>
         </div>
 
         {!loading && !items.length ? (
-          <div className="intel-empty-card">No community threats have been published yet.</div>
+          <IntelEmptyState
+            title="No community intelligence has been published yet"
+            copy="The public community board fills only with suspicious and threat findings. Run a scanner request or promote a strong analysis result to help seed the shared feed."
+            actionLabel="Open Investigation Center"
+            actionTo="/investigation-center/scanner"
+          />
         ) : (
           <div className="intel-feed-list">
             {items.map((item) => (

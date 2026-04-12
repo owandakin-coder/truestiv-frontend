@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { GitBranch, Radar, Waypoints } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
@@ -78,7 +79,7 @@ export default function CampaignClusters() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             Related public signals grouped into actionable intelligence clusters.
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             Clusters bring recurring indicators, actor tags, countries, and source overlap into one public-facing intelligence briefing surface.
           </p>
         </div>
@@ -88,7 +89,12 @@ export default function CampaignClusters() {
       {loading ? <div className="intel-empty-card">Loading campaign clusters...</div> : null}
 
       {!loading && !clusters.length ? (
-        <div className="intel-empty-card">No public campaign clusters are available yet.</div>
+        <IntelEmptyState
+          title="No public campaign clusters yet"
+          copy="Clusters appear when recurring indicators, actor tags, and overlapping sources start forming a shared operational story."
+          actionLabel="Open Threat Intel"
+          actionTo="/threat-intel"
+        />
       ) : null}
 
       {!loading && clusters.length ? (
@@ -122,7 +128,7 @@ export default function CampaignClusters() {
                   Active Clusters
                 </div>
                 <h2 className="intel-section-title">Recurring public activity</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Choose a cluster to inspect its latest indicators, countries, tags, and event flow.
                 </p>
               </div>
@@ -173,7 +179,7 @@ export default function CampaignClusters() {
                   Cluster Brief
                 </div>
                 <h2 className="intel-section-title">{selected?.label || 'No cluster selected'}</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   {selected?.summary || 'Select a cluster to inspect its public indicators and supporting events.'}
                 </p>
               </div>
@@ -223,7 +229,7 @@ export default function CampaignClusters() {
                           <strong>{event.title}</strong>
                           <span style={{ color: palette.subtle, fontSize: 13 }}>{event.source}</span>
                         </div>
-                        <span style={{ color: palette.muted, lineHeight: 1.6 }}>{event.summary}</span>
+                        <span className="intel-reading-block" style={{ color: palette.muted, lineHeight: 1.6 }}>{event.summary}</span>
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                           <span className="campaign-event-meta" style={{ color: palette.subtle, fontSize: 13 }}>
                             {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}

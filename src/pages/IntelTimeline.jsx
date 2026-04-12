@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Clock3, Radar, ShieldAlert, Waves } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
@@ -102,7 +103,7 @@ export default function IntelTimeline() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             One feed for scanner activity, community publishing,<br />analysis verdicts, and media findings.
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             This timeline is the shared operational surface for Trustive AI. It helps you move from the newest event to the full IOC context without bouncing between pages.
           </p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
@@ -139,7 +140,7 @@ export default function IntelTimeline() {
             Filters
           </div>
           <h2 className="intel-section-title">Focus the timeline</h2>
-          <p className="intel-section-copy">
+          <p className="intel-section-copy intel-reading-block">
             Narrow the feed by event source, threat level, and time range to zoom in on the most relevant operational activity.
           </p>
         </div>
@@ -182,7 +183,12 @@ export default function IntelTimeline() {
       {loading ? <div className="intel-empty-card">Loading unified intelligence timeline...</div> : null}
 
       {!loading && !items.length ? (
-        <div className="intel-empty-card">No timeline events match the current filters yet.</div>
+        <IntelEmptyState
+          title="No timeline events match these filters"
+          copy="The unified timeline only keeps suspicious and threat activity. Relax the filters, run a fresh scan, or wait for automated collection to add new public signals."
+          actionLabel="Open Threat Intel"
+          actionTo="/threat-intel"
+        />
       ) : null}
 
       {!loading && items.length ? (
@@ -193,7 +199,7 @@ export default function IntelTimeline() {
               Live Feed
             </div>
             <h2 className="intel-section-title">Newest intelligence and scan activity</h2>
-            <p className="intel-section-copy">
+            <p className="intel-section-copy intel-reading-block">
               Each row captures the event source, verdict, timing, and a direct path into IOC details when the event is tied to a concrete indicator.
             </p>
           </div>
@@ -211,7 +217,7 @@ export default function IntelTimeline() {
                     <div className="intel-feed-row-meta">
                       {item.title} | {formatRelativeDate(item.created_at)} | source {String(item.event_type || item.source || 'intel').toUpperCase()}
                     </div>
-                    <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>
+                    <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>
                       {item.summary}
                     </p>
                     {item.actor_tags?.length ? (

@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Boxes, FileText, Globe, Hash, Link2, Radar, Search, Shield, Zap } from 'lucide-react'
+import { Boxes, ChevronDown, ChevronUp, FileText, Globe, Hash, Link2, Radar, Search, Shield, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import ResultCard from '../components/ResultCard'
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -93,6 +94,7 @@ export default function Scanner({ embedded = false }) {
   const [error, setError] = useState('')
   const [recentScans, setRecentScans] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
+  const [focusMode, setFocusMode] = useState(true)
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -156,6 +158,7 @@ export default function Scanner({ embedded = false }) {
       else response = await client.post('/api/scanner/bulk', { input: form.bulk_input })
 
       setResult(response.data)
+      setFocusMode(true)
       await loadHistory(activeTab)
 
       if (activeTab === 'bulk') {
@@ -196,6 +199,17 @@ export default function Scanner({ embedded = false }) {
     if (!candidate || !candidate.active) return null
     return candidate
   }, [activeTab, form.url, result])
+  const FocusIcon = focusMode ? ChevronDown : ChevronUp
+  const bulkExamples = [
+    {
+      label: 'Mixed phishing set',
+      onClick: () => updateField('bulk_input', 'https://secure-paypaI-login-check.com\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nmicrosoft-billing-center-help.com'),
+    },
+    {
+      label: 'URL heavy list',
+      onClick: () => updateField('bulk_input', 'https://apple-id-review-center.com\nhttps://secure-fedex-delivery-check.net\nhttps://microsoft-billing-update.info'),
+    },
+  ]
 
   return (
     <div style={{ position: 'relative' }}>
@@ -255,7 +269,16 @@ export default function Scanner({ embedded = false }) {
 
             <div style={{ marginTop: 24, padding: 18, borderRadius: 20, border: palette.border, background: palette.strong }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Zap size={16} color={palette.blue} /><span className="analysis-meta-label">Recent Scans</span></div>
-              {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history from the backend...</p> : !recentScans.length ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Recent actionable backend scan history will appear here after you run scanner requests.</p> : (
+              {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history from the backend...</p> : !recentScans.length ? (
+                <IntelEmptyState
+                  title="No actionable scans yet"
+                  copy="Only suspicious and threat findings are shown here. Start with a suspicious URL, a known abuse IP, or paste a mixed IOC list into Bulk IOC."
+                  examples={activeTab === 'bulk' ? bulkExamples : [
+                    { label: 'Try suspicious URL', onClick: () => { setActiveTab('url'); updateField('url', 'https://secure-paypaI-login-check.com') } },
+                    { label: 'Try abuse IP', onClick: () => { setActiveTab('ip'); updateField('ip', '185.220.101.42') } },
+                  ]}
+                />
+              ) : (
                 <div style={{ display: 'grid', gap: 10 }}>
                   {recentScans.map((entry) => (
                     <div key={entry.id} style={{ display: 'grid', gap: 10, padding: '12px 14px', borderRadius: 18, border: palette.border, background: 'transparent' }}>
@@ -288,18 +311,35 @@ export default function Scanner({ embedded = false }) {
             </div>
 
             {!result ? (
-              <div style={{ minHeight: 280, borderRadius: 22, border: palette.border, background: palette.strong, display: 'grid', placeItems: 'center', textAlign: 'center', padding: 24 }}>
-                <div><Shield size={42} color={palette.blue} style={{ marginBottom: 14 }} /><h3 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 8 }}>Pick a scanner and run a request</h3><p style={{ color: palette.muted }}>{activeTab === 'bulk' ? 'Bulk IOC results will appear here with grouped counts, direct lookup pivots, and public cluster context.' : 'Your scan output will appear here with verdicts, scores, indicators, and a direct IOC details view.'}</p></div>
-              </div>
+              <IntelEmptyState
+                title="Pick a scanner and run a request"
+                copy={activeTab === 'bulk' ? 'Paste one IOC per line to build a triage table of public signals, then drill into the strongest findings.' : 'Run a scan to see the verdict first, then expand into provider details, pivots, and public intelligence context.'}
+                icon={Shield}
+                examples={activeTab === 'bulk'
+                  ? bulkExamples
+                  : activeTab === 'url'
+                    ? [{ label: 'Phishing URL example', onClick: () => updateField('url', 'https://secure-paypaI-login-check.com') }]
+                    : activeTab === 'ip'
+                      ? [{ label: 'Known abuse IP example', onClick: () => updateField('ip', '185.220.101.42') }]
+                      : activeTab === 'hash'
+                        ? [{ label: 'Known malware hash', onClick: () => updateField('hash', '44d88612fea8a8f36de82e1278abb02f') }]
+                        : [{ label: 'Malicious document name', onClick: () => updateField('filename', 'invoice-review.docm') }]}
+              />
             ) : activeTab === 'bulk' ? (
               <div style={{ display: 'grid', gap: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
+                    <FocusIcon size={16} />
+                    {focusMode ? 'Show batch details' : 'Hide batch details'}
+                  </button>
+                </div>
                 <div className="scanner-bulk-grid">
                   <Stat label="Processed" value={result.summary?.processed || 0} copy={`${result.summary?.submitted || 0} lines submitted after de-duplication and normalization.`} accent={palette.blue} />
                   <Stat label="Actionable" value={result.summary?.actionable || 0} copy="Only suspicious or threat findings are auto-published into the public feed." accent={palette.yellow} />
                   <Stat label="Types Seen" value={Object.values(result.summary?.by_type || {}).filter(Boolean).length} copy="Unique IOC classes detected inside the pasted list." accent={palette.cyan} />
                 </div>
                 {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.yellow, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : null}
-                <div className="scanner-bulk-table">
+                {!focusMode ? <div className="scanner-bulk-table">
                   <div className="scanner-bulk-table-head"><span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Next Step</span></div>
                   {(result.items || []).map((item) => (
                     <article key={`${item.ioc_type}-${item.indicator}`} className="scanner-bulk-row">
@@ -314,11 +354,32 @@ export default function Scanner({ embedded = false }) {
                       </div>
                     </article>
                   ))}
-                </div>
+                </div> : null}
               </div>
             ) : (
               <div style={{ display: 'grid', gap: 18 }}>
-                <ResultCard result={result} type={activeTab} theme={theme} />
+                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
+                    <FocusIcon size={16} />
+                    {focusMode ? 'Show technical details' : 'Hide technical details'}
+                  </button>
+                </div>
+                <div className="scanner-focus-grid">
+                  <article className="intel-detail-card">
+                    <span className="intel-detail-label">Verdict</span>
+                    <div className="intel-detail-value">{String(result.threat_level || 'unknown').toUpperCase()}</div>
+                  </article>
+                  <article className="intel-detail-card">
+                    <span className="intel-detail-label">Recommendation</span>
+                    <div className="intel-detail-value">{result.recommendation || 'Review manually before trusting this indicator.'}</div>
+                  </article>
+                </div>
+                <div className="intel-reading-block" style={{ padding: 20, borderRadius: 22, background: palette.strong, border: palette.border }}>
+                  <div className="intel-detail-label" style={{ marginBottom: 10 }}>Summary</div>
+                  <div style={{ color: palette.muted, lineHeight: 1.75 }}>
+                    {result.summary || 'No summary provided for this indicator.'}
+                  </div>
+                </div>
                 {scannerBrandSignal ? (
                   <div
                     style={{
@@ -339,7 +400,8 @@ export default function Scanner({ embedded = false }) {
                     </span>
                   </div>
                 ) : null}
-                <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
+                {!focusMode ? <ResultCard result={result} type={activeTab} theme={theme} /> : null}
+                {!focusMode ? <div style={{ padding: 18, borderRadius: 20, background: palette.strong, border: palette.border, display: 'grid', gap: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>
                     <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -348,7 +410,7 @@ export default function Scanner({ embedded = false }) {
                     </div>
                   </div>
                   {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette), background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : actionable(result.threat_level) ? <div style={{ padding: '12px 14px', borderRadius: 16, color: levelColor(result.threat_level, palette), background: `${levelColor(result.threat_level, palette)}12`, border: `1px solid ${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
-                </div>
+                </div> : null}
               </div>
             )}
           </section>

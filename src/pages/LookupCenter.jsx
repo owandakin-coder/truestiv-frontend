@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Building2, Globe2, Mail, MapPinned, Radar, ScanSearch, ShieldAlert, Waypoints } from 'lucide-react'
 
+import IntelEmptyState from '../components/IntelEmptyState'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
@@ -221,7 +222,7 @@ function LookupCenter() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             One workspace for IP, domain,<br />and email header investigation
           </h1>
-          <p className="intel-copy">
+          <p className="intel-copy intel-reading-block">
             Move between infrastructure enrichment and email-auth analysis without crowding the main navigation. Every tab keeps pivots into IOC details, threat map, and correlation workflows.
           </p>
         </div>
@@ -279,6 +280,38 @@ function LookupCenter() {
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Running lookup...</div> : null}
 
+      {!loading && !error && activeMode === 'ip' && !ipLookup ? (
+        <IntelEmptyState
+          title="Start with an IP address"
+          copy="Use this workspace to inspect geolocation, source confidence, sightings, and pivots into the wider Trustive AI intelligence graph."
+          examples={[
+            { label: '185.220.101.42', onClick: () => navigate(buildIpLookupPath('185.220.101.42')) },
+            { label: '8.8.8.8', onClick: () => navigate(buildIpLookupPath('8.8.8.8')) },
+          ]}
+        />
+      ) : null}
+
+      {!loading && !error && activeMode === 'domain' && !domainLookup ? (
+        <IntelEmptyState
+          title="Start with a domain"
+          copy="Run a domain lookup to inspect registrar data, DNS, related IPs, sightings, and brand impersonation signals without opening multiple tools."
+          examples={[
+            { label: 'secure-paypaI-login-check.com', onClick: () => navigate(buildDomainLookupPath('secure-paypaI-login-check.com')) },
+            { label: 'microsoft-billing-center-help.com', onClick: () => navigate(buildDomainLookupPath('microsoft-billing-center-help.com')) },
+          ]}
+        />
+      ) : null}
+
+      {!loading && !error && activeMode === 'email-header' && !headerAnalysis ? (
+        <IntelEmptyState
+          title="Paste raw email headers"
+          copy="Received hops, SPF, DKIM, DMARC, Reply-To mismatches, and extracted domains or IPs will appear here after analysis."
+          examples={[
+            { label: 'Insert sample header', onClick: () => setHeaderInput('Received: from suspicious-mail.example (185.220.101.42) by mx.google.com;\nAuthentication-Results: spf=fail dkim=none dmarc=fail;\nReply-To: support@secure-paypaI-login-check.com') },
+          ]}
+        />
+      ) : null}
+
       {!loading && activeMode === 'ip' && ipLookup ? (
         <>
           <div className="intel-stat-grid ip-lookup-stat-grid fade-in-delay-1">
@@ -293,7 +326,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Infrastructure</div>
                 <h2 className="intel-section-title">{ipLookup.ip}</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Confidence {ipLookup.source_confidence_label || 'moderate'} ({ipLookup.source_confidence || 0}) across aggregated enrichment and internal sightings.
                 </p>
               </div>
@@ -328,7 +361,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Continue</div>
                 <h2 className="intel-section-title">Continue the investigation</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Move directly into scanner, graph, and map views without copying the indicator between screens.
                 </p>
               </div>
@@ -380,7 +413,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Domain dossier</div>
                 <h2 className="intel-section-title">{domainLookup.domain}</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   DNS, registration age, reputation, and related infrastructure from public intelligence providers.
                 </p>
               </div>
@@ -454,7 +487,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Related IPs</div>
                 <h2 className="intel-section-title">Infrastructure pivots</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Move from the domain into IP enrichment, IOC details, and correlation workflows.
                 </p>
               </div>
@@ -500,7 +533,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Authentication</div>
                 <h2 className="intel-section-title">SPF, DKIM, and DMARC</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Header analysis focuses on sender alignment, auth failures, and the earliest observable transport IP.
                 </p>
               </div>
@@ -537,7 +570,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Pivots</div>
                 <h2 className="intel-section-title">Continue the investigation</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Jump directly into domain and IP investigation from the extracted header artifacts.
                 </p>
               </div>
@@ -579,7 +612,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Related analyses</div>
                 <h2 className="intel-section-title">Recent message analysis matches</h2>
-                <p className="intel-section-copy">
+                <p className="intel-section-copy intel-reading-block">
                   Suspicious or threat analyses that already referenced the sender domain from these headers.
                 </p>
               </div>

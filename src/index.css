@@ -525,12 +525,16 @@ body {
   display: grid;
   gap: 10px;
   justify-items: center;
+  min-width: 0;
 }
 
 .intel-stat-value {
   font-size: 2rem;
   font-weight: 900;
   color: #eff6ff;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-stat-label {
@@ -546,12 +550,15 @@ body {
 .intel-muted {
   color: rgba(191,219,254,0.7);
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-section-card {
   padding: 28px;
   display: grid;
   gap: 22px;
+  min-width: 0;
 }
 
 .intel-section-head {
@@ -559,11 +566,15 @@ body {
   gap: 10px;
   justify-items: center;
   text-align: center;
+  min-width: 0;
 }
 
 .intel-section-title {
   font-size: 1.55rem;
   font-weight: 900;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-feed-card {
@@ -586,6 +597,7 @@ body {
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(148,163,184,0.14);
   backdrop-filter: blur(14px);
+  min-width: 0;
 }
 
 .intel-feed-row-main {
@@ -597,6 +609,8 @@ body {
 .intel-feed-row-meta {
   color: rgba(191,219,254,0.62);
   line-height: 1.6;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-feed-row-risk {
@@ -623,11 +637,15 @@ body {
   font-weight: 800;
   color: #eff6ff;
   word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .intel-meta {
   color: rgba(191,219,254,0.62);
   line-height: 1.7;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-summary {
@@ -806,7 +824,12 @@ body {
   color: #dbeafe;
   font-weight: 800;
   text-decoration: none;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 100%;
+  line-height: 1.45;
+  text-align: center;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-inline-link-disabled {
@@ -827,17 +850,23 @@ body {
   background: rgba(255,255,255,0.03);
   display: grid;
   gap: 8px;
+  min-width: 0;
 }
 
 .intel-detail-value {
   font-size: 1.25rem;
   font-weight: 900;
   color: #eff6ff;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-detail-copy {
   color: rgba(191,219,254,0.72);
   line-height: 1.7;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-bar-row {
@@ -877,6 +906,64 @@ body {
   color: #dbeafe;
   font-weight: 700;
   font-size: 12px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.intel-row-feed {
+  display: grid;
+  gap: 14px;
+}
+
+.intel-row-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 16px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(148,163,184,0.14);
+  background: rgba(255,255,255,0.03);
+  min-width: 0;
+}
+
+.intel-row-title,
+.intel-row-copy,
+.intel-row-date,
+.intel-row-badge {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.intel-row-title {
+  font-weight: 800;
+  color: #eff6ff;
+}
+
+.intel-row-copy {
+  color: rgba(191,219,254,0.72);
+  line-height: 1.7;
+  margin-top: 6px;
+}
+
+.intel-row-badge {
+  display: inline-flex;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(37,99,235,0.12);
+  border: 1px solid rgba(56,189,248,0.16);
+  color: #dbeafe;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.intel-row-date {
+  color: rgba(191,219,254,0.5);
+  font-size: 13px;
+  margin-top: 8px;
 }
 
 .correlation-shell {

@@ -59,7 +59,7 @@ export default function CommunityIntel() {
   }, [items])
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-community">
       <div className="intel-hero-card portal-hero community-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
@@ -109,7 +109,7 @@ export default function CommunityIntel() {
         </article>
       </div>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card community-feed-board fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow">
             <Users size={14} />
@@ -132,24 +132,23 @@ export default function CommunityIntel() {
           <ExpandableFeed
             items={items}
             initialCount={6}
-            className="intel-feed-list"
+            className="compact-rail"
             renderItem={(item) => (
-              <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                <div className="intel-feed-row-main">
-                  <div className="intel-indicator">{item.indicator}</div>
-                  <div className="intel-feed-row-meta">
+              <article key={item.id} className={`compact-rail-row ${threatLabel(item.threat_level)}`}>
+                <div className="compact-rail-main">
+                  <div className="compact-rail-title">{item.indicator}</div>
+                  <div className="compact-rail-meta">
                     {item.published_at ? new Date(item.published_at).toLocaleString() : 'Recently published'} | community-promoted indicator in the shared public feed.
                   </div>
-                </div>
-                <div className="intel-meta">{item.threat_type}</div>
-                <div className="intel-feed-row-risk">Risk {item.risk_score}</div>
-                <div>
-                  <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
-                </div>
-                <div>
-                  <Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>
-                    IOC details
-                  </Link>
+                  <div className="compact-rail-copy">
+                    Public community signal surfaced as a moderated suspicious or threat indicator.
+                  </div>
+                  <div className="compact-rail-action">
+                    <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
+                    <Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>
+                      IOC details
+                    </Link>
+                  </div>
                 </div>
               </article>
             )}

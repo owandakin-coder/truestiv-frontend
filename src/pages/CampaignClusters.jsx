@@ -78,7 +78,7 @@ export default function CampaignClusters() {
   ]
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-campaigns">
       <div className="intel-hero-card portal-hero campaign-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
@@ -123,7 +123,7 @@ export default function CampaignClusters() {
       {!loading && clusters.length ? (
         <>
           <div className="intel-two-column fade-in-delay-2">
-            <section className="intel-section-card">
+            <section className="intel-section-card campaign-browser-panel">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">
                   <GitBranch size={14} />
@@ -153,30 +153,32 @@ export default function CampaignClusters() {
                         cursor: 'pointer',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                        <strong>{cluster.label}</strong>
-                        <span
-                          className="platform-badge"
-                          style={{
-                            color: levelColor(cluster.latest_threat_level, palette),
-                            borderColor: `${levelColor(cluster.latest_threat_level, palette)}33`,
-                            background: `${levelColor(cluster.latest_threat_level, palette)}12`,
-                          }}
-                        >
-                          {cluster.latest_threat_level}
-                        </span>
+                      <div className="campaign-cluster-stack">
+                        <div className="campaign-cluster-topline">
+                          <div className="campaign-cluster-title">{cluster.label}</div>
+                          <span
+                            className="platform-badge"
+                            style={{
+                              color: levelColor(cluster.latest_threat_level, palette),
+                              borderColor: `${levelColor(cluster.latest_threat_level, palette)}33`,
+                              background: `${levelColor(cluster.latest_threat_level, palette)}12`,
+                            }}
+                          >
+                            {cluster.latest_threat_level}
+                          </span>
+                        </div>
+                        <div className="campaign-cluster-summary">{cluster.summary}</div>
+                        <div className="campaign-cluster-meta">
+                          {cluster.signal_count} signals | {cluster.sources.length} sources
+                        </div>
                       </div>
-                      <span className="campaign-cluster-summary campaign-dossier-body">{cluster.summary}</span>
-                      <span className="campaign-cluster-meta" style={{ color: palette.subtle, fontSize: 13 }}>
-                        {cluster.signal_count} signals | {cluster.sources.length} sources
-                      </span>
                     </button>
                   )
                 }}
               />
             </section>
 
-            <section className="intel-section-card">
+            <section className="intel-section-card campaign-dossier-panel">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">
                   <Radar size={14} />

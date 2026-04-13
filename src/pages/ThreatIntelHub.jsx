@@ -83,7 +83,7 @@ export default function ThreatIntelHub() {
   ]
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-threat-intel">
       <div className="intel-hero-card portal-hero threat-intel-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow"><span className="intel-eyebrow-dot" />Public Threat Intelligence</div>
@@ -176,7 +176,7 @@ export default function ThreatIntelHub() {
         </div>
       </section>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card threat-intel-trending-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Radar size={14} />Trending Indicators</div>
           <h2 className="intel-section-title">Repeated indicators across the public intelligence surface</h2>
@@ -186,25 +186,27 @@ export default function ThreatIntelHub() {
           <ExpandableFeed
             items={trending}
             initialCount={5}
-            className="flat-rail"
+            className="compact-rail"
             renderItem={(item) => (
-              <article key={`${item.ioc_type}-${item.indicator}`} className={`flat-rail-row ${threatLabel(item.latest_threat_level)}`}>
-                <div className="flat-rail-main">
-                  <div className="flat-rail-title">{item.indicator}</div>
-                  <div className="flat-rail-meta">{item.sightings} sightings | {item.sources.join(', ') || 'intel'} {item.countries.length ? `| ${item.countries.join(', ')}` : ''}</div>
-                  <div className="flat-rail-copy">Recurring across the public intelligence surface and therefore worth immediate pivoting into IOC details or campaign context.</div>
+              <article key={`${item.ioc_type}-${item.indicator}`} className={`compact-rail-row ${threatLabel(item.latest_threat_level)}`}>
+                <div className="compact-rail-main">
+                  <div className="compact-rail-title">{item.indicator}</div>
+                  <div className="compact-rail-meta">
+                    {item.ioc_type} | {item.sightings} sightings | {item.sources.join(', ') || 'intel'} {item.countries.length ? `| ${item.countries.join(', ')}` : ''}
+                  </div>
+                  <div className="compact-rail-copy">Recurring across the public intelligence surface and worth immediate pivoting into IOC details or campaign context.</div>
+                  <div className="compact-rail-action">
+                    <span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span>
+                    <Link className="intel-inline-link" to={item.details_path || buildIocPath(item.ioc_type, item.indicator)}>IOC details</Link>
+                  </div>
                 </div>
-                <div className="flat-rail-side">{item.ioc_type}</div>
-                <div className="flat-rail-side">Risk {item.max_risk_score}</div>
-                <div><span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span></div>
-                <div><Link className="intel-inline-link" to={item.details_path || buildIocPath(item.ioc_type, item.indicator)}>IOC details</Link></div>
               </article>
             )}
           />
         )}
       </section>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card threat-intel-briefs-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><GitBranch size={14} />Public Incident Briefs</div>
           <h2 className="intel-section-title">Clustered briefs built from recurring public signals</h2>
@@ -234,7 +236,7 @@ export default function ThreatIntelHub() {
         )}
       </section>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card threat-intel-trends-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Activity size={14} />Threat Trends</div>
           <h2 className="intel-section-title">High-signal patterns by source, country, type, and time</h2>
@@ -248,7 +250,7 @@ export default function ThreatIntelHub() {
         </div>
       </section>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card threat-intel-jobs-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><DatabaseZap size={14} />Background Jobs</div>
           <h2 className="intel-section-title">What succeeded, what failed, and what is waiting in retry</h2>
@@ -274,7 +276,7 @@ export default function ThreatIntelHub() {
         </div>
       </section>
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card threat-intel-sources-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><DatabaseZap size={14} />Source Confidence</div>
           <h2 className="intel-section-title">Weighted reliability by source</h2>
@@ -293,7 +295,7 @@ export default function ThreatIntelHub() {
       </section>
 
       {!feed.length && !error ? <IntelEmptyState title="No published intelligence items yet" copy="The automated feed collector is active. Fresh indicators from OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community findings will appear here as soon as actionable signals land." actionLabel="View Timeline" actionTo="/timeline" /> : (
-        <section className="intel-section-card fade-in-delay-3">
+        <section className="intel-section-card threat-intel-latest-section fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Radar size={14} />Latest Intelligence</div>
             <h2 className="intel-section-title">Most recent published indicators</h2>

@@ -194,7 +194,7 @@ export default function GeoThreatMap() {
   }
 
   return (
-    <div className="map-shell">
+    <div className="map-shell zone-propagation">
       <section className="portal-hero map-hero fade-in">
         <div className="portal-hero-main">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -234,7 +234,7 @@ export default function GeoThreatMap() {
 
       <SignalStrip items={stripItems} />
 
-      <section className="console-surface fade-in-delay-1">
+      <section className="console-surface propagation-ops-console fade-in-delay-1">
         <div className="console-block" style={{ marginBottom: 18 }}>
           <div className="console-bar">
             <span className="console-dot red" />
@@ -350,7 +350,7 @@ export default function GeoThreatMap() {
       </section>
 
       <div className="map-layout">
-        <section className="dossier-surface">
+        <section className="dossier-surface propagation-map-panel">
           <div className="console-heading" style={{ marginBottom: 16 }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <Globe2 size={18} color={palette.blue} />
@@ -396,7 +396,7 @@ export default function GeoThreatMap() {
           </div>
         </section>
 
-        <section className="feed-surface">
+        <section className="feed-surface propagation-feed-panel">
           <div className="console-heading" style={{ marginBottom: 16 }}>
             <h2 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <MapPin size={18} color={palette.blue} />
@@ -469,7 +469,7 @@ export default function GeoThreatMap() {
       </div>
 
       <div className="intel-two-column fade-in-delay-2">
-        <section className="operations-card">
+        <section className="operations-card propagation-flow-panel">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
               <Radar size={14} />
@@ -495,7 +495,7 @@ export default function GeoThreatMap() {
           </div>
         </section>
 
-        <section className="operations-card">
+        <section className="operations-card propagation-drilldown-panel">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
               <MapPin size={14} />

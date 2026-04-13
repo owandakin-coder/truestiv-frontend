@@ -1,9 +1,7 @@
-import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FileImage, ScanSearch, ShieldAlert } from 'lucide-react'
 
 import SignalStrip from '../components/SignalStrip'
-import { useTheme } from '../components/ThemeProvider'
 import Analysis from './Analysis'
 import MediaLab from './MediaLab'
 import Scanner from './Scanner'
@@ -32,20 +30,7 @@ const investigationTabs = [
   },
 ]
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    text: dark ? '#eff6ff' : '#0f172a',
-    muted: dark ? 'rgba(191,219,254,0.72)' : '#475569',
-    border: dark ? '1px solid rgba(148,163,184,0.14)' : '1px solid rgba(15,23,42,0.08)',
-    card: dark ? 'rgba(255,255,255,0.03)' : '#ffffff',
-    blue: '#38bdf8',
-  }
-}
-
 export default function InvestigationCenter() {
-  const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
   const { mode = 'scanner' } = useParams()
   const navigate = useNavigate()
 
@@ -59,7 +44,7 @@ export default function InvestigationCenter() {
   ]
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-investigation">
       <div className="intel-hero-card portal-hero investigation-shell-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
@@ -89,7 +74,7 @@ export default function InvestigationCenter() {
 
       <SignalStrip items={stripItems} />
 
-      <section className="intel-section-card fade-in-delay-1">
+      <section className="intel-section-card investigation-hub-panel fade-in-delay-1">
         <div className="console-block">
           <div className="console-bar">
             <span className="console-dot red" />
@@ -103,7 +88,7 @@ export default function InvestigationCenter() {
             <div><span style={{ color: '#5ba3f5' }}>policy</span> actionable-only recent history</div>
           </div>
         </div>
-        <div className="investigation-tab-row" style={{ marginTop: 18 }}>
+        <div className="investigation-tab-row">
           {investigationTabs.map((tab) => {
             const Icon = tab.icon
             const active = tab.id === activeTab.id
@@ -112,22 +97,9 @@ export default function InvestigationCenter() {
                 key={tab.id}
                 type="button"
                 onClick={() => navigate(`/investigation-center/${tab.id}`)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 10,
-                  padding: '14px 18px',
-                  borderRadius: 18,
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  border: active ? '1px solid rgba(56,189,248,0.28)' : palette.border,
-                  background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : palette.card,
-                  color: active ? palette.text : palette.muted,
-                  boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
-                }}
+                className={`investigation-lane-button ${active ? 'is-active' : ''}`}
               >
-                <Icon size={16} color={active ? palette.blue : 'currentColor'} />
+                <Icon size={16} />
                 <span>{tab.label}</span>
               </button>
             )

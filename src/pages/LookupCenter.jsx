@@ -49,7 +49,7 @@ function LookupTabs({ activeMode, navigate }) {
   ]
 
   return (
-    <div className="channel-grid" style={{ marginBottom: 24 }}>
+    <div className="lookup-tab-row">
       {tabs.map((tab) => {
         const active = activeMode === tab.id
         return (
@@ -57,20 +57,7 @@ function LookupTabs({ activeMode, navigate }) {
             key={tab.id}
             type="button"
             onClick={() => navigate(tab.path)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 10,
-              padding: '14px 18px',
-              borderRadius: 18,
-              fontWeight: 800,
-              cursor: 'pointer',
-              border: active ? '1px solid rgba(56,189,248,0.24)' : '1px solid rgba(148,163,184,0.14)',
-              background: active ? 'linear-gradient(135deg, rgba(37,99,235,0.18), rgba(14,165,233,0.12))' : 'rgba(255,255,255,0.03)',
-              color: active ? '#eff6ff' : 'rgba(191,219,254,0.82)',
-              boxShadow: active ? '0 16px 40px rgba(14,165,233,0.18)' : 'none',
-            }}
+            className={`lookup-tab-button ${active ? 'is-active' : ''}`}
           >
             {tab.label}
           </button>
@@ -251,7 +238,7 @@ function LookupCenter() {
         ]
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-lookup">
       <div className="intel-hero-card portal-hero lookup-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
@@ -276,7 +263,7 @@ function LookupCenter() {
 
       <SignalStrip items={stripItems} />
 
-      <section className="intel-section-card fade-in-delay-1">
+      <section className="intel-section-card lookup-intake-panel fade-in-delay-1">
         <LookupTabs activeMode={activeMode} navigate={navigate} />
 
         {activeMode === 'ip' ? (

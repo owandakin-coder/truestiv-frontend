@@ -104,7 +104,7 @@ export default function IntelTimeline() {
   ]
 
   return (
-    <section className="intel-shell">
+    <section className="intel-shell zone-timeline">
       <div className="intel-hero-card portal-hero timeline-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
@@ -133,7 +133,7 @@ export default function IntelTimeline() {
       <SignalStrip items={stripItems} />
 
       {spotlight ? (
-        <section className="intel-section-card fade-in-delay-1" style={{ borderLeft: '3px solid #5ba3f5' }}>
+        <section className="intel-section-card timeline-spotlight-panel fade-in-delay-1">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Activity size={14} />Spotlight Event</div>
             <h2 className="intel-section-title">{spotlight.title}</h2>
@@ -142,7 +142,7 @@ export default function IntelTimeline() {
         </section>
       ) : null}
 
-      <section className="intel-section-card fade-in-delay-2">
+      <section className="intel-section-card timeline-filter-panel fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow">
             <Clock3 size={14} />
@@ -201,7 +201,7 @@ export default function IntelTimeline() {
       ) : null}
 
       {!loading && items.length ? (
-        <section className="intel-section-card fade-in-delay-3">
+        <section className="intel-section-card timeline-feed-panel fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
               <Waves size={14} />

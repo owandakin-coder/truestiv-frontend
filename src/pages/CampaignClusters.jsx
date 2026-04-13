@@ -80,7 +80,7 @@ export default function CampaignClusters() {
             Related public signals grouped into actionable intelligence clusters.
           </h1>
           <p className="intel-copy intel-reading-block">
-            Clusters bring recurring indicators, actor tags, countries, and source overlap into one public-facing intelligence briefing surface.
+            Public signals grouped into the clearest recurring clusters.
           </p>
         </div>
       </div>

@@ -224,7 +224,7 @@ function LookupCenter() {
             One workspace for IP, domain,<br />and email header investigation
           </h1>
           <p className="intel-copy intel-reading-block">
-            Move between infrastructure enrichment and email-auth analysis without crowding the main navigation. Every tab keeps pivots into IOC details, threat map, and correlation workflows.
+            Move between IP, domain, and header enrichment without leaving the same desk.
           </p>
         </div>
       </div>

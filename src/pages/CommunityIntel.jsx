@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Globe2, RadioTower, ShieldAlert, Users } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
@@ -51,13 +51,6 @@ export default function CommunityIntel() {
     return () => clearInterval(interval)
   }, [live])
 
-  const stats = useMemo(() => {
-    const total = items.length
-    const highRisk = items.filter((item) => ['threat', 'suspicious'].includes(String(item.threat_level || '').toLowerCase())).length
-    const uniqueTypes = new Set(items.map((item) => item.threat_type).filter(Boolean)).size
-    return { total, highRisk, uniqueTypes }
-  }, [items])
-
   return (
     <section className="intel-shell zone-community">
       <div className="intel-hero-card portal-hero portal-hero-single community-hero fade-in">
@@ -70,7 +63,7 @@ export default function CommunityIntel() {
             Open threat submissions, promoted findings,<br />and shared public indicators.
           </h1>
           <p className="intel-copy intel-reading-block">
-            This page is designed as a public-facing intelligence board for anyone using Trustive AI. It keeps the community feed centered, readable, and easy to scan without requiring private analyst context.
+            A public board of moderated suspicious and threat signals.
           </p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
@@ -80,27 +73,6 @@ export default function CommunityIntel() {
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading community intelligence...</div> : null}
-
-      <div className="intel-stat-grid fade-in-delay-1">
-        <article className="intel-stat-card">
-          <RadioTower size={20} color="#38bdf8" />
-          <div className="intel-stat-value">{stats.total}</div>
-          <div className="intel-stat-label">Published Items</div>
-          <p className="intel-stat-copy">Indicators currently visible to the shared public feed.</p>
-        </article>
-        <article className="intel-stat-card">
-          <ShieldAlert size={20} color="#fbbf24" />
-          <div className="intel-stat-value">{stats.highRisk}</div>
-          <div className="intel-stat-label">Suspicious Or Threat</div>
-          <p className="intel-stat-copy">Items that deserve faster review or stronger defensive attention.</p>
-        </article>
-        <article className="intel-stat-card">
-          <Globe2 size={20} color="#22c55e" />
-          <div className="intel-stat-value">{stats.uniqueTypes}</div>
-          <div className="intel-stat-label">Indicator Classes</div>
-          <p className="intel-stat-copy">URLs, IPs, hashes, and any other types already flowing into the board.</p>
-        </article>
-      </div>
 
       <section className="intel-section-card community-feed-board fade-in-delay-2">
         <div className="intel-section-head">

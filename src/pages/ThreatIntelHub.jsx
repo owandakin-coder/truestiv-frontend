@@ -82,7 +82,7 @@ export default function ThreatIntelHub() {
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
             External feed collection and public incident context<br />in one centered view.
           </h1>
-          <p className="intel-copy intel-reading-block">This hub now combines live feeds, recurring indicators, public incident briefs, background jobs, and weighted source context for anyone exploring the platform.</p>
+          <p className="intel-copy intel-reading-block">Recurring indicators, public briefs, and live collection in one public surface.</p>
           <div className="intel-hero-actions">
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
@@ -143,12 +143,11 @@ export default function ThreatIntelHub() {
       ) : null}
 
       <section className="fade-in-delay-1" style={{ marginTop: 20 }}>
-        <div className="editorial-strip">
+        <div className="editorial-strip editorial-strip-tight">
           {editorialCards.map((card) => (
             <article key={card.label} className="editorial-card compact">
               <div className="signal-strip-label">{card.label}</div>
               <strong>{card.value}</strong>
-              <p>{card.copy}</p>
             </article>
           ))}
         </div>
@@ -234,22 +233,27 @@ export default function ThreatIntelHub() {
           <h2 className="intel-section-title">What succeeded, what failed, and what is waiting in retry</h2>
           <p className="intel-section-copy intel-reading-block">This operational panel tracks the automated feed collection jobs and the retry queue behind the intelligence stream.</p>
         </div>
-        <div className="intel-grid-two">
+        <div className="flat-rail">
           {(jobs.jobs || []).map((item) => (
-            <article key={item.job_name} className="intel-detail-card">
-              <div className="intel-detail-label">{item.job_name}</div>
-              <div className="intel-detail-value">{item.status}</div>
-              <p className="intel-detail-copy">Last run: {item.finished_at || item.started_at || 'Unknown'}</p>
-              <p className="intel-detail-copy">{item.message || 'No message'} {item.stats?.saved !== undefined ? `| saved ${item.stats.saved}` : ''}</p>
+            <article key={item.job_name} className="flat-rail-row info">
+              <div className="flat-rail-main">
+                <div className="flat-rail-title">{item.job_name}</div>
+                <div className="flat-rail-meta">Last run: {item.finished_at || item.started_at || 'Unknown'}</div>
+                <div className="flat-rail-copy">{item.message || 'No message'} {item.stats?.saved !== undefined ? `| saved ${item.stats.saved}` : ''}</div>
+              </div>
+              <div className="flat-rail-side">{item.status}</div>
             </article>
           ))}
-          <article className="intel-detail-card">
-            <div className="intel-detail-label">Retry Queue</div>
-            <div className="intel-detail-value">{(jobs.retry_queue || []).length}</div>
-            <div className="intel-tag-wrap">
-              {(jobs.retry_queue || []).slice(0, 6).map((item) => <span key={item.id} className="intel-tag-chip">{item.source} attempt {item.attempts}</span>)}
-              {!jobs.retry_queue?.length ? <span className="intel-detail-copy">Retry queue is currently empty.</span> : null}
+          <article className="flat-rail-row info">
+            <div className="flat-rail-main">
+              <div className="flat-rail-title">Retry Queue</div>
+              <div className="flat-rail-copy">
+                {(jobs.retry_queue || []).length
+                  ? (jobs.retry_queue || []).slice(0, 6).map((item) => `${item.source} attempt ${item.attempts}`).join(' | ')
+                  : 'Retry queue is currently empty.'}
+              </div>
             </div>
+            <div className="flat-rail-side">{(jobs.retry_queue || []).length}</div>
           </article>
         </div>
       </section>
@@ -260,13 +264,15 @@ export default function ThreatIntelHub() {
           <h2 className="intel-section-title">Weighted reliability by source</h2>
           <p className="intel-section-copy intel-reading-block">Not all sources are treated equally. These weights help Trustive AI score findings more realistically.</p>
         </div>
-        <div className="intel-grid-two">
+        <div className="flat-rail">
           {sources.map((item) => (
-            <article key={item.key || item.name} className="intel-detail-card">
-              <div className="intel-detail-label">{item.name}</div>
-              <div className="intel-detail-value">{Math.round(Number(item.confidence_score || 0) * 100)}%</div>
-              <p className="intel-detail-copy">{item.confidence_label || 'moderate'} confidence | {item.status}</p>
-              {item.last_error ? <p className="intel-detail-copy">{item.last_error}</p> : null}
+            <article key={item.key || item.name} className="flat-rail-row info">
+              <div className="flat-rail-main">
+                <div className="flat-rail-title">{item.name}</div>
+                <div className="flat-rail-meta">{item.confidence_label || 'moderate'} confidence | {item.status}</div>
+                {item.last_error ? <div className="flat-rail-copy">{item.last_error}</div> : null}
+              </div>
+              <div className="flat-rail-side">{Math.round(Number(item.confidence_score || 0) * 100)}%</div>
             </article>
           ))}
         </div>

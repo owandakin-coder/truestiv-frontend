@@ -461,8 +461,8 @@ body {
 
 .map-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.55fr) minmax(360px, 0.85fr);
-  gap: 24px;
+  grid-template-columns: minmax(0, 1.8fr) minmax(300px, 0.7fr);
+  gap: 18px;
   align-items: start;
 }
 
@@ -477,7 +477,7 @@ body {
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid #0e2040;
-  min-height: 480px;
+  min-height: 560px;
 }
 
 .map-leaflet {
@@ -1916,6 +1916,14 @@ body {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.editorial-strip-tight .editorial-card {
+  padding: 12px 14px;
+}
+
+.editorial-strip-tight .editorial-card p {
+  display: none;
 }
 
 .editorial-card {

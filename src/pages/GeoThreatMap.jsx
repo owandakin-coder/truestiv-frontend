@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
-import { Filter, Globe2, MapPin, Radar } from 'lucide-react'
+import { Globe2, MapPin, Radar } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 import ExpandableFeed from '../components/ExpandableFeed'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 
@@ -174,14 +173,6 @@ export default function GeoThreatMap() {
       .sort((a, b) => b.count - a.count)
       .slice(0, 6)
   }, [playbackMarkers])
-  const stripItems = [
-    { label: 'Markers', value: playbackMarkers.length, copy: 'Visible markers in the current playback window', live: true },
-    { label: 'Countries', value: countryFlows.length, copy: 'Active countries in the current slice' },
-    { label: 'Mode', value: live ? 'Live' : 'Manual', copy: 'Auto refresh state' },
-    { label: 'Playback', value: playbackIndex < 0 ? 'All time slices' : playbackPoints[playbackIndex] || 'Slice', copy: 'Current time playback scope' },
-    { label: 'Feed', value: feedMarkers.length, copy: 'Latest marker feed entries' },
-  ]
-
   const openCountry = async (country) => {
     try {
       const { data } = await api().get('/api/intelligence/geo-map/country-drilldown', {
@@ -207,7 +198,7 @@ export default function GeoThreatMap() {
             Geo <span className="gradient-text">Threat Map</span>
           </h1>
           <p className="portal-hero-copy" style={{ color: palette.muted }}>
-            Real-world threat locations from community indicators and recent scanned IP activity, with live filters by source, country, threat level, and time range.
+            Real-world threat locations from community indicators and recent scanned IP activity.
           </p>
           <div style={{ marginTop: 18, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button className="console-cta" type="button" onClick={() => setLive((current) => !current)}>
@@ -232,26 +223,10 @@ export default function GeoThreatMap() {
         </div>
       </section>
 
-      <SignalStrip items={stripItems} />
-
       <section className="console-surface propagation-ops-console fade-in-delay-1">
-        <div className="console-block" style={{ marginBottom: 18 }}>
-          <div className="console-bar">
-            <span className="console-dot red" />
-            <span className="console-dot amber" />
-            <span className="console-dot green" />
-            <span className="console-title">Threat Geography Console</span>
-          </div>
-          <div className="console-body">
-            <div><span style={{ color: '#5ba3f5' }}>source_filter</span> {filters.source}</div>
-            <div><span style={{ color: '#5ba3f5' }}>country_filter</span> {filters.country}</div>
-            <div><span style={{ color: '#5ba3f5' }}>time_range</span> {filters.time_range}</div>
-          </div>
-        </div>
-
         <div className="console-heading">
           <h2>Propagation Filters and Playback</h2>
-          <p>Run the map in live mode, tighten the geography scope, or scrub through the current time window without leaving the main intelligence surface.</p>
+          <p>Filter the map and scrub through the current time window.</p>
         </div>
 
         <div className="intel-filter-grid">

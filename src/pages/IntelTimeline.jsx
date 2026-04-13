@@ -106,7 +106,7 @@ export default function IntelTimeline() {
             One feed for scanner activity, community publishing,<br />analysis verdicts, and media findings.
           </h1>
           <p className="intel-copy intel-reading-block">
-            This timeline is the shared operational surface for Trustive AI. It helps you move from the newest event to the full IOC context without bouncing between pages.
+            The shortest path from a new event to its IOC context.
           </p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
@@ -132,7 +132,7 @@ export default function IntelTimeline() {
           </div>
           <h2 className="intel-section-title">Focus the timeline</h2>
           <p className="intel-section-copy intel-reading-block">
-            Narrow the feed by event source, threat level, and time range to zoom in on the most relevant operational activity.
+            Filter the live feed by source, threat level, and time range.
           </p>
         </div>
 

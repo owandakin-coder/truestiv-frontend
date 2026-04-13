@@ -91,7 +91,7 @@ export default function ThreatIntelHub() {
             External feed collection and public incident context<br />in one centered view.
           </h1>
           <p className="intel-copy intel-reading-block">This hub now combines live feeds, recurring indicators, public incident briefs, background jobs, and weighted source context for anyone exploring the platform.</p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <div className="intel-hero-actions">
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
             </button>

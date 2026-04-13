@@ -530,7 +530,8 @@ body {
   z-index: 1;
   display: grid;
   gap: 14px;
-  justify-items: center;
+  justify-items: start;
+  text-align: left;
 }
 
 .intel-eyebrow {
@@ -583,8 +584,22 @@ body {
 
 .intel-hero-content .intel-reading-block,
 .intel-section-head .intel-reading-block {
-  margin-left: auto;
-  margin-right: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.intel-hero-content .intel-button,
+.intel-hero-content .console-cta,
+.intel-hero-content .console-tab {
+  justify-self: start;
+}
+
+.intel-hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .intel-stat-grid,

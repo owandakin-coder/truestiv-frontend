@@ -60,7 +60,7 @@ export default function CommunityIntel() {
 
   return (
     <section className="intel-shell zone-community">
-      <div className="intel-hero-card portal-hero community-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single community-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
@@ -75,13 +75,6 @@ export default function CommunityIntel() {
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
-        </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Public board</span>
-            <strong>Community-submitted signals</strong>
-            <p>Only moderated suspicious and threat indicators appear in this open feed.</p>
-          </article>
         </div>
       </div>
 

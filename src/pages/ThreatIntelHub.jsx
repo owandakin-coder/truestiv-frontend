@@ -4,7 +4,6 @@ import { Activity, DatabaseZap, GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -68,13 +67,6 @@ export default function ThreatIntelHub() {
   const mostActiveCountry = (trends.by_country || [])[0]?.label || 'Pending'
   const fastestCluster = featuredBrief?.title || (briefs[1]?.title || 'Pending')
   const topBrand = trending.find((item) => (item.actor_tags || []).some((tag) => /brand|phish|imperson/i.test(String(tag))))?.indicator || 'Pending'
-  const stripItems = [
-    { label: 'Sources', value: stats.activeSources, copy: 'Active public feed connectors', live: true },
-    { label: 'Published', value: stats.publishedFeed, copy: 'Current public indicator count' },
-    { label: 'High Attention', value: stats.highRisk, copy: 'Threat and suspicious items' },
-    { label: 'Retry Queue', value: (jobs.retry_queue || []).length, copy: 'Pending collection retries' },
-    { label: 'Confidence', value: `${Math.round((sources[0]?.confidence_score || 0) * 100)}%`, copy: sources[0]?.name || 'Top weighted source' },
-  ]
   const editorialCards = [
     { label: 'What matters now', value: featuredBrief?.title || 'No featured brief yet', copy: featuredBrief?.summary || 'A featured brief will appear here as recurring signals accumulate.' },
     { label: 'Fastest growing cluster', value: fastestCluster, copy: featuredBrief?.signal_count ? `${featuredBrief.signal_count} related signals` : 'Waiting for enough overlap to name a cluster.' },
@@ -84,7 +76,7 @@ export default function ThreatIntelHub() {
 
   return (
     <section className="intel-shell zone-threat-intel">
-      <div className="intel-hero-card portal-hero threat-intel-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single threat-intel-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow"><span className="intel-eyebrow-dot" />Public Threat Intelligence</div>
           <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
@@ -98,21 +90,7 @@ export default function ThreatIntelHub() {
             <Link className="intel-button ghost" to="/campaign-clusters">Open campaign view</Link>
           </div>
         </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Collection</span>
-            <strong>Automated public feeds</strong>
-            <p>OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community signals converge here.</p>
-          </article>
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Briefing style</span>
-            <strong>Signal first</strong>
-            <p>Trending indicators, briefs, jobs, and weighted sources surface in a more editorial layout instead of one flat feed.</p>
-          </article>
-        </div>
       </div>
-
-      <SignalStrip items={stripItems} />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
 

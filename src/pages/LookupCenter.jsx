@@ -3,7 +3,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Globe2, ScanSearch, Waypoints } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
@@ -213,33 +212,9 @@ function LookupCenter() {
     return domainPayload?.brand_impersonation || domainLookup?.brand_impersonation || detectBrandImpersonation(domainLookup.domain, domainLookup.age_days)
   }, [domainLookup, domainPayload])
   const headerAnalysis = headerPayload?.analysis
-  const stripItems = activeMode === 'ip'
-    ? [
-        { label: 'Mode', value: 'IP dossier', copy: 'Infrastructure enrichment', live: !!ipLookup },
-        { label: 'Threat', value: normalizeThreatLevel(ipLookup?.threat_level || 'pending'), copy: 'Current verdict' },
-        { label: 'Risk', value: `${ipLookup?.risk_score || 0}%`, copy: 'Aggregated provider score' },
-        { label: 'Sightings', value: ipPayload?.sightings?.total || 0, copy: 'Shared platform observations' },
-        { label: 'Location', value: ipLookup?.geo?.country || 'Unknown', copy: ipLookup?.geo?.city || 'Geo context' },
-      ]
-    : activeMode === 'domain'
-      ? [
-          { label: 'Mode', value: 'Domain dossier', copy: 'DNS and reputation enrichment', live: !!domainLookup },
-          { label: 'Threat', value: normalizeThreatLevel(domainLookup?.threat_level || 'pending'), copy: 'Current verdict' },
-          { label: 'Risk', value: `${domainLookup?.risk_score || 0}%`, copy: 'Aggregated provider score' },
-          { label: 'Age', value: domainLookup?.age_days != null ? `${domainLookup.age_days}d` : 'Unknown', copy: 'Observed registration age' },
-          { label: 'Brand', value: domainBrandSignal?.brand || 'None', copy: domainBrandSignal?.active ? 'Possible impersonation' : 'No active signal' },
-        ]
-      : [
-          { label: 'Mode', value: 'Header analysis', copy: 'Sender and auth inspection', live: !!headerAnalysis },
-          { label: 'Threat', value: normalizeThreatLevel(headerAnalysis?.threat_level || 'pending'), copy: 'Current verdict' },
-          { label: 'Risk', value: `${headerAnalysis?.risk_score || 0}%`, copy: 'Header anomaly score' },
-          { label: 'Origin', value: headerAnalysis?.origin_ip || 'Unknown', copy: 'Earliest transport IP' },
-          { label: 'From', value: headerAnalysis?.from_domain || 'Unknown', copy: 'Visible sender domain' },
-        ]
-
   return (
     <section className="intel-shell zone-lookup">
-      <div className="intel-hero-card portal-hero lookup-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single lookup-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
@@ -252,16 +227,7 @@ function LookupCenter() {
             Move between infrastructure enrichment and email-auth analysis without crowding the main navigation. Every tab keeps pivots into IOC details, threat map, and correlation workflows.
           </p>
         </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Lookup lane</span>
-            <strong>Infrastructure and sender pivots</strong>
-            <p>IP, domain, and raw header workflows stay together so enrichment feels like one continuous workspace.</p>
-          </article>
-        </div>
       </div>
-
-      <SignalStrip items={stripItems} />
 
       <section className="intel-section-card lookup-intake-panel fade-in-delay-1">
         <LookupTabs activeMode={activeMode} navigate={navigate} />

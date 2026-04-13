@@ -4,7 +4,6 @@ import { Activity, Clock3, Waves } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
@@ -95,17 +94,9 @@ export default function IntelTimeline() {
   }, [live, filters])
 
   const spotlight = items[0] || null
-  const stripItems = [
-    { label: 'Visible Events', value: stats.total || items.length, copy: 'Matching current filters', live },
-    { label: 'High Attention', value: stats.high_attention || 0, copy: 'Threat and suspicious only' },
-    { label: 'Streams', value: (stats.sources || []).length, copy: 'Distinct event source classes' },
-    { label: 'Range', value: filters.time_range.toUpperCase(), copy: 'Current time window' },
-    { label: 'Source', value: filters.source.toUpperCase(), copy: 'Focused stream filter' },
-  ]
-
   return (
     <section className="intel-shell zone-timeline">
-      <div className="intel-hero-card portal-hero timeline-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single timeline-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
@@ -121,16 +112,7 @@ export default function IntelTimeline() {
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
         </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Timeline mode</span>
-            <strong>Operational rail</strong>
-            <p>Recent scanner, community, analysis, and media events stay merged into one high-signal stream.</p>
-          </article>
-        </div>
       </div>
-
-      <SignalStrip items={stripItems} />
 
       {spotlight ? (
         <section className="intel-section-card timeline-spotlight-panel fade-in-delay-1">

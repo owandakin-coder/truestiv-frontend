@@ -4,7 +4,6 @@ import { GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
@@ -69,17 +68,9 @@ export default function CampaignClusters() {
 
   const clusters = payload?.items || []
   const selected = payload?.selected || null
-  const stripItems = [
-    { label: 'Clusters', value: clusters.length, copy: 'Visible public dossiers', live: true },
-    { label: 'Signals', value: selected?.signal_count || 0, copy: 'Indicators in the selected brief' },
-    { label: 'Sources', value: selected?.sources?.length || 0, copy: 'Distinct contributing feeds' },
-    { label: 'Threat Level', value: selected?.latest_threat_level || 'pending', copy: 'Current selected cluster verdict' },
-    { label: 'Countries', value: selected?.countries?.length || 0, copy: 'Observed geographic spread' },
-  ]
-
   return (
     <section className="intel-shell zone-campaigns">
-      <div className="intel-hero-card portal-hero campaign-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
@@ -92,21 +83,7 @@ export default function CampaignClusters() {
             Clusters bring recurring indicators, actor tags, countries, and source overlap into one public-facing intelligence briefing surface.
           </p>
         </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Cluster logic</span>
-            <strong>Related signals grouped</strong>
-            <p>Campaigns collect repeated indicators and sources into public-facing narrative clusters.</p>
-          </article>
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Reading mode</span>
-            <strong>Short list first</strong>
-            <p>Large cluster lists and event stacks now open in a tighter slice and expand only on demand.</p>
-          </article>
-        </div>
       </div>
-
-      <SignalStrip items={stripItems} />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading campaign clusters...</div> : null}

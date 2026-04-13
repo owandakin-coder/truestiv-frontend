@@ -368,20 +368,6 @@ export default function Analysis({ embedded = false }) {
         <div className="investigation-console-grid" style={{ alignItems: 'start' }}>
           <div style={{ display: 'grid', gap: 24 }}>
             <div className="console-surface">
-              <div className="console-block" style={{ marginBottom: 18 }}>
-                <div className="console-bar">
-                  <span className="console-dot red" />
-                  <span className="console-dot amber" />
-                  <span className="console-dot green" />
-                  <span className="console-title">Message Analysis Console</span>
-                </div>
-                <div className="console-body">
-                  <div><span style={{ color: '#5ba3f5' }}>channel</span> {channel}</div>
-                  <div><span style={{ color: '#5ba3f5' }}>policy</span> only suspicious and threat verdicts stay in recent analysis</div>
-                  <div><span style={{ color: '#5ba3f5' }}>enrichment</span> extracted IOCs remain available for pivots</div>
-                </div>
-              </div>
-
               <div className="console-heading">
                 <h2>Run Analysis</h2>
                 <p>Submit suspicious email, SMS, or WhatsApp content and pivot directly into IOC and infrastructure context.</p>

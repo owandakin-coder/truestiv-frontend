@@ -251,20 +251,6 @@ export default function Scanner({ embedded = false }) {
 
         <div className="investigation-console-grid">
           <section className="console-surface fade-in">
-            <div className="console-block" style={{ marginBottom: 18 }}>
-              <div className="console-bar">
-                <span className="console-dot red" />
-                <span className="console-dot amber" />
-                <span className="console-dot green" />
-                <span className="console-title">Scanner Console</span>
-              </div>
-              <div className="console-body">
-                <div><span style={{ color: '#5ba3f5' }}>mode</span> {activeTab}</div>
-                <div><span style={{ color: '#5ba3f5' }}>policy</span> actionable results only in recent history</div>
-                <div><span style={{ color: '#5ba3f5' }}>publish</span> suspicious and threat findings auto-promote</div>
-              </div>
-            </div>
-
             <div className="console-heading">
               <h2>Run Public Scanner</h2>
               <p>{tabDescription(activeTab)}</p>

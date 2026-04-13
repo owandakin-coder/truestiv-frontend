@@ -214,20 +214,6 @@ export default function MediaLab({ embedded = false }) {
           <section
             className="console-surface fade-in"
           >
-            <div className="console-block" style={{ marginBottom: 18 }}>
-              <div className="console-bar">
-                <span className="console-dot red" />
-                <span className="console-dot amber" />
-                <span className="console-dot green" />
-                <span className="console-title">Media Analysis Console</span>
-              </div>
-              <div className="console-body">
-                <div><span style={{ color: '#5ba3f5' }}>media_type</span> {activeTab}</div>
-                <div><span style={{ color: '#5ba3f5' }}>policy</span> only suspicious and threat runs stay in recent history</div>
-                <div><span style={{ color: '#5ba3f5' }}>artifacts</span> OCR pivots remain available for direct enrichment</div>
-              </div>
-            </div>
-
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
               <div>
                 <h2 style={{ color: palette.text, fontSize: 18, fontWeight: 500, marginBottom: 6 }}>

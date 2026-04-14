@@ -233,7 +233,7 @@ function LookupCenter() {
         <LookupTabs activeMode={activeMode} navigate={navigate} />
 
         {activeMode === 'ip' ? (
-          <form onSubmit={runIpLookup} className="intel-search-row" style={{ maxWidth: 760, margin: '0 auto' }}>
+          <form onSubmit={runIpLookup} className="intel-search-row lookup-run-form">
             <input
               className="analysis-input"
               value={ipQuery}
@@ -248,7 +248,7 @@ function LookupCenter() {
         ) : null}
 
         {activeMode === 'domain' ? (
-          <form onSubmit={runDomainLookup} className="intel-search-row" style={{ maxWidth: 760, margin: '0 auto' }}>
+          <form onSubmit={runDomainLookup} className="intel-search-row lookup-run-form">
             <input
               className="analysis-input"
               value={domainQuery}
@@ -263,7 +263,7 @@ function LookupCenter() {
         ) : null}
 
         {activeMode === 'email-header' ? (
-          <form onSubmit={runHeaderAnalysis} style={{ display: 'grid', gap: 16 }}>
+          <form onSubmit={runHeaderAnalysis} className="lookup-header-form">
             <textarea
               className="analysis-textarea"
               rows={10}
@@ -284,10 +284,9 @@ function LookupCenter() {
       {!loading && !error && activeMode === 'ip' && !ipLookup ? (
         <IntelEmptyState
           title="Start with an IP address"
-          copy="Use this workspace to inspect geolocation, source confidence, sightings, and pivots into the wider Trustive AI intelligence graph."
+          copy="Inspect location, sightings, and pivots from one place."
           examples={[
             { label: '185.220.101.42', onClick: () => navigate(buildIpLookupPath('185.220.101.42')) },
-            { label: '8.8.8.8', onClick: () => navigate(buildIpLookupPath('8.8.8.8')) },
           ]}
         />
       ) : null}
@@ -295,10 +294,9 @@ function LookupCenter() {
       {!loading && !error && activeMode === 'domain' && !domainLookup ? (
         <IntelEmptyState
           title="Start with a domain"
-          copy="Run a domain lookup to inspect registrar data, DNS, related IPs, sightings, and brand impersonation signals without opening multiple tools."
+          copy="Inspect DNS, infrastructure, and brand impersonation in one place."
           examples={[
             { label: 'secure-paypaI-login-check.com', onClick: () => navigate(buildDomainLookupPath('secure-paypaI-login-check.com')) },
-            { label: 'microsoft-billing-center-help.com', onClick: () => navigate(buildDomainLookupPath('microsoft-billing-center-help.com')) },
           ]}
         />
       ) : null}
@@ -306,7 +304,7 @@ function LookupCenter() {
       {!loading && !error && activeMode === 'email-header' && !headerAnalysis ? (
         <IntelEmptyState
           title="Paste raw email headers"
-          copy="Received hops, SPF, DKIM, DMARC, Reply-To mismatches, and extracted domains or IPs will appear here after analysis."
+          copy="Parse transport hops, auth checks, and extracted pivots."
           examples={[
             { label: 'Insert sample header', onClick: () => setHeaderInput('Received: from suspicious-mail.example (185.220.101.42) by mx.google.com;\nAuthentication-Results: spf=fail dkim=none dmarc=fail;\nReply-To: support@secure-paypaI-login-check.com') },
           ]}
@@ -320,9 +318,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Infrastructure</div>
                 <h2 className="intel-section-title">{ipLookup.ip}</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Confidence {ipLookup.source_confidence_label || 'moderate'} ({ipLookup.source_confidence || 0}) across aggregated enrichment and internal sightings.
-                </p>
+                <p className="intel-section-copy intel-reading-block">Confidence {ipLookup.source_confidence_label || 'moderate'} across aggregated enrichment and sightings.</p>
               </div>
               <DossierTable
                 rows={[
@@ -362,7 +358,7 @@ function LookupCenter() {
                   </div>
                   <div className="ip-lookup-action-body">
                     <strong>Open Scanner</strong>
-                    <p>Run a fresh enriched IP scan and compare the result with this dossier.</p>
+                    <p>Run a fresh IP scan from the investigation workspace.</p>
                   </div>
                 </Link>
                 <Link to={ipPayload?.pivots?.correlation_path || '#'} className="intel-action-card ip-lookup-action-card">
@@ -371,7 +367,7 @@ function LookupCenter() {
                   </div>
                   <div className="ip-lookup-action-body">
                     <strong>Open Correlation Graph</strong>
-                    <p>See how this IP connects to scans, publications, analyses, media, and actor tags.</p>
+                    <p>Trace how this IP connects across the public intel graph.</p>
                   </div>
                 </Link>
                 <Link to="/propagation" className="intel-action-card ip-lookup-action-card">
@@ -380,7 +376,7 @@ function LookupCenter() {
                   </div>
                   <div className="ip-lookup-action-body">
                     <strong>Open Threat Map</strong>
-                    <p>Compare this IP with active infrastructure markers on the map.</p>
+                    <p>Compare this IP with active infrastructure markers.</p>
                   </div>
                 </Link>
               </div>
@@ -396,9 +392,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Domain dossier</div>
                 <h2 className="intel-section-title">{domainLookup.domain}</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  DNS, registration age, reputation, and related infrastructure from public intelligence providers.
-                </p>
+                <p className="intel-section-copy intel-reading-block">DNS, registration age, reputation, and related infrastructure.</p>
               </div>
               <DossierTable
                 rows={[
@@ -505,9 +499,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Authentication</div>
                 <h2 className="intel-section-title">SPF, DKIM, and DMARC</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Header analysis focuses on sender alignment, auth failures, and the earliest observable transport IP.
-                </p>
+                <p className="intel-section-copy intel-reading-block">Sender alignment, auth failures, and the earliest observable transport IP.</p>
               </div>
               <DossierTable
                 rows={[
@@ -580,9 +572,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Related analyses</div>
                 <h2 className="intel-section-title">Recent message analysis matches</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Suspicious or threat analyses that already referenced the sender domain from these headers.
-                </p>
+                <p className="intel-section-copy intel-reading-block">Suspicious or threat analyses that already referenced this sender infrastructure.</p>
               </div>
               <div className="intel-row-feed">
                 {headerPayload.related_analyses.map((item) => (

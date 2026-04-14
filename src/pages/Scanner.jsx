@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom'
 import ExpandableFeed from '../components/ExpandableFeed'
 import ResultCard from '../components/ResultCard'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -209,14 +208,6 @@ export default function Scanner({ embedded = false }) {
       onClick: () => updateField('bulk_input', 'https://apple-id-review-center.com\nhttps://secure-fedex-delivery-check.net\nhttps://microsoft-billing-update.info'),
     },
   ]
-  const stripItems = [
-    { label: 'Mode', value: String(activeTab || 'url').toUpperCase(), copy: tabDescription(activeTab) },
-    { label: 'Recent', value: recentScans.length, copy: 'Actionable recent scans only', live: true },
-    { label: 'Auto Publish', value: 'Threat / suspicious', copy: 'Safe results stay out of the feed' },
-    { label: 'Bulk', value: activeTab === 'bulk' ? 'Enabled' : 'Ready', copy: 'Mixed IOC ingestion is available' },
-    { label: 'Focus', value: result ? 'Verdict loaded' : 'Waiting', copy: 'Run a scan to populate the dossier' },
-  ]
-
   return (
     <div style={{ position: 'relative' }}>
       {!embedded ? <div className="hero-bg" /> : null}
@@ -246,8 +237,6 @@ export default function Scanner({ embedded = false }) {
             </div>
           </section>
         ) : null}
-
-        <SignalStrip items={stripItems} />
 
         <div className="investigation-console-grid">
           <section className="console-surface fade-in">

@@ -70,7 +70,7 @@ export default function CampaignClusters() {
   const selected = payload?.selected || null
   return (
     <section className="intel-shell zone-campaigns">
-      <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
+        <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
           <div className="intel-eyebrow">
             <span className="intel-eyebrow-dot" />
@@ -80,7 +80,7 @@ export default function CampaignClusters() {
             Related public signals grouped into actionable intelligence clusters.
           </h1>
           <p className="intel-copy intel-reading-block">
-            Public signals grouped into the clearest recurring clusters.
+            Recurring public signals grouped into the clearest active clusters.
           </p>
         </div>
       </div>
@@ -107,9 +107,6 @@ export default function CampaignClusters() {
                   Active Clusters
                 </div>
                 <h2 className="intel-section-title">Recurring public activity</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  Choose a cluster to inspect its latest indicators, countries, tags, and event flow.
-                </p>
               </div>
 
               <ExpandableFeed
@@ -146,7 +143,7 @@ export default function CampaignClusters() {
                         </div>
                         <div className="campaign-cluster-summary">{cluster.summary}</div>
                         <div className="campaign-cluster-meta">
-                          {cluster.signal_count} signals | {cluster.sources.length} sources
+                          {cluster.signal_count} signals | {cluster.sources.length} sources | {cluster.countries?.slice(0, 2).join(', ') || 'global'}
                         </div>
                       </div>
                     </button>
@@ -162,9 +159,6 @@ export default function CampaignClusters() {
                   Cluster Brief
                 </div>
                 <h2 className="intel-section-title">{selected?.label || 'No cluster selected'}</h2>
-                <p className="intel-section-copy intel-reading-block">
-                  {selected?.summary || 'Select a cluster to inspect its public indicators and supporting events.'}
-                </p>
               </div>
 
               {selected ? (
@@ -197,22 +191,25 @@ export default function CampaignClusters() {
                     </div>
                     <div className="campaign-dossier-body">{selected.summary}</div>
                     <div className="intel-tag-wrap">
-                      {(selected.actor_tags || []).map((tag) => (
+                      {(selected.actor_tags || []).slice(0, 6).map((tag) => (
                         <span key={tag} className="intel-tag-chip">{tag}</span>
                       ))}
-                      {(selected.countries || []).map((country) => (
+                      {(selected.countries || []).slice(0, 6).map((country) => (
                         <span key={country} className="intel-tag-chip">{country}</span>
                       ))}
-                      {(selected.sources || []).map((source) => (
+                      {(selected.sources || []).slice(0, 6).map((source) => (
                         <span key={source} className="intel-tag-chip">{source}</span>
                       ))}
                     </div>
                     <div>
                       <div className="intel-meta-label" style={{ marginBottom: 10 }}>Related Indicators</div>
                       <div className="intel-tag-wrap">
-                        {(selected.related_indicators || []).map((indicator) => (
+                        {(selected.related_indicators || []).slice(0, 10).map((indicator) => (
                           <span key={indicator} className="intel-tag-chip">{indicator}</span>
                         ))}
+                        {(selected.related_indicators || []).length > 10 ? (
+                          <span className="intel-tag-chip">+{selected.related_indicators.length - 10} more</span>
+                        ) : null}
                       </div>
                     </div>
                   </article>
@@ -228,8 +225,6 @@ export default function CampaignClusters() {
                           <div className="flat-rail-meta">{event.source} | {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}</div>
                           <span className="flat-rail-copy">{event.summary}</span>
                         </div>
-                        <div className="flat-rail-side">{event.ioc_type}</div>
-                        <div className="flat-rail-side">Risk {event.risk_score}</div>
                         <div>
                           <span
                             className="platform-badge"

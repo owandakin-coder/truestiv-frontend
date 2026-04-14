@@ -1901,6 +1901,10 @@ body {
   gap: 10px;
 }
 
+.featured-brief-large .featured-brief-summary .intel-reading-block {
+  max-width: 62ch;
+}
+
 /* Editorial row */
 .editorial-grid {
   display: grid;
@@ -2790,6 +2794,60 @@ body {
   font-size: 12px;
   line-height: 1.65;
   max-width: 64ch;
+}
+
+.campaign-cluster-summary,
+.threat-intel-briefs-section .flat-rail-copy {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.campaign-cluster-summary {
+  -webkit-line-clamp: 2;
+}
+
+.threat-intel-briefs-section .flat-rail-copy,
+.campaign-cluster-events .flat-rail-copy {
+  -webkit-line-clamp: 3;
+}
+
+.threat-intel-trending-section .compact-rail-row,
+.threat-intel-briefs-section .flat-rail-row,
+.threat-intel-latest-section .flat-rail-row,
+.campaign-cluster-events .flat-rail-row {
+  min-height: 0;
+}
+
+.threat-intel-trending-section .compact-rail-main,
+.threat-intel-briefs-section .flat-rail-main,
+.threat-intel-latest-section .flat-rail-main,
+.campaign-cluster-events .flat-rail-main {
+  gap: 3px;
+}
+
+.threat-intel-briefs-section .flat-rail-row,
+.threat-intel-latest-section .flat-rail-row {
+  grid-template-columns: 4px minmax(0, 1fr) auto auto;
+}
+
+.campaign-cluster-events .flat-rail-row {
+  grid-template-columns: 4px minmax(0, 1fr) auto auto;
+}
+
+.lookup-run-form,
+.lookup-header-form {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.lookup-header-form {
+  display: grid;
+  gap: 16px;
+}
+
+.zone-threat-intel .editorial-strip {
+  gap: 10px;
 }
 
 .campaign-cluster-meta {

@@ -2,8 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
-  ChevronUp,
   ExternalLink,
   Loader2,
   Mail,
@@ -18,7 +16,6 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -143,7 +140,6 @@ export default function Analysis({ embedded = false }) {
   const [error, setError] = useState('')
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
-  const [focusMode, setFocusMode] = useState(true)
 
   useEffect(() => {
     const loadHistory = async () => {
@@ -172,8 +168,6 @@ export default function Analysis({ embedded = false }) {
     backdropFilter: 'blur(18px)',
     boxShadow: '0 24px 70px rgba(0,0,0,0.24)',
   }
-  const detailToggleLabel = focusMode ? 'Show technical context' : 'Hide technical context'
-  const DetailToggleIcon = focusMode ? ChevronDown : ChevronUp
   const inputStyle = {
     width: '100%',
     borderRadius: 18,
@@ -199,14 +193,6 @@ export default function Analysis({ embedded = false }) {
       .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))
       .slice(0, 3)
   }, [derivedIocs])
-  const stripItems = [
-    { label: 'Channel', value: channel.toUpperCase(), copy: 'Current intake mode' },
-    { label: 'Recent', value: history.length, copy: 'Actionable recent analyses', live: true },
-    { label: 'Verdict', value: result?.threatLevel || 'Waiting', copy: 'Current analysis state' },
-    { label: 'Confidence', value: result ? `${Math.round(result.confidence || 0)}%` : 'Pending', copy: 'Model confidence' },
-    { label: 'IOC Pivots', value: allIocs.length, copy: 'Extracted enrichable artifacts' },
-  ]
-
   const setField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
   const saveLocalHistory = (normalized) => {
@@ -260,7 +246,6 @@ export default function Analysis({ embedded = false }) {
       })
       const normalized = normalizeAnalysis(response.data)
       setResult(normalized)
-      setFocusMode(true)
       saveLocalHistory(normalized)
       const iocs = extractIocsFromText(form.sender, form.subject, form.content, ...(normalized.indicators || []))
       await fetchIpIntel(iocs.ips)
@@ -333,7 +318,7 @@ export default function Analysis({ embedded = false }) {
       {!embedded ? <div className="grid-dots" /> : null}
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
         {!embedded ? (
-          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 8 }}>
+          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 8 }}>
             <div className="portal-hero-main">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
@@ -345,32 +330,18 @@ export default function Analysis({ embedded = false }) {
                 Message <span className="gradient-text">Analysis</span>
               </h1>
               <p className="portal-hero-copy" style={{ color: mutedColor }}>
-                This workspace now mirrors the scanner flow: structured intake, fast verdicting, one-click IOC pivots, and a clean path into community intelligence.
+                Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context.
               </p>
-            </div>
-            <div className="portal-hero-rail">
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Best for</span>
-                <strong>Message triage</strong>
-                <p>Email, SMS, and WhatsApp verdicts stay connected to IOC enrichment and public intel context.</p>
-              </article>
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Signal policy</span>
-                <strong>Actionable only</strong>
-                <p>Recent Analyses keeps only suspicious and threat results so the workspace stays operational and uncluttered.</p>
-              </article>
             </div>
           </section>
         ) : null}
-
-        <SignalStrip items={stripItems} />
 
         <div className="investigation-console-grid" style={{ alignItems: 'start' }}>
           <div style={{ display: 'grid', gap: 24 }}>
             <div className="console-surface">
               <div className="console-heading">
                 <h2>Run Analysis</h2>
-                <p>Submit suspicious email, SMS, or WhatsApp content and pivot directly into IOC and infrastructure context.</p>
+                <p>Choose a channel, paste the message, and run a verdict.</p>
               </div>
 
               <div className="console-tab-grid">
@@ -448,8 +419,8 @@ export default function Analysis({ embedded = false }) {
             <div className="dossier-surface">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
                 <div>
-                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Verdict</div>
-                  <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>AI-backed outcome</h2>
+                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Result</div>
+                  <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Analysis outcome</h2>
                 </div>
                 {result ? (
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderRadius: 999, color: tone.color, border: `1px solid ${tone.border}`, background: tone.bg, fontWeight: 800 }}>
@@ -462,7 +433,7 @@ export default function Analysis({ embedded = false }) {
               {!result ? (
                 <IntelEmptyState
                   title="Run an analysis to generate an AI-backed verdict"
-                  copy="Try a finance-themed phishing message, a suspicious SMS, or a WhatsApp lure with a short link. The result pane will highlight only the verdict first, then let you expand into technical detail."
+                  copy="Try a phishing-style subject, a suspicious SMS, or a WhatsApp lure with a short link."
                   icon={Radar}
                   examples={[
                     { label: 'Email fraud example', onClick: () => { setChannel('email'); setForm({ sender: 'finance-update@secure-paypaI.com', subject: 'Urgent invoice confirmation', phone: '', content: 'Review the updated invoice at https://secure-paypaI-login-check.com before end of day.' }) } },
@@ -471,12 +442,6 @@ export default function Analysis({ embedded = false }) {
                 />
               ) : (
                 <div className="split-dossier">
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
-                      <DetailToggleIcon size={16} />
-                      {detailToggleLabel}
-                    </button>
-                  </div>
                   <div className="investigation-stat-grid">
                     <div className="investigation-stat">
                       <span className="analysis-meta-label">Threat Level</span>
@@ -521,32 +486,29 @@ export default function Analysis({ embedded = false }) {
                     </div>
                   ) : null}
 
-                  {!focusMode ? (
-                    <div className="brief-panel">
-                      <div>
-                        <div className="analysis-meta-label">Public Actions</div>
-                        <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
-                      </div>
-                      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                        <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
-                          {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
-                        </button>
-                      </div>
-                      {publishState.message ? (
-                        <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
-                          {publishState.message}
-                        </div>
-                      ) : null}
+                  <div className="brief-panel">
+                    <div>
+                      <div className="analysis-meta-label">Public Actions</div>
+                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
                     </div>
-                  ) : null}
+                    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+                      <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+                        {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
+                      </button>
+                    </div>
+                    {publishState.message ? (
+                      <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
+                        {publishState.message}
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
               )}
             </div>
 
-            {!focusMode ? (
             <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Extracted IOCs</div>
+                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Technical Context</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
               </div>
               {!allIocs.length ? (
@@ -571,9 +533,7 @@ export default function Analysis({ embedded = false }) {
                 </div>
               )}
             </div>
-            ) : null}
 
-            {!focusMode ? (
             <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
@@ -599,7 +559,6 @@ export default function Analysis({ embedded = false }) {
                 </div>
               )}
             </div>
-            ) : null}
           </div>
         </div>
       </div>

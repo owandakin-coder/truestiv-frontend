@@ -214,7 +214,7 @@ export default function Scanner({ embedded = false }) {
       {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 32 }}>
+          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
             <div className="portal-hero-main">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
@@ -222,18 +222,6 @@ export default function Scanner({ embedded = false }) {
               </div>
               <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
               <p className="portal-hero-copy" style={{ color: palette.muted }}>Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
-            </div>
-            <div className="portal-hero-rail">
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Best for</span>
-                <strong>Fast triage</strong>
-                <p>Single IOC verdicts, bulk enrichment, and direct pivots into community and intel context.</p>
-              </article>
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Signal policy</span>
-                <strong>Actionable only</strong>
-                <p>Recent Scans keeps only suspicious and threat results so the workspace stays clean and operational.</p>
-              </article>
             </div>
           </section>
         ) : null}
@@ -324,7 +312,7 @@ export default function Scanner({ embedded = false }) {
           <section className="dossier-surface fade-in">
             <div className="console-heading">
               <h2>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
-              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists with direct pivots into public intelligence context.' : 'Results adapt automatically for URL, IP, HASH, and file scans.'}</p>
+              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists with direct pivots into public intelligence context.' : 'Verdict first, then pivots and next steps.'}</p>
             </div>
 
             {!result ? (

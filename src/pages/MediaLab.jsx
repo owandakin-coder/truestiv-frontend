@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AudioLines,
-  ChevronDown,
-  ChevronUp,
   FileImage,
   Film,
   Loader2,
@@ -15,7 +13,6 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -65,7 +62,6 @@ export default function MediaLab({ embedded = false }) {
   const [history, setHistory] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
-  const [focusMode, setFocusMode] = useState(true)
 
   const loadHistory = async () => {
     try {
@@ -96,7 +92,6 @@ export default function MediaLab({ embedded = false }) {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setResult(data)
-      setFocusMode(true)
       if (isActionable(data?.threat_level)) {
         await loadHistory()
       }
@@ -115,14 +110,6 @@ export default function MediaLab({ embedded = false }) {
   }
 
   const iocs = useMemo(() => flattenIocs(extractIocsFromText(result?.ocr_text, result?.summary, file?.name)), [result, file])
-  const FocusIcon = focusMode ? ChevronDown : ChevronUp
-  const stripItems = [
-    { label: 'Media Type', value: activeTab.toUpperCase(), copy: 'Current analysis lane' },
-    { label: 'Recent Runs', value: history.length, copy: 'Suspicious and threat only', live: true },
-    { label: 'Verdict', value: result ? normalizeThreatLevel(result.threat_level) : 'Waiting', copy: 'Current result state' },
-    { label: 'Deepfake', value: result ? `${result.deepfake_score || 0}%` : 'Pending', copy: 'Current deepfake score' },
-    { label: 'Artifacts', value: iocs.length, copy: 'Extracted OCR-driven pivots' },
-  ]
 
   const runPivot = async (item) => {
     const config =
@@ -178,7 +165,7 @@ export default function MediaLab({ embedded = false }) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-          <section className="portal-hero investigation-hero fade-in" style={{ marginBottom: 32 }}>
+          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
             <div className="portal-hero-main">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
                 <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
@@ -190,38 +177,24 @@ export default function MediaLab({ embedded = false }) {
                 Media <span className="gradient-text">Lab</span>
               </h1>
               <p className="portal-hero-copy" style={{ color: palette.muted }}>
-                Upload images, videos, or audio for deepfake scoring, OCR extraction, object detection, and quick pivots into URL or IP intelligence.
+                Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph.
               </p>
-            </div>
-            <div className="portal-hero-rail">
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Best for</span>
-                <strong>Visual and audio triage</strong>
-                <p>Deepfake scoring, OCR, object detection, and artifact pivots stay inside the same investigation language as message and IOC triage.</p>
-              </article>
-              <article className="portal-spotlight-card">
-                <span className="portal-spotlight-kicker">Signal policy</span>
-                <strong>Actionable only</strong>
-                <p>Recent Media Runs keeps only suspicious and threat findings so the public workspace stays focused.</p>
-              </article>
             </div>
           </section>
         ) : null}
-
-        <SignalStrip items={stripItems} />
 
         <div className="investigation-console-grid">
           <section
             className="console-surface fade-in"
           >
+            <div className="console-heading">
+              <h2>Upload suspicious media</h2>
+              <p>Choose a media type, drop a file, and inspect the forensic output.</p>
+            </div>
+
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
               <div>
-                <h2 style={{ color: palette.text, fontSize: 18, fontWeight: 500, marginBottom: 6 }}>
-                  Upload suspicious media
-                </h2>
-                <p style={{ color: palette.muted, fontSize: 14 }}>
-                  Choose a media type, drop a file, and inspect the forensic output.
-                </p>
+                <span className="analysis-meta-label">Media triage</span>
               </div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 500, background: '#08111f', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
                 <Sparkles size={16} />
@@ -270,11 +243,11 @@ export default function MediaLab({ embedded = false }) {
               }}
             >
               <UploadCloud size={32} color={palette.orange} />
-              <h3 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginTop: 16 }}>
+              <h3 style={{ color: palette.text, fontSize: 20, fontWeight: 800, marginTop: 16 }}>
                 Drag and drop a {activeTab} file
               </h3>
               <p style={{ color: palette.muted, marginTop: 8 }}>
-                Or click to browse your local files for analysis.
+                Or click to choose a local file for analysis.
               </p>
               <div className="console-cta" style={{ marginTop: 18, display: 'inline-flex' }}>
                 <ScanSearch size={16} />
@@ -338,19 +311,15 @@ export default function MediaLab({ embedded = false }) {
           <section
             className="dossier-surface fade-in"
           >
-            <div style={{ marginBottom: 20 }}>
-              <h2 style={{ color: palette.text, fontSize: 22, fontWeight: 900, marginBottom: 6 }}>
-                Media Analysis Result
-              </h2>
-              <p style={{ color: palette.muted, fontSize: 14 }}>
-                Threat level, deepfake score, OCR output, detected objects, and investigator actions.
-              </p>
+            <div className="console-heading" style={{ marginBottom: 20 }}>
+              <h2>Media analysis result</h2>
+              <p>Verdict first, then OCR, extracted artifacts, and follow-up actions.</p>
             </div>
 
             {!result && !loading ? (
               <IntelEmptyState
                 title="Upload media to begin analysis"
-                copy="The result view will first surface verdict, summary, and recommended action. OCR text, artifacts, and community promotion stay tucked behind an expandable technical layer."
+                copy="The result view will surface verdict, summary, OCR, and artifacts from the same workspace."
                 icon={ScanSearch}
                 examples={[
                   { label: 'Image workflow', onClick: () => setActiveTab('image') },
@@ -370,12 +339,6 @@ export default function MediaLab({ embedded = false }) {
 
             {result && !loading ? (
               <div className="split-dossier">
-                <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <button type="button" className="intel-button ghost" onClick={() => setFocusMode((current) => !current)}>
-                    <FocusIcon size={16} />
-                    {focusMode ? 'Show technical details' : 'Hide technical details'}
-                  </button>
-                </div>
                 <div className="split-dossier-row">
                   <div className="brief-panel">
                     <span className="analysis-meta-label">Threat Level</span>
@@ -406,14 +369,14 @@ export default function MediaLab({ embedded = false }) {
                   </div>
                 </div>
 
-                {!focusMode ? <div className="brief-panel">
+                <div className="brief-panel">
                   <span className="analysis-meta-label">OCR Text</span>
                   <p className="intel-reading-block" style={{ color: palette.muted, marginTop: 8, lineHeight: 1.7 }}>
                     {result.ocr_text || 'No OCR text extracted.'}
                   </p>
-                </div> : null}
+                </div>
 
-                {!focusMode ? <div className="brief-panel">
+                <div className="brief-panel">
                     <div>
                       <div className="analysis-meta-label">Public Actions</div>
                       <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
@@ -430,9 +393,9 @@ export default function MediaLab({ embedded = false }) {
                       {publishState.message}
                     </div>
                   ) : null}
-                </div> : null}
+                </div>
 
-                {!focusMode ? <div className="brief-panel" style={{ display: 'grid', gap: 16 }}>
+                <div className="brief-panel" style={{ display: 'grid', gap: 16 }}>
                   <span className="analysis-meta-label">Extracted Artifacts</span>
                   {!iocs.length ? (
                     <div style={{ color: palette.muted, lineHeight: 1.7 }}>
@@ -452,7 +415,7 @@ export default function MediaLab({ embedded = false }) {
                       {pivot.result ? <ResultCard result={pivot.result} type={pivot.type} theme={theme} /> : null}
                     </>
                   )}
-                </div> : null}
+                </div>
               </div>
             ) : null}
           </section>

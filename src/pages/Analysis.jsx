@@ -161,13 +161,6 @@ export default function Analysis({ embedded = false }) {
   const inputColor = dark ? 'rgba(12,12,16,0.82)' : 'rgba(255,255,255,0.86)'
   const tone = toneFor(result?.threatLevel)
   const ToneIcon = tone.icon
-  const cardStyle = {
-    borderRadius: 24,
-    border: `1px solid ${borderColor}`,
-    background: panelColor,
-    backdropFilter: 'blur(18px)',
-    boxShadow: '0 24px 70px rgba(0,0,0,0.24)',
-  }
   const inputStyle = {
     width: '100%',
     borderRadius: 18,
@@ -184,6 +177,16 @@ export default function Analysis({ embedded = false }) {
     [form.sender, form.subject, form.content, result?.indicators]
   )
   const allIocs = useMemo(() => flattenIocs(derivedIocs), [derivedIocs])
+  const analysisRows = useMemo(() => {
+    if (!result) return []
+    return [
+      ['Threat level', String(result.threatLevel || 'unknown').toUpperCase()],
+      ['Confidence', `${Math.round(result.confidence || 0)}%`],
+      ['Risk score', `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`],
+      ['Recommendation', result.recommendation || 'Review manually'],
+      ['Summary', result.summary || emptyResultText],
+    ]
+  }, [result])
   const brandSignals = useMemo(() => {
     const candidates = [...(derivedIocs.domains || []), ...(derivedIocs.urls || [])]
     const unique = Array.from(new Set(candidates.map((item) => String(item || '').trim()).filter(Boolean)))
@@ -442,34 +445,166 @@ export default function Analysis({ embedded = false }) {
                 />
               ) : (
                 <div className="split-dossier">
-                  <div className="investigation-stat-grid">
-                    <div className="investigation-stat">
-                      <span className="analysis-meta-label">Threat Level</span>
-                      <strong>{result.threatLevel}</strong>
-                      <p>Current verdict for the submitted message.</p>
-                    </div>
-                    <div className="investigation-stat">
-                      <span className="analysis-meta-label">Confidence</span>
-                      <strong>{Math.round(result.confidence || 0)}%</strong>
-                      <p>Model confidence for this analysis outcome.</p>
-                    </div>
-                  </div>
-
-                  <div className="brief-panel intel-reading-block">
-                    <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Summary</strong>
-                    {result.summary}
-                  </div>
-
-                  <div className="brief-panel intel-reading-block">
-                    <strong style={{ display: 'block', marginBottom: 10, color: textColor }}>Recommendation</strong>
-                    {result.recommendation}
-                    {result.related_threats_count > 0 ? (
-                      <div style={{ marginTop: 14, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#bae6fd', fontWeight: 700 }}>
-                        <ExternalLink size={15} />
-                        Related threats detected: {result.related_threats_count}
+                  <article
+                    className="fade-in"
+                    style={{
+                      background: dark ? '#07101f' : '#fff',
+                      border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
+                      borderRadius: 10,
+                      padding: 18,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 16,
+                        marginBottom: 16,
+                        padding: 14,
+                        borderRadius: 8,
+                        background: dark ? '#08111f' : '#fff',
+                        border: `1px solid ${tone.color}33`,
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div
+                          style={{
+                            width: 42,
+                            height: 42,
+                            borderRadius: 8,
+                            display: 'grid',
+                            placeItems: 'center',
+                            color: tone.color,
+                            background: dark ? '#08111f' : '#fff',
+                            border: `1px solid ${tone.color}33`,
+                          }}
+                        >
+                          <ToneIcon size={26} />
+                        </div>
+                        <div>
+                          <p style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'JetBrains Mono, monospace' }}>
+                            Message Analysis
+                          </p>
+                          <h3 style={{ color: textColor, fontSize: 20, fontWeight: 500, fontFamily: 'JetBrains Mono, monospace' }}>
+                            {result.threatLevel}
+                          </h3>
+                        </div>
                       </div>
+
+                      <div style={{ minWidth: 140 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+                          <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: 1.5, textTransform: 'uppercase' }}>Risk Score</span>
+                          <strong style={{ color: tone.color, fontFamily: 'JetBrains Mono, monospace' }}>{Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%</strong>
+                        </div>
+                        <div style={{ height: 8, borderRadius: 2, background: dark ? '#0a1828' : 'rgba(15,23,42,0.08)' }}>
+                          <div
+                            style={{
+                              width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`,
+                              height: '100%',
+                              borderRadius: 2,
+                              background: tone.color,
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="scanner-result-grid">
+                      <section
+                        style={{
+                          background: dark ? '#08111f' : '#fff',
+                          border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
+                          borderRadius: 8,
+                          padding: 16,
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                          <Mail size={16} color="#5ba3f5" />
+                          <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
+                            Message Context
+                          </span>
+                        </div>
+                        <div style={{ color: textColor, fontSize: 12, lineHeight: 1.8, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace', display: 'grid', gap: 8 }}>
+                          <div>{channel.toUpperCase()}</div>
+                          {channel === 'email' && form.sender ? <div>{form.sender}</div> : null}
+                          {channel === 'email' && form.subject ? <div>{form.subject}</div> : null}
+                          {channel !== 'email' && form.phone ? <div>{form.phone}</div> : null}
+                          {result.related_threats_count > 0 ? (
+                            <div style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#bae6fd', fontWeight: 700, width: 'fit-content' }}>
+                              <ExternalLink size={14} />
+                              Related threats: {result.related_threats_count}
+                            </div>
+                          ) : null}
+                        </div>
+                      </section>
+
+                      <section
+                        style={{
+                          background: dark ? '#08111f' : '#fff',
+                          border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
+                          borderRadius: 8,
+                          padding: 16,
+                          display: 'grid',
+                          gap: 12,
+                        }}
+                      >
+                        <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
+                          Result Breakdown
+                        </span>
+                        <div className="intel-result-table">
+                          {analysisRows.map(([label, value]) => (
+                            <div key={label} className="intel-result-row">
+                              <div className="intel-result-key">{label}</div>
+                              <div className="intel-result-value">{value}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
+                    </div>
+
+                    {Array.isArray(result.indicators) && result.indicators.length > 0 ? (
+                      <section
+                        style={{
+                          marginTop: 18,
+                          background: dark ? '#08111f' : '#fff',
+                          border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
+                          borderRadius: 8,
+                          padding: 16,
+                        }}
+                      >
+                        <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
+                          Indicators
+                        </span>
+                        <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+                          {result.indicators.map((indicator, index) => (
+                            <div
+                              key={`${indicator}-${index}`}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'flex-start',
+                                gap: 10,
+                                color: mutedColor,
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              <div
+                                style={{
+                                  width: 8,
+                                  height: 8,
+                                  marginTop: 8,
+                                  borderRadius: '50%',
+                                  background: tone.color,
+                                  flexShrink: 0,
+                                }}
+                              />
+                              <span>{indicator}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
                     ) : null}
-                  </div>
+                  </article>
 
                   {brandSignals.length ? (
                     <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)', color: '#fde68a' }}>

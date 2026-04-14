@@ -216,12 +216,12 @@ export default function Scanner({ embedded = false }) {
         {!embedded ? (
           <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
             <div className="portal-hero-main">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>Public IOC Scanner</span>
+              <div className="portal-hero-kicker-row">
+                <div className="portal-hero-kicker-dot" />
+                <span className="portal-hero-kicker-label">Public IOC Scanner</span>
               </div>
-              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>Scanner <span className="gradient-text">Workspace</span></h1>
-              <p className="portal-hero-copy" style={{ color: palette.muted }}>Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
+              <h1 className="portal-hero-title">Scanner <span className="gradient-text">Workspace</span></h1>
+              <p className="portal-hero-copy">Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
             </div>
           </section>
         ) : null}

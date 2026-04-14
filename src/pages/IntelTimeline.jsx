@@ -98,16 +98,12 @@ export default function IntelTimeline() {
     <section className="intel-shell zone-timeline">
       <div className="intel-hero-card portal-hero portal-hero-single timeline-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Unified Intel Timeline
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Unified Intel Timeline</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            One feed for scanner activity, community publishing,<br />analysis verdicts, and media findings.
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            The shortest path from a new event to its IOC context.
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">Scanner activity, community publishing, and analysis verdicts in one feed.</h1>
+          <p className="portal-hero-copy">The shortest path from a new event to its IOC context.</p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>

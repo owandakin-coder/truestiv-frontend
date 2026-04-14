@@ -167,18 +167,12 @@ export default function MediaLab({ embedded = false }) {
         {!embedded ? (
           <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
             <div className="portal-hero-main">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.orange, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.orange, fontWeight: 800 }}>
-                  Media Threat Intelligence
-                </span>
+              <div className="portal-hero-kicker-row">
+                <div className="portal-hero-kicker-dot" />
+                <span className="portal-hero-kicker-label">Media Threat Intelligence</span>
               </div>
-              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
-                Media <span className="gradient-text">Lab</span>
-              </h1>
-              <p className="portal-hero-copy" style={{ color: palette.muted }}>
-                Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph.
-              </p>
+              <h1 className="portal-hero-title">Media <span className="gradient-text">Lab</span></h1>
+              <p className="portal-hero-copy">Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph.</p>
             </div>
           </section>
         ) : null}

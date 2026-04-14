@@ -63,11 +63,12 @@ export default function ThreatIntelHub() {
     <section className="intel-shell zone-threat-intel">
       <div className="intel-hero-card portal-hero portal-hero-single threat-intel-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow"><span className="intel-eyebrow-dot" />Public Threat Intelligence</div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            External feed collection and public incident context<br />in one centered view.
-          </h1>
-          <p className="intel-copy intel-reading-block">Recurring indicators, public briefs, and live collection in one public surface.</p>
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Public Threat Intelligence</span>
+          </div>
+          <h1 className="portal-hero-title portal-hero-title-wide">External feed collection and public incident context.</h1>
+          <p className="portal-hero-copy">Recurring indicators, public briefs, and live collection in one public surface.</p>
           <div className="intel-hero-actions">
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}

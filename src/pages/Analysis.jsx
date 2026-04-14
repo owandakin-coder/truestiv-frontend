@@ -323,18 +323,12 @@ export default function Analysis({ embedded = false }) {
         {!embedded ? (
           <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 8 }}>
             <div className="portal-hero-main">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <div style={{ width: 9, height: 9, borderRadius: '50%', background: '#38bdf8', boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-                <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: '#38bdf8', fontWeight: 800 }}>
-                  Analysis Studio
-                </span>
+              <div className="portal-hero-kicker-row">
+                <div className="portal-hero-kicker-dot" />
+                <span className="portal-hero-kicker-label">Analysis Studio</span>
               </div>
-              <h1 style={{ fontSize: 35, lineHeight: 1.02, fontWeight: 900, color: textColor, marginBottom: 12 }}>
-                Message <span className="gradient-text">Analysis</span>
-              </h1>
-              <p className="portal-hero-copy" style={{ color: mutedColor }}>
-                Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context.
-              </p>
+              <h1 className="portal-hero-title">Message <span className="gradient-text">Analysis</span></h1>
+              <p className="portal-hero-copy">Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context.</p>
             </div>
           </section>
         ) : null}

@@ -55,16 +55,12 @@ export default function CommunityIntel() {
     <section className="intel-shell zone-community">
       <div className="intel-hero-card portal-hero portal-hero-single community-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Public Community Intelligence
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Public Community Intelligence</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            Open threat submissions, promoted findings,<br />and shared public indicators.
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            A public board of moderated suspicious and threat signals.
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">Open threat submissions and shared public indicators.</h1>
+          <p className="portal-hero-copy">A public board of moderated suspicious and threat signals.</p>
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>

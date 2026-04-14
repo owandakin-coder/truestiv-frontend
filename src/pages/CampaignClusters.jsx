@@ -70,18 +70,14 @@ export default function CampaignClusters() {
   const selected = payload?.selected || null
   return (
     <section className="intel-shell zone-campaigns">
-        <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
+      <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Campaign / Cluster View
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Campaign / Cluster View</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            Related public signals grouped into actionable intelligence clusters.
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            Recurring public signals grouped into the clearest active clusters.
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">Related public signals grouped into actionable clusters.</h1>
+          <p className="portal-hero-copy">Recurring public signals grouped into the clearest active clusters.</p>
         </div>
       </div>
 

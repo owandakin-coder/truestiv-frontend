@@ -39,16 +39,12 @@ export default function InvestigationCenter() {
     <section className="intel-shell zone-investigation">
       <div className="intel-hero-card portal-hero portal-hero-single investigation-shell-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Investigation Center
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Investigation Center</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            {activeTab.title}
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            {activeTab.copy}
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">{activeTab.title}</h1>
+          <p className="portal-hero-copy">{activeTab.copy}</p>
         </div>
       </div>
 

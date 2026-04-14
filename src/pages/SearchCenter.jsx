@@ -3,7 +3,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Radar, Search, ShieldAlert } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
-import SignalStrip from '../components/SignalStrip'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { formatRelativeDate } from '../utils/intelTools'
@@ -38,14 +37,6 @@ export default function SearchCenter() {
   const [error, setError] = useState('')
 
   const activeQuery = searchParams.get('q') || ''
-  const stripItems = [
-    { label: 'Query', value: activeQuery || 'Awaiting input', copy: 'Active portal search string', live: Boolean(activeQuery) },
-    { label: 'Results', value: items.length, copy: 'Actionable matches only' },
-    { label: 'Scope', value: 'Public intel', copy: 'Search spans shared findings' },
-    { label: 'Types', value: 'IOC / subject', copy: 'Indicators, senders, subjects, summaries' },
-    { label: 'Mode', value: 'High signal', copy: 'Safe data stays out of the feed' },
-  ]
-
   useEffect(() => {
     if (!activeQuery || activeQuery.trim().length < 2) {
       setItems([])
@@ -80,22 +71,16 @@ export default function SearchCenter() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Global Search
+      <div className="intel-hero-card portal-hero portal-hero-single fade-in">
+        <div className="intel-hero-content portal-hero-main">
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Global Search</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            Find IPs, URLs, hashes, domains, senders, and subjects across Trustive AI.
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            Search once and jump directly into scanner history, community visibility, message analyses, or media findings.
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">Find indicators, senders, and subjects across Trustive AI.</h1>
+          <p className="portal-hero-copy">Search once and jump directly into scanner history, community visibility, message analyses, or media findings.</p>
         </div>
       </div>
-
-      <SignalStrip items={stripItems} />
 
       <section className="intel-section-card fade-in-delay-1">
         <form onSubmit={submit} className="intel-search-row">

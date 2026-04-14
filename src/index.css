@@ -106,6 +106,46 @@ body {
   min-width: 0;
 }
 
+.portal-hero-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.portal-hero-kicker-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--portal-blue);
+  box-shadow: 0 0 24px rgba(56, 189, 248, 0.35);
+  flex-shrink: 0;
+}
+
+.portal-hero-kicker-label {
+  font-size: 12px;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--portal-blue);
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.portal-hero-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(1.8rem, 3vw, 2rem);
+  line-height: 1.04;
+  font-weight: 900;
+  color: var(--portal-text-soft);
+  margin: 0 0 12px;
+  max-width: 18ch;
+  letter-spacing: -0.03em;
+}
+
+.portal-hero-title.portal-hero-title-wide {
+  max-width: 28ch;
+}
+
 .portal-hero-rail {
   display: grid;
   gap: 14px;
@@ -2190,6 +2230,21 @@ body {
 .zone-propagation .intel-section-title { color: #d0e8ff; }
 .zone-lookup .intel-section-title { color: #c8f0f8; }
 .zone-investigation .intel-section-title { color: #d8e8ff; }
+
+.zone-community .portal-hero-kicker-label { color: #22c55e; }
+.zone-community .portal-hero-kicker-dot { background: #22c55e; }
+.zone-threat-intel .portal-hero-kicker-label { color: #5ba3f5; }
+.zone-threat-intel .portal-hero-kicker-dot { background: #5ba3f5; }
+.zone-campaigns .portal-hero-kicker-label { color: #f59e0b; }
+.zone-campaigns .portal-hero-kicker-dot { background: #f59e0b; }
+.zone-lookup .portal-hero-kicker-label { color: #22d3ee; }
+.zone-lookup .portal-hero-kicker-dot { background: #22d3ee; }
+.zone-investigation .portal-hero-kicker-label { color: #5ba3f5; }
+.zone-investigation .portal-hero-kicker-dot { background: #5ba3f5; }
+.zone-propagation .portal-hero-kicker-label { color: #38bdf8; }
+.zone-propagation .portal-hero-kicker-dot { background: #38bdf8; }
+.zone-timeline .portal-hero-kicker-label { color: #38bdf8; }
+.zone-timeline .portal-hero-kicker-dot { background: #38bdf8; }
 
 /* Zone label colors */
 .zone-community .intel-eyebrow,

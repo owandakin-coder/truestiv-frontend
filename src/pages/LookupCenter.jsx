@@ -216,16 +216,12 @@ function LookupCenter() {
     <section className="intel-shell zone-lookup">
       <div className="intel-hero-card portal-hero portal-hero-single lookup-hero fade-in">
         <div className="intel-hero-content portal-hero-main">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            Lookup Center
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Lookup Center</span>
           </div>
-          <h1 className="intel-title" style={{ fontSize: 30, lineHeight: 1.3 }}>
-            One workspace for IP, domain,<br />and email header investigation
-          </h1>
-          <p className="intel-copy intel-reading-block">
-            Move between IP, domain, and header enrichment without leaving the same desk.
-          </p>
+          <h1 className="portal-hero-title portal-hero-title-wide">One workspace for IP, domain, and email header investigation.</h1>
+          <p className="portal-hero-copy">Move between IP, domain, and header enrichment without leaving the same desk.</p>
         </div>
       </div>
 

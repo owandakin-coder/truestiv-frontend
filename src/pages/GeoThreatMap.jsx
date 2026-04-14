@@ -188,18 +188,12 @@ export default function GeoThreatMap() {
     <div className="map-shell zone-propagation">
       <section className="portal-hero map-hero fade-in">
         <div className="portal-hero-main">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: palette.blue, boxShadow: '0 0 24px rgba(56,189,248,0.35)' }} />
-            <span style={{ fontSize: 12, letterSpacing: 1.8, textTransform: 'uppercase', color: palette.blue, fontWeight: 800 }}>
-              Threat Geography
-            </span>
+          <div className="portal-hero-kicker-row">
+            <div className="portal-hero-kicker-dot" />
+            <span className="portal-hero-kicker-label">Threat Geography</span>
           </div>
-          <h1 style={{ fontSize: 32, lineHeight: 1.02, fontWeight: 900, color: palette.text, marginBottom: 12 }}>
-            Geo <span className="gradient-text">Threat Map</span>
-          </h1>
-          <p className="portal-hero-copy" style={{ color: palette.muted }}>
-            Real-world threat locations from community indicators and recent scanned IP activity.
-          </p>
+          <h1 className="portal-hero-title">Geo <span className="gradient-text">Threat Map</span></h1>
+          <p className="portal-hero-copy">Real-world threat locations from community indicators and recent scanned IP activity.</p>
           <div style={{ marginTop: 18, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             <button className="console-cta" type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}

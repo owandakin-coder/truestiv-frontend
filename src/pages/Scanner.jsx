@@ -217,9 +217,16 @@ export default function Scanner({ embedded = false }) {
         {!embedded ? (
           <PortalHero
             kicker="Public IOC Scanner"
-            title={<><span>Scanner </span><span className="gradient-text">Workspace</span></>}
-            copy="Run single IOC checks or bulk scans from one surface."
+            title="Scan Anything. Instantly."
+            eyebrowItems={['URL', 'IP', 'Hash', 'File', 'Bulk IOC']}
+            copy="Fast threat detection with real-time intelligence."
             className="investigation-hero fade-in"
+            actions={
+              <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
+                <Search size={18} />
+                {loading ? 'Scanning...' : 'Start Scan'}
+              </button>
+            }
           />
         ) : null}
 

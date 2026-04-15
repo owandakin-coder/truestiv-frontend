@@ -5,6 +5,7 @@ export default function PortalHero({
   actions = null,
   className = '',
   titleWide = false,
+  eyebrowItems = [],
 }) {
   const classes = ['intel-hero-card', 'portal-hero', 'portal-hero-single', className]
     .filter(Boolean)
@@ -18,6 +19,15 @@ export default function PortalHero({
           <span className="portal-hero-kicker-label">{kicker}</span>
         </div>
         <h1 className={`portal-hero-title${titleWide ? ' portal-hero-title-wide' : ''}`}>{title}</h1>
+        {eyebrowItems.length ? (
+          <div className="portal-hero-meta-row">
+            {eyebrowItems.map((item, index) => (
+              <span key={`${item}-${index}`} className="portal-hero-meta-item">
+                {item}
+              </span>
+            ))}
+          </div>
+        ) : null}
         {copy ? <p className="portal-hero-copy">{copy}</p> : null}
         {actions ? <div className="intel-hero-actions">{actions}</div> : null}
       </div>

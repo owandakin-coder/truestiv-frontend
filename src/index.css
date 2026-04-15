@@ -84,6 +84,8 @@ body {
   grid-template-columns: minmax(0, 1.3fr) minmax(280px, 0.7fr);
   gap: 24px;
   align-items: stretch;
+  position: relative;
+  overflow: hidden;
 }
 
 .portal-hero-single {
@@ -92,6 +94,7 @@ body {
 
 .portal-hero-single .portal-hero-main {
   max-width: 760px;
+  margin: 0 auto;
 }
 
 .investigation-hero.portal-hero-single .portal-hero-main {
@@ -104,6 +107,22 @@ body {
 
 .portal-hero-main {
   min-width: 0;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.portal-hero::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 24px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(91,163,245,0.08) 16%, rgba(91,163,245,0.85) 50%, rgba(91,163,245,0.08) 84%, transparent 100%);
+  box-shadow: 0 0 22px rgba(91, 163, 245, 0.32);
 }
 
 .portal-hero-kicker-row {
@@ -111,6 +130,7 @@ body {
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  justify-content: center;
 }
 
 .portal-hero-kicker-dot {
@@ -132,18 +152,50 @@ body {
 }
 
 .portal-hero-title {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(1.8rem, 3vw, 2rem);
-  line-height: 1.04;
-  font-weight: 900;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  line-height: 1.02;
+  font-weight: 800;
   color: var(--portal-text-soft);
-  margin: 0 0 12px;
-  max-width: 18ch;
-  letter-spacing: -0.03em;
+  margin: 0 0 14px;
+  max-width: 14ch;
+  letter-spacing: -0.05em;
+  text-wrap: balance;
 }
 
 .portal-hero-title.portal-hero-title-wide {
-  max-width: 28ch;
+  max-width: 18ch;
+}
+
+.portal-hero-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.portal-hero-meta-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #c8d8f0;
+  opacity: 0.95;
+  position: relative;
+  padding: 0 8px;
+}
+
+.portal-hero-meta-item::after {
+  content: '•';
+  position: absolute;
+  right: -5px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #5377aa;
+}
+
+.portal-hero-meta-item:last-child::after {
+  display: none;
 }
 
 .portal-hero-rail {
@@ -183,8 +235,9 @@ body {
 .portal-hero-copy {
   color: #a8c4e0;
   line-height: 1.55;
-  font-size: 12px;
-  max-width: 54ch;
+  font-size: 14px;
+  max-width: 42ch;
+  text-wrap: balance;
 }
 
 .investigation-hero .portal-spotlight-card {
@@ -657,6 +710,17 @@ body {
   flex-wrap: wrap;
   justify-content: flex-start;
   align-items: center;
+}
+
+.portal-hero .intel-hero-actions {
+  justify-content: center;
+  margin-top: 6px;
+}
+
+.portal-hero-primary {
+  min-width: 240px;
+  padding-inline: 28px;
+  box-shadow: 0 0 0 1px rgba(91,163,245,0.24), 0 18px 36px rgba(37,99,235,0.22);
 }
 
 .intel-stat-grid,
@@ -1660,6 +1724,23 @@ body {
 
   .intel-result-row { grid-template-columns: 1fr; }
   .ip-lookup-stat-grid { grid-template-columns: 1fr; }
+  .portal-hero::after {
+    left: 4%;
+    right: 4%;
+  }
+  .portal-hero-title {
+    font-size: clamp(2rem, 10vw, 3rem);
+  }
+  .portal-hero-copy {
+    font-size: 13px;
+  }
+  .portal-hero-meta-row {
+    gap: 8px;
+  }
+  .portal-hero-meta-item {
+    font-size: 11px;
+    padding: 0 6px;
+  }
 
   .analysis-input,
   .analysis-textarea,
@@ -2246,6 +2327,9 @@ body {
 .zone-propagation .portal-hero-kicker-dot { background: #38bdf8; }
 .zone-timeline .portal-hero-kicker-label { color: #38bdf8; }
 .zone-timeline .portal-hero-kicker-dot { background: #38bdf8; }
+.zone-community .portal-hero::after { background: linear-gradient(90deg, transparent 0%, rgba(34,197,94,0.08) 16%, rgba(34,197,94,0.8) 50%, rgba(34,197,94,0.08) 84%, transparent 100%); box-shadow: 0 0 22px rgba(34,197,94,0.22); }
+.zone-campaigns .portal-hero::after { background: linear-gradient(90deg, transparent 0%, rgba(245,158,11,0.08) 16%, rgba(245,158,11,0.82) 50%, rgba(245,158,11,0.08) 84%, transparent 100%); box-shadow: 0 0 22px rgba(245,158,11,0.22); }
+.zone-lookup .portal-hero::after { background: linear-gradient(90deg, transparent 0%, rgba(34,211,238,0.08) 16%, rgba(34,211,238,0.82) 50%, rgba(34,211,238,0.08) 84%, transparent 100%); box-shadow: 0 0 22px rgba(34,211,238,0.22); }
 
 /* Zone label colors */
 .zone-community .intel-eyebrow,

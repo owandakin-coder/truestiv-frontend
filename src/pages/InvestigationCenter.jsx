@@ -11,22 +11,25 @@ const investigationTabs = [
     id: 'analysis',
     label: 'Message Analysis',
     icon: ShieldAlert,
-    title: 'Analyze suspicious messages, then pivot into IOC context.',
-    copy: 'Email, SMS, and WhatsApp verdicting in one workspace.',
+    titleMain: 'Message Analysis',
+    titleHighlight: 'AI-Powered',
+    copy: 'Email, SMS, and Chats — one unified workspace.',
   },
   {
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
-    title: 'Run URL, IP, HASH, file, and bulk IOC scans from one pane.',
-    copy: 'Fast reputation checks and direct public intel pivots.',
+    titleMain: 'Public Scanner',
+    titleHighlight: 'Multi-Engine',
+    copy: 'Inspect suspicious links and obvious phishing patterns.',
   },
   {
     id: 'media-lab',
     label: 'Media Lab',
     icon: FileImage,
-    title: 'Inspect suspicious images, video, and audio without leaving the investigation surface.',
-    copy: 'Deepfake scoring, OCR extraction, and artifact pivots in one place.',
+    titleMain: 'Media Lab',
+    titleHighlight: 'Deepfake & OCR',
+    copy: 'Images, video, and audio — with deepfake detection and OCR.',
   },
 ]
 
@@ -38,38 +41,54 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell zone-investigation">
-      <PortalHero
-        kicker="Investigation Center"
-        title={activeTab.title}
-        copy={activeTab.copy}
-        className="investigation-shell-hero fade-in"
-        titleWide
-      />
-
-      <section className="intel-section-card investigation-hub-panel fade-in-delay-1">
-        <div className="investigation-tab-row">
-          {investigationTabs.map((tab) => {
-            const Icon = tab.icon
-            const active = tab.id === activeTab.id
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => navigate(`/investigation-center/${tab.id}`)}
-                className={`investigation-lane-button ${active ? 'is-active' : ''}`}
-              >
-                <Icon size={16} />
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
+      {/* Simple hero – exactly like the screenshot */}
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8' }} />
+          <span style={{ fontSize: 12, letterSpacing: 2, fontWeight: 700, color: '#38bdf8' }}>
+            THREAT ANALYSIS HUB
+          </span>
         </div>
-      </section>
+        <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 800, marginBottom: 8 }}>
+          {activeTab.titleMain}{' '}
+          <span className="gradient-text">{activeTab.titleHighlight}</span>
+        </h1>
+        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem', maxWidth: 600 }}>
+          {activeTab.copy}
+        </p>
+      </div>
+
+      {/* Clean tab bar – no card, no background, only border-bottom */}
+      <div className="investigation-tab-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px', paddingBottom: '0' }}>
+        {investigationTabs.map((tab) => {
+          const Icon = tab.icon
+          const active = tab.id === activeTab.id
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => navigate(`/investigation-center/${tab.id}`)}
+              className={`investigation-lane-button ${active ? 'is-active' : ''}`}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                borderBottom: active ? '2px solid var(--portal-blue, #38bdf8)' : '2px solid transparent',
+                borderRadius: 0,
+                padding: '8px 16px',
+                marginBottom: '-1px',
+              }}
+            >
+              <Icon size={16} />
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
+      </div>
 
       <section className="fade-in-delay-2" style={{ position: 'relative', zIndex: 1 }}>
-        {activeTab.id === 'analysis' ? <Analysis embedded /> : null}
-        {activeTab.id === 'scanner' ? <Scanner embedded /> : null}
-        {activeTab.id === 'media-lab' ? <MediaLab embedded /> : null}
+        {activeTab.id === 'analysis' && <Analysis embedded />}
+        {activeTab.id === 'scanner' && <Scanner embedded />}
+        {activeTab.id === 'media-lab' && <MediaLab embedded />}
       </section>
     </section>
   )

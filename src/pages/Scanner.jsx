@@ -96,6 +96,7 @@ export default function Scanner({ embedded = false }) {
   const [error, setError] = useState('')
   const [recentScans, setRecentScans] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
+  const [showResultOnly, setShowResultOnly] = useState(false)
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
@@ -117,6 +118,7 @@ export default function Scanner({ embedded = false }) {
     setResult(null)
     setError('')
     setPublishState({ status: 'idle', message: '' })
+    setShowResultOnly(false)
     loadHistory(activeTab)
   }, [activeTab])
 
@@ -159,6 +161,7 @@ export default function Scanner({ embedded = false }) {
       else response = await client.post('/api/scanner/bulk', { input: form.bulk_input })
 
       setResult(response.data)
+      setShowResultOnly(true)
       await loadHistory(activeTab)
 
       if (activeTab === 'bulk') {
@@ -189,6 +192,13 @@ export default function Scanner({ embedded = false }) {
     if (entry.scan_type === 'file') updateField('filename', entry.indicator)
   }
 
+  const startNewScan = () => {
+    setResult(null)
+    setShowResultOnly(false)
+    setError('')
+    setPublishState({ status: 'idle', message: '' })
+  }
+
   const singleDetailPath = result && activeTab !== 'bulk'
     ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
     : ''
@@ -209,6 +219,7 @@ export default function Scanner({ embedded = false }) {
       onClick: () => updateField('bulk_input', 'https://apple-id-review-center.com\nhttps://secure-fedex-delivery-check.net\nhttps://microsoft-billing-update.info'),
     },
   ]
+
   return (
     <div style={{ position: 'relative' }}>
       {!embedded ? <div className="hero-bg" /> : null}
@@ -230,162 +241,172 @@ export default function Scanner({ embedded = false }) {
           />
         ) : null}
 
-        <div className="investigation-console-grid">
-          <section className="console-surface fade-in">
-            <div className="console-heading">
-              <h2>Run Public Scanner</h2>
-              <p>{tabDescription(activeTab)}</p>
-            </div>
+        {!showResultOnly ? (
+          <div className="investigation-console-grid">
+            <section className="console-surface fade-in">
+              <div className="console-heading">
+                <h2>Run Public Scanner</h2>
+                <p>{tabDescription(activeTab)}</p>
+              </div>
 
-            <div className="console-tab-grid">
-              {tabs.map(({ id, label, icon: Icon }) => {
-                const active = activeTab === id
-                return (
-                  <button key={id} type="button" onClick={() => setActiveTab(id)} className={`console-tab ${active ? 'is-active' : ''}`}>
-                    <Icon size={16} color={active ? palette.blue : palette.subtle} />
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
+              <div className="console-tab-grid">
+                {tabs.map(({ id, label, icon: Icon }) => {
+                  const active = activeTab === id
+                  return (
+                    <button key={id} type="button" onClick={() => setActiveTab(id)} className={`console-tab ${active ? 'is-active' : ''}`}>
+                      <Icon size={16} color={active ? palette.blue : palette.subtle} />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
 
-            <div className="console-form-grid">
-              {activeTab === 'url' ? <label className="console-input-group"><span>URL</span><input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" /></label> : null}
-              {activeTab === 'ip' ? <label className="console-input-group"><span>IP Address</span><input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" /></label> : null}
-              {activeTab === 'hash' ? <label className="console-input-group"><span>MD5 / SHA1 / SHA256</span><input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" /></label> : null}
-              {activeTab === 'file' ? (
-                <>
-                  <label className="console-input-group"><span>Filename</span><input className="analysis-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="invoice-update.docm" /></label>
-                  <div className="field-grid">
-                    <label className="console-input-group"><span>File Size</span><input className="analysis-input" value={form.file_size} onChange={(event) => updateField('file_size', event.target.value)} placeholder="102400" /></label>
-                    <label className="console-input-group"><span>Optional Hash</span><input className="analysis-input" value={form.file_hash} onChange={(event) => updateField('file_hash', event.target.value)} placeholder="Optional file hash" /></label>
-                  </div>
-                </>
-              ) : null}
-              {activeTab === 'bulk' ? <label className="console-input-group"><span>Bulk Indicators</span><textarea className="analysis-textarea" rows={10} value={form.bulk_input} onChange={(event) => updateField('bulk_input', event.target.value)} placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'} style={{ minHeight: 240 }} /></label> : null}
-              {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
-              <button type="button" onClick={runScan} disabled={loading} className="console-cta">
-                <Search size={18} />
-                {loading ? 'Scanning...' : activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scan'}
-              </button>
-            </div>
+              <div className="console-form-grid">
+                {activeTab === 'url' ? <label className="console-input-group"><span>URL</span><input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" /></label> : null}
+                {activeTab === 'ip' ? <label className="console-input-group"><span>IP Address</span><input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" /></label> : null}
+                {activeTab === 'hash' ? <label className="console-input-group"><span>MD5 / SHA1 / SHA256</span><input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" /></label> : null}
+                {activeTab === 'file' ? (
+                  <>
+                    <label className="console-input-group"><span>Filename</span><input className="analysis-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="invoice-update.docm" /></label>
+                    <div className="field-grid">
+                      <label className="console-input-group"><span>File Size</span><input className="analysis-input" value={form.file_size} onChange={(event) => updateField('file_size', event.target.value)} placeholder="102400" /></label>
+                      <label className="console-input-group"><span>Optional Hash</span><input className="analysis-input" value={form.file_hash} onChange={(event) => updateField('file_hash', event.target.value)} placeholder="Optional file hash" /></label>
+                    </div>
+                  </>
+                ) : null}
+                {activeTab === 'bulk' ? <label className="console-input-group"><span>Bulk Indicators</span><textarea className="analysis-textarea" rows={10} value={form.bulk_input} onChange={(event) => updateField('bulk_input', event.target.value)} placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'} style={{ minHeight: 240 }} /></label> : null}
+                {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
+                <button type="button" onClick={runScan} disabled={loading} className="console-cta">
+                  <Search size={18} />
+                  {loading ? 'Scanning...' : activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scan'}
+                </button>
+              </div>
 
-            <div className="feed-surface" style={{ marginTop: 24, padding: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Zap size={16} color={palette.blue} /><span className="analysis-meta-label">Recent Scans</span></div>
-              {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history...</p> : !recentScans.length ? (
-                <IntelEmptyState
-                  title="No actionable scans yet"
-                  copy="Only suspicious and threat findings are shown here."
-                  examples={activeTab === 'bulk' ? bulkExamples : [
-                    { label: 'Try suspicious URL', onClick: () => { setActiveTab('url'); updateField('url', 'https://secure-paypaI-login-check.com') } },
-                    { label: 'Try abuse IP', onClick: () => { setActiveTab('ip'); updateField('ip', '185.220.101.42') } },
-                  ]}
-                />
-              ) : (
-                <ExpandableFeed
-                  items={recentScans}
-                  initialCount={4}
-                  className="recent-rail"
-                  renderItem={(entry) => (
-                    <div key={entry.id} className="recent-rail-item">
-                      <div className="recent-rail-top">
-                        <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0, flex: 1 }}>
-                          <div className="recent-rail-main">
-                            <strong>{String(entry.scan_type || '').toUpperCase()}</strong>
-                            <span className="recent-rail-meta">{entry.indicator}</span>
+              <div className="feed-surface" style={{ marginTop: 24, padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Zap size={16} color={palette.blue} /><span className="analysis-meta-label">Recent Scans</span></div>
+                {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history...</p> : !recentScans.length ? (
+                  <IntelEmptyState
+                    title="No actionable scans yet"
+                    copy="Only suspicious and threat findings are shown here."
+                    examples={activeTab === 'bulk' ? bulkExamples : [
+                      { label: 'Try suspicious URL', onClick: () => { setActiveTab('url'); updateField('url', 'https://secure-paypaI-login-check.com') } },
+                      { label: 'Try abuse IP', onClick: () => { setActiveTab('ip'); updateField('ip', '185.220.101.42') } },
+                    ]}
+                  />
+                ) : (
+                  <ExpandableFeed
+                    items={recentScans}
+                    initialCount={4}
+                    className="recent-rail"
+                    renderItem={(entry) => (
+                      <div key={entry.id} className="recent-rail-item">
+                        <div className="recent-rail-top">
+                          <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0, flex: 1 }}>
+                            <div className="recent-rail-main">
+                              <strong>{String(entry.scan_type || '').toUpperCase()}</strong>
+                              <span className="recent-rail-meta">{entry.indicator}</span>
+                            </div>
+                          </button>
+                          <span style={{ padding: '8px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800, color: levelColor(entry.threat_level, palette), background: `${levelColor(entry.threat_level, palette)}12`, border: `1px solid ${levelColor(entry.threat_level, palette)}28` }}>{entry.threat_level}</span>
+                        </div>
+                        <div className="recent-rail-copy">{entry.summary || 'Public actionable scan retained in recent history.'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                          <span className="recent-rail-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
+                          <div className="investigation-actions">
+                            {entry.scan_type === 'ip' ? <button type="button" onClick={() => navigate(buildIpLookupPath(entry.indicator))} className="scanner-inline-button">IP lookup</button> : null}
+                            {entry.scan_type === 'domain' ? <button type="button" onClick={() => navigate(buildDomainLookupPath(entry.indicator))} className="scanner-inline-button">Domain lookup</button> : null}
+                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button">IOC details</button>
                           </div>
-                        </button>
-                        <span style={{ padding: '8px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800, color: levelColor(entry.threat_level, palette), background: `${levelColor(entry.threat_level, palette)}12`, border: `1px solid ${levelColor(entry.threat_level, palette)}28` }}>{entry.threat_level}</span>
-                      </div>
-                      <div className="recent-rail-copy">{entry.summary || 'Public actionable scan retained in recent history.'}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                        <span className="recent-rail-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
-                        <div className="investigation-actions">
-                          {entry.scan_type === 'ip' ? <button type="button" onClick={() => navigate(buildIpLookupPath(entry.indicator))} className="scanner-inline-button">IP lookup</button> : null}
-                          {entry.scan_type === 'domain' ? <button type="button" onClick={() => navigate(buildDomainLookupPath(entry.indicator))} className="scanner-inline-button">Domain lookup</button> : null}
-                          <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button">IOC details</button>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  />
+                )}
+              </div>
+            </section>
+
+            <section className="dossier-surface fade-in">
+              <div className="console-heading">
+                <h2>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
+                <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists.' : 'Verdict first, then next steps.'}</p>
+              </div>
+
+              {!result ? (
+                <IntelEmptyState
+                  title="Pick a scanner and run a request"
+                  copy={activeTab === 'bulk' ? 'Paste one IOC per line to build a triage table.' : 'Run a scan to see the verdict and next step.'}
+                  icon={Shield}
+                  examples={activeTab === 'bulk'
+                    ? bulkExamples
+                    : activeTab === 'url'
+                      ? [{ label: 'Phishing URL example', onClick: () => updateField('url', 'https://secure-paypaI-login-check.com') }]
+                      : activeTab === 'ip'
+                        ? [{ label: 'Known abuse IP example', onClick: () => updateField('ip', '185.220.101.42') }]
+                        : activeTab === 'hash'
+                          ? [{ label: 'Known malware hash', onClick: () => updateField('hash', '44d88612fea8a8f36de82e1278abb02f') }]
+                          : [{ label: 'Malicious document name', onClick: () => updateField('filename', 'invoice-review.docm') }]}
                 />
-              )}
-            </div>
-          </section>
-
-          <section className="dossier-surface fade-in">
-            <div className="console-heading">
-              <h2>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
-              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists.' : 'Verdict first, then next steps.'}</p>
-            </div>
-
-            {!result ? (
-              <IntelEmptyState
-                title="Pick a scanner and run a request"
-                copy={activeTab === 'bulk' ? 'Paste one IOC per line to build a triage table.' : 'Run a scan to see the verdict and next step.'}
-                icon={Shield}
-                examples={activeTab === 'bulk'
-                  ? bulkExamples
-                  : activeTab === 'url'
-                    ? [{ label: 'Phishing URL example', onClick: () => updateField('url', 'https://secure-paypaI-login-check.com') }]
-                    : activeTab === 'ip'
-                      ? [{ label: 'Known abuse IP example', onClick: () => updateField('ip', '185.220.101.42') }]
-                      : activeTab === 'hash'
-                        ? [{ label: 'Known malware hash', onClick: () => updateField('hash', '44d88612fea8a8f36de82e1278abb02f') }]
-                        : [{ label: 'Malicious document name', onClick: () => updateField('filename', 'invoice-review.docm') }]}
-              />
-            ) : activeTab === 'bulk' ? (
-              <div style={{ display: 'grid', gap: 18 }}>
-                <div className="scanner-bulk-grid">
-                  <Stat label="Processed" value={result.summary?.processed || 0} copy={`${result.summary?.submitted || 0} lines submitted after de-duplication and normalization.`} accent={palette.blue} />
-                  <Stat label="Actionable" value={result.summary?.actionable || 0} copy="Only suspicious or threat findings are auto-published into the public feed." accent={palette.yellow} />
-                  <Stat label="Types Seen" value={Object.values(result.summary?.by_type || {}).filter(Boolean).length} copy="Unique IOC classes detected inside the pasted list." accent={palette.cyan} />
-                </div>
-                {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.yellow, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : null}
-                <div className="scanner-bulk-table">
-                  <div className="scanner-bulk-table-head"><span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Next Step</span></div>
-                  {(result.items || []).map((item) => (
-                    <article key={`${item.ioc_type}-${item.indicator}`} className="scanner-bulk-row">
-                      <div className="scanner-bulk-main"><strong>{item.indicator}</strong><p>{item.summary}</p></div>
-                      <div>{String(item.ioc_type || 'unknown').toUpperCase()}</div>
-                      <div>Risk {item.risk_score || 0}</div>
-                      <div><span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>{item.threat_level}</span></div>
-                      <div className="scanner-bulk-actions">
-                        {item.lookup_path ? <button type="button" onClick={() => navigate(item.lookup_path)} className="scanner-inline-button">Lookup</button> : null}
-                        {item.details_path ? <button type="button" onClick={() => navigate(item.details_path)} className="scanner-inline-button">IOC</button> : null}
-                        {item.permalink ? <a href={item.permalink} target="_blank" rel="noreferrer" className="scanner-inline-button">Source</a> : null}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="split-dossier">
-                <ResultCard result={result} type={activeTab} theme={theme} />
-                {scannerBrandSignal ? (
-                  <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
-                    <strong>
-                      Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
-                    </strong>
-                    <span style={{ color: palette.muted, lineHeight: 1.6 }}>
-                      {(scannerBrandSignal.summary || '').trim() || 'This URL contains typo or lure patterns commonly used in brand impersonation campaigns.'}
-                    </span>
+              ) : activeTab === 'bulk' ? (
+                <div style={{ display: 'grid', gap: 18 }}>
+                  <div className="scanner-bulk-grid">
+                    <Stat label="Processed" value={result.summary?.processed || 0} copy={`${result.summary?.submitted || 0} lines submitted after de-duplication and normalization.`} accent={palette.blue} />
+                    <Stat label="Actionable" value={result.summary?.actionable || 0} copy="Only suspicious or threat findings are auto-published into the public feed." accent={palette.yellow} />
+                    <Stat label="Types Seen" value={Object.values(result.summary?.by_type || {}).filter(Boolean).length} copy="Unique IOC classes detected inside the pasted list." accent={palette.cyan} />
                   </div>
-                ) : null}
-                <div className="brief-panel">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>
-                    <div className="investigation-actions">
-                      {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="scanner-inline-button">Open IP lookup</button> : null}
-                      {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="scanner-inline-button">Open IOC details</button> : null}
-                    </div>
+                  {publishState.message ? <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? palette.green : palette.yellow, background: publishState.status === 'success' ? 'rgba(34,197,94,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(34,197,94,0.22)' : '1px solid rgba(56,189,248,0.22)' }}>{publishState.message}</div> : null}
+                  <div className="scanner-bulk-table">
+                    <div className="scanner-bulk-table-head"><span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Next Step</span></div>
+                    {(result.items || []).map((item) => (
+                      <article key={`${item.ioc_type}-${item.indicator}`} className="scanner-bulk-row">
+                        <div className="scanner-bulk-main"><strong>{item.indicator}</strong><p>{item.summary}</p></div>
+                        <div>{String(item.ioc_type || 'unknown').toUpperCase()}</div>
+                        <div>Risk {item.risk_score || 0}</div>
+                        <div><span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>{item.threat_level}</span></div>
+                        <div className="scanner-bulk-actions">
+                          {item.lookup_path ? <button type="button" onClick={() => navigate(item.lookup_path)} className="scanner-inline-button">Lookup</button> : null}
+                          {item.details_path ? <button type="button" onClick={() => navigate(item.details_path)} className="scanner-inline-button">IOC</button> : null}
+                          {item.permalink ? <a href={item.permalink} target="_blank" rel="noreferrer" className="scanner-inline-button">Source</a> : null}
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                  {publishState.message ? <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette) }}>{publishState.message}</div> : actionable(result.threat_level) ? <div className="console-status" style={{ color: levelColor(result.threat_level, palette), borderColor: `${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
                 </div>
+              ) : null}
+            </section>
+          </div>
+        ) : (
+          // Result only mode – full width result card + new scan button
+          <div style={{ maxWidth: 900, margin: '0 auto' }}>
+            <div style={{ marginBottom: 24 }}>
+              <button onClick={startNewScan} className="console-cta" style={{ marginBottom: 20 }}>
+                ← New Scan
+              </button>
+            </div>
+            <div className="split-dossier">
+              <ResultCard result={result} type={activeTab} theme={theme} />
+              {scannerBrandSignal ? (
+                <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
+                  <strong>
+                    Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
+                  </strong>
+                  <span style={{ color: palette.muted, lineHeight: 1.6 }}>
+                    {(scannerBrandSignal.summary || '').trim() || 'This URL contains typo or lure patterns commonly used in brand impersonation campaigns.'}
+                  </span>
+                </div>
+              ) : null}
+              <div className="brief-panel">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Radar size={16} color={palette.blue} /><span className="analysis-meta-label">Workflow</span></div>
+                  <div className="investigation-actions">
+                    {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="scanner-inline-button">Open IP lookup</button> : null}
+                    {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="scanner-inline-button">Open IOC details</button> : null}
+                  </div>
+                </div>
+                {publishState.message ? <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette) }}>{publishState.message}</div> : actionable(result.threat_level) ? <div className="console-status" style={{ color: levelColor(result.threat_level, palette), borderColor: `${levelColor(result.threat_level, palette)}28` }}>This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.</div> : null}
               </div>
-            )}
-          </section>
-        </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

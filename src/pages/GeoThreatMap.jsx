@@ -194,12 +194,7 @@ export default function GeoThreatMap() {
         className="map-hero fade-in"
         actions={
           <>
-            <button className="console-cta" type="button" onClick={() => setLive((current) => !current)}>
-              {live ? 'Live refresh on' : 'Live refresh off'}
-            </button>
-            <button className="console-tab" type="button" onClick={() => setPlaybackIndex(-1)}>
-              Reset playback
-            </button>
+
           </>
         }
       />
@@ -207,7 +202,6 @@ export default function GeoThreatMap() {
       <section className="console-surface propagation-ops-console fade-in-delay-1">
         <div className="console-heading">
           <h2>Propagation Filters and Playback</h2>
-          <p>Filter the map and scrub through the current time window.</p>
         </div>
 
         <div className="intel-filter-grid">

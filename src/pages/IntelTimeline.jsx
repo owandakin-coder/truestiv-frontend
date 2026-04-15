@@ -103,22 +103,9 @@ export default function IntelTimeline() {
         copy="The shortest path from a new event to its IOC context."
         className="timeline-hero fade-in"
         titleWide
-        actions={(
-          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
-            {live ? 'Live refresh on' : 'Live refresh off'}
-          </button>
-        )}
+
       />
 
-      {spotlight ? (
-        <section className="intel-section-card timeline-spotlight-panel fade-in-delay-1">
-          <div className="intel-section-head">
-            <div className="intel-eyebrow"><Activity size={14} />Spotlight Event</div>
-            <h2 className="intel-section-title">{spotlight.title}</h2>
-            <p className="intel-section-copy intel-reading-block">{spotlight.summary}</p>
-          </div>
-        </section>
-      ) : null}
 
       <section className="intel-section-card timeline-filter-panel fade-in-delay-2">
         <div className="intel-section-head">

@@ -12,21 +12,21 @@ const investigationTabs = [
     label: 'Message Analysis',
     icon: ShieldAlert,
     title: 'Analyze suspicious messages, then pivot into IOC context.',
-    copy: 'Email, SMS, and WhatsApp verdicting stay in the same public workspace as scanner and media tooling.',
+    copy: 'Email, SMS, and WhatsApp verdicting in one workspace.',
   },
   {
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
     title: 'Run URL, IP, HASH, file, and bulk IOC scans from one pane.',
-    copy: 'This is the primary public entry point for fast reputation checks and immediate promotion into the intelligence flow.',
+    copy: 'Fast reputation checks and direct public intel pivots.',
   },
   {
     id: 'media-lab',
     label: 'Media Lab',
     icon: FileImage,
     title: 'Inspect suspicious images, video, and audio without leaving the investigation surface.',
-    copy: 'Deepfake scoring, OCR extraction, and artifact pivots now live alongside message and IOC analysis.',
+    copy: 'Deepfake scoring, OCR extraction, and artifact pivots in one place.',
   },
 ]
 

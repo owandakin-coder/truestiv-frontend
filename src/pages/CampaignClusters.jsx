@@ -74,7 +74,7 @@ export default function CampaignClusters() {
       <PortalHero
         kicker="Campaign / Cluster View"
         title="Related public signals grouped into actionable clusters."
-        copy="Recurring public signals grouped into the clearest active clusters."
+        copy="Recurring public signals grouped into active clusters."
         className="campaign-hero fade-in"
         titleWide
       />
@@ -85,7 +85,7 @@ export default function CampaignClusters() {
       {!loading && !clusters.length ? (
         <IntelEmptyState
           title="No public campaign clusters yet"
-          copy="Clusters appear when recurring indicators, actor tags, and overlapping sources start forming a shared operational story."
+          copy="Clusters appear when recurring indicators and overlapping sources begin forming a shared story."
           actionLabel="Open Threat Intel"
           actionTo="/threat-intel"
         />
@@ -185,24 +185,24 @@ export default function CampaignClusters() {
                     </div>
                     <div className="campaign-dossier-body">{selected.summary}</div>
                     <div className="intel-tag-wrap">
-                      {(selected.actor_tags || []).slice(0, 6).map((tag) => (
+                      {(selected.actor_tags || []).slice(0, 4).map((tag) => (
                         <span key={tag} className="intel-tag-chip">{tag}</span>
                       ))}
-                      {(selected.countries || []).slice(0, 6).map((country) => (
+                      {(selected.countries || []).slice(0, 4).map((country) => (
                         <span key={country} className="intel-tag-chip">{country}</span>
                       ))}
-                      {(selected.sources || []).slice(0, 6).map((source) => (
+                      {(selected.sources || []).slice(0, 4).map((source) => (
                         <span key={source} className="intel-tag-chip">{source}</span>
                       ))}
                     </div>
                     <div>
                       <div className="intel-meta-label" style={{ marginBottom: 10 }}>Related Indicators</div>
                       <div className="intel-tag-wrap">
-                        {(selected.related_indicators || []).slice(0, 10).map((indicator) => (
+                        {(selected.related_indicators || []).slice(0, 6).map((indicator) => (
                           <span key={indicator} className="intel-tag-chip">{indicator}</span>
                         ))}
-                        {(selected.related_indicators || []).length > 10 ? (
-                          <span className="intel-tag-chip">+{selected.related_indicators.length - 10} more</span>
+                        {(selected.related_indicators || []).length > 6 ? (
+                          <span className="intel-tag-chip">+{selected.related_indicators.length - 6} more</span>
                         ) : null}
                       </div>
                     </div>

@@ -325,7 +325,7 @@ export default function Analysis({ embedded = false }) {
           <PortalHero
             kicker="Analysis Studio"
             title={<><span>Message </span><span className="gradient-text">Analysis</span></>}
-            copy="Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context."
+            copy="Submit suspicious email, SMS, or WhatsApp content and get a clear verdict."
             className="investigation-hero fade-in"
           />
         ) : null}
@@ -388,7 +388,7 @@ export default function Analysis({ embedded = false }) {
               {!history.length ? (
                 <IntelEmptyState
                   title="No recent high-signal analyses yet"
-                  copy="Only suspicious and threat verdicts are kept here. Try a phishing-style subject or a message that includes a suspicious link to seed the public analysis flow."
+                  copy="Only suspicious and threat verdicts are kept here."
                   examples={[
                     { label: 'Urgent payroll verification', onClick: () => setForm((current) => ({ ...current, subject: 'Urgent payroll verification request' })) },
                     { label: 'Paste suspicious login URL', onClick: () => setForm((current) => ({ ...current, content: 'Please verify your account at https://secure-paypaI-login-check.com immediately.' })) },
@@ -427,7 +427,7 @@ export default function Analysis({ embedded = false }) {
               {!result ? (
                 <IntelEmptyState
                   title="Run an analysis to generate an AI-backed verdict"
-                  copy="Try a phishing-style subject, a suspicious SMS, or a WhatsApp lure with a short link."
+                  copy="Try a phishing-style subject, a suspicious SMS, or a WhatsApp lure."
                   icon={Radar}
                   examples={[
                     { label: 'Email fraud example', onClick: () => { setChannel('email'); setForm({ sender: 'finance-update@secure-paypaI.com', subject: 'Urgent invoice confirmation', phone: '', content: 'Review the updated invoice at https://secure-paypaI-login-check.com before end of day.' }) } },
@@ -615,7 +615,6 @@ export default function Analysis({ embedded = false }) {
                   <div className="brief-panel">
                     <div>
                       <div className="analysis-meta-label">Public Actions</div>
-                      <div style={{ color: mutedColor, marginTop: 6, lineHeight: 1.6 }}>Promote the strongest indicator to community intelligence when the verdict deserves shared visibility.</div>
                     </div>
                     <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                       <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
@@ -634,7 +633,7 @@ export default function Analysis({ embedded = false }) {
 
             <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
-                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Technical Context</div>
+                <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IOC Context</div>
                 <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
               </div>
               {!allIocs.length ? (
@@ -663,7 +662,7 @@ export default function Analysis({ embedded = false }) {
             <div className="dossier-surface">
               <div style={{ marginBottom: 18 }}>
                 <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
-                <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure pivot</h2>
+                <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure</h2>
               </div>
               {!ipIntel.length ? (
                 <div style={{ borderRadius: 20, border: `1px dashed ${borderColor}`, padding: 20, color: mutedColor, lineHeight: 1.7 }}>

@@ -218,7 +218,7 @@ export default function Scanner({ embedded = false }) {
           <PortalHero
             kicker="Public IOC Scanner"
             title={<><span>Scanner </span><span className="gradient-text">Workspace</span></>}
-            copy="Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow."
+            copy="Run single IOC checks or bulk scans from one surface."
             className="investigation-hero fade-in"
           />
         ) : null}
@@ -265,10 +265,10 @@ export default function Scanner({ embedded = false }) {
 
             <div className="feed-surface" style={{ marginTop: 24, padding: 16 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}><Zap size={16} color={palette.blue} /><span className="analysis-meta-label">Recent Scans</span></div>
-              {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history from the backend...</p> : !recentScans.length ? (
+              {historyLoading ? <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history...</p> : !recentScans.length ? (
                 <IntelEmptyState
                   title="No actionable scans yet"
-                  copy="Only suspicious and threat findings are shown here. Start with a suspicious URL, a known abuse IP, or paste a mixed IOC list into Bulk IOC."
+                  copy="Only suspicious and threat findings are shown here."
                   examples={activeTab === 'bulk' ? bulkExamples : [
                     { label: 'Try suspicious URL', onClick: () => { setActiveTab('url'); updateField('url', 'https://secure-paypaI-login-check.com') } },
                     { label: 'Try abuse IP', onClick: () => { setActiveTab('ip'); updateField('ip', '185.220.101.42') } },
@@ -309,13 +309,13 @@ export default function Scanner({ embedded = false }) {
           <section className="dossier-surface fade-in">
             <div className="console-heading">
               <h2>{activeTab === 'bulk' ? 'Bulk Scan Results' : 'Scan Result'}</h2>
-              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists with direct pivots into public intelligence context.' : 'Verdict first, then pivots and next steps.'}</p>
+              <p>{activeTab === 'bulk' ? 'Grouped enrichment for mixed IOC lists.' : 'Verdict first, then next steps.'}</p>
             </div>
 
             {!result ? (
               <IntelEmptyState
                 title="Pick a scanner and run a request"
-                copy={activeTab === 'bulk' ? 'Paste one IOC per line to build a triage table of public signals, then drill into the strongest findings.' : 'Run a scan to see the verdict first, then expand into provider details, pivots, and public intelligence context.'}
+                copy={activeTab === 'bulk' ? 'Paste one IOC per line to build a triage table.' : 'Run a scan to see the verdict and next step.'}
                 icon={Shield}
                 examples={activeTab === 'bulk'
                   ? bulkExamples

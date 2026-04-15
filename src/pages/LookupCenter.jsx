@@ -218,7 +218,7 @@ function LookupCenter() {
       <PortalHero
         kicker="Lookup Center"
         title="One workspace for IP, domain, and email header investigation."
-        copy="Move between IP, domain, and header enrichment without leaving the same desk."
+        copy="Move between IP, domain, and header enrichment from one desk."
         className="lookup-hero fade-in"
         titleWide
       />
@@ -298,7 +298,7 @@ function LookupCenter() {
       {!loading && !error && activeMode === 'email-header' && !headerAnalysis ? (
         <IntelEmptyState
           title="Paste raw email headers"
-          copy="Parse transport hops, auth checks, and extracted pivots."
+          copy="Parse transport hops, auth checks, and pivots."
           examples={[
             { label: 'Insert sample header', onClick: () => setHeaderInput('Received: from suspicious-mail.example (185.220.101.42) by mx.google.com;\nAuthentication-Results: spf=fail dkim=none dmarc=fail;\nReply-To: support@secure-paypaI-login-check.com') },
           ]}
@@ -312,7 +312,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Infrastructure</div>
                 <h2 className="intel-section-title">{ipLookup.ip}</h2>
-                <p className="intel-section-copy intel-reading-block">Confidence {ipLookup.source_confidence_label || 'moderate'} across aggregated enrichment and sightings.</p>
+                <p className="intel-section-copy intel-reading-block">Confidence {ipLookup.source_confidence_label || 'moderate'} across aggregated enrichment.</p>
               </div>
               <DossierTable
                 rows={[
@@ -386,7 +386,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Domain dossier</div>
                 <h2 className="intel-section-title">{domainLookup.domain}</h2>
-                <p className="intel-section-copy intel-reading-block">DNS, registration age, reputation, and related infrastructure.</p>
+                <p className="intel-section-copy intel-reading-block">DNS, registration age, reputation, and infrastructure.</p>
               </div>
               <DossierTable
                 rows={[
@@ -493,7 +493,7 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Authentication</div>
                 <h2 className="intel-section-title">SPF, DKIM, and DMARC</h2>
-                <p className="intel-section-copy intel-reading-block">Sender alignment, auth failures, and the earliest observable transport IP.</p>
+                <p className="intel-section-copy intel-reading-block">Sender alignment, auth failures, and origin IP.</p>
               </div>
               <DossierTable
                 rows={[
@@ -566,7 +566,6 @@ function LookupCenter() {
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Related analyses</div>
                 <h2 className="intel-section-title">Recent message analysis matches</h2>
-                <p className="intel-section-copy intel-reading-block">Suspicious or threat analyses that already referenced this sender infrastructure.</p>
               </div>
               <div className="intel-row-feed">
                 {headerPayload.related_analyses.map((item) => (

@@ -169,7 +169,7 @@ export default function MediaLab({ embedded = false }) {
           <PortalHero
             kicker="Media Threat Intelligence"
             title={<><span>Media </span><span className="gradient-text">Lab</span></>}
-            copy="Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph."
+            copy="Upload images, videos, or audio for deepfake scoring and OCR extraction."
             className="investigation-hero fade-in"
           />
         ) : null}
@@ -266,7 +266,7 @@ export default function MediaLab({ embedded = false }) {
               {!history.length ? (
                 <IntelEmptyState
                   title="No suspicious media runs yet"
-                  copy="Only suspicious and threat media analyses are stored here. Try an image with embedded text, a suspicious voice clip, or a manipulated-looking video frame."
+                  copy="Only suspicious and threat media analyses are stored here."
                   examples={[
                     { label: 'Try image analysis', onClick: () => setActiveTab('image') },
                     { label: 'Switch to audio triage', onClick: () => setActiveTab('audio') },
@@ -304,13 +304,13 @@ export default function MediaLab({ embedded = false }) {
           >
             <div className="console-heading" style={{ marginBottom: 20 }}>
               <h2>Media analysis result</h2>
-              <p>Verdict first, then OCR, extracted artifacts, and follow-up actions.</p>
+              <p>Verdict first, then OCR and artifacts.</p>
             </div>
 
             {!result && !loading ? (
               <IntelEmptyState
                 title="Upload media to begin analysis"
-                copy="The result view will surface verdict, summary, OCR, and artifacts from the same workspace."
+                copy="The result view will surface verdict, OCR, and artifacts."
                 icon={ScanSearch}
                 examples={[
                   { label: 'Image workflow', onClick: () => setActiveTab('image') },
@@ -370,9 +370,6 @@ export default function MediaLab({ embedded = false }) {
                 <div className="brief-panel">
                     <div>
                       <div className="analysis-meta-label">Public Actions</div>
-                      <div style={{ color: palette.muted, marginTop: 6, lineHeight: 1.6 }}>
-                        Promote the strongest media sample to community intelligence when it reveals useful public indicators.
-                      </div>
                     </div>
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
@@ -390,7 +387,7 @@ export default function MediaLab({ embedded = false }) {
                   <span className="analysis-meta-label">Extracted Artifacts</span>
                   {!iocs.length ? (
                     <div style={{ color: palette.muted, lineHeight: 1.7 }}>
-                      OCR-derived URLs, IPs, domains, and hashes will appear here for one-click enrichment.
+                      OCR-derived URLs, IPs, domains, and hashes appear here for one-click enrichment.
                     </div>
                   ) : (
                     <>

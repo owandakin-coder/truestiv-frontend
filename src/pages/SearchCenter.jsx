@@ -75,7 +75,7 @@ export default function SearchCenter() {
       <PortalHero
         kicker="Global Search"
         title="Find indicators, senders, and subjects across Trustive AI."
-        copy="Search once, then jump straight into the strongest matching public signal."
+        copy="Search once, then jump straight into the strongest match."
         className="fade-in"
         titleWide
       />
@@ -100,7 +100,7 @@ export default function SearchCenter() {
       {!loading && activeQuery && !items.length ? (
         <IntelEmptyState
           title={`No actionable intelligence matched "${activeQuery}"`}
-          copy="Search results are limited to suspicious and threat signals so the portal stays high-signal. Try an IP, a phishing domain, a known hash, or a sender domain instead."
+          copy="Results are limited to suspicious and threat signals. Try an IP, phishing domain, or known hash."
           actionLabel="Open Threat Intel"
           actionTo="/threat-intel"
         />
@@ -113,7 +113,7 @@ export default function SearchCenter() {
               <Radar size={14} />
               Search Results
             </div>
-            <h2 className="intel-section-title">Matched intelligence context</h2>
+            <h2 className="intel-section-title">Matched context</h2>
           </div>
 
           <div className="feed-rail">

@@ -50,22 +50,12 @@ export default function ThreatIntelHub() {
   }, [live])
 
   const featuredBrief = briefs[0] || null
-  const mostActiveCountry = featuredBrief?.countries?.[0] || trending.find((item) => item.countries?.length)?.countries?.[0] || 'Pending'
-  const fastestCluster = featuredBrief?.title || (briefs[1]?.title || 'Pending')
-  const topBrand = trending.find((item) => (item.actor_tags || []).some((tag) => /brand|phish|imperson/i.test(String(tag))))?.indicator || 'Pending'
-  const editorialCards = [
-    { label: 'What matters now', value: featuredBrief?.title || 'No featured brief yet' },
-    { label: 'Fastest growing cluster', value: fastestCluster },
-    { label: 'Top impersonated brand', value: topBrand },
-    { label: 'Most active country', value: mostActiveCountry },
-  ]
-
   return (
     <section className="intel-shell zone-threat-intel">
       <PortalHero
         kicker="Public Threat Intelligence"
         title="External feed collection and public incident context."
-        copy="Recurring indicators, public briefs, and live collection in one public surface."
+        copy="Recurring indicators and public briefs in one surface."
         className="threat-intel-hero fade-in"
         titleWide
         actions={
@@ -100,43 +90,28 @@ export default function ThreatIntelHub() {
               <article className="editorial-card compact">
                 <div className="signal-strip-label">Signals</div>
                 <strong>{featuredBrief.signal_count}</strong>
-                <p>Indicators grouped into this public brief.</p>
               </article>
               <article className="editorial-card compact">
                 <div className="signal-strip-label">Countries</div>
                 <strong>{featuredBrief.countries?.length || 0}</strong>
-                <p>{featuredBrief.countries?.slice(0, 2).join(', ') || 'Unknown regions'}</p>
               </article>
               <article className="editorial-card compact">
                 <div className="signal-strip-label">Actor tags</div>
                 <strong>{featuredBrief.actor_tags?.length || 0}</strong>
-                <p>{(featuredBrief.actor_tags || []).slice(0, 2).join(', ') || 'Pending tags'}</p>
               </article>
               <article className="editorial-card compact">
                 <div className="signal-strip-label">Latest level</div>
                 <strong>{threatLabel(featuredBrief.latest_threat_level)}</strong>
-                <p>Current severity from the grouped public signals.</p>
               </article>
             </div>
           </div>
         </section>
       ) : null}
 
-      <section className="fade-in-delay-1" style={{ marginTop: 20 }}>
-        <div className="editorial-strip editorial-strip-tight">
-          {editorialCards.map((card) => (
-            <article key={card.label} className="editorial-card compact">
-              <div className="signal-strip-label">{card.label}</div>
-              <strong>{card.value}</strong>
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="intel-section-card threat-intel-trending-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Radar size={14} />Trending Indicators</div>
-          <h2 className="intel-section-title">Repeated indicators across the public intelligence surface</h2>
+          <h2 className="intel-section-title">Trending indicators</h2>
         </div>
         {!trending.length ? <IntelEmptyState title="Trending indicators are still warming up" copy="As public signals accumulate, recurring IPs, URLs, domains, and hashes will start clustering here automatically. Try the scanner or bulk IOC flow to seed more intelligence." actionLabel="Open Investigation Center" actionTo="/investigation-center/scanner" /> : (
           <ExpandableFeed
@@ -164,7 +139,7 @@ export default function ThreatIntelHub() {
       <section className="intel-section-card threat-intel-briefs-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><GitBranch size={14} />Public Incident Briefs</div>
-          <h2 className="intel-section-title">Clustered briefs built from recurring public signals</h2>
+          <h2 className="intel-section-title">Public incident briefs</h2>
         </div>
         {!briefs.length ? <IntelEmptyState title="No public incident briefs yet" copy="Briefs appear after recurring indicators, shared actor tags, and overlapping sources form a cluster worth surfacing as public context." actionLabel="Open Campaign View" actionTo="/campaign-clusters" /> : (
           <ExpandableFeed
@@ -192,7 +167,7 @@ export default function ThreatIntelHub() {
         <section className="intel-section-card threat-intel-latest-section fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Radar size={14} />Latest Intelligence</div>
-            <h2 className="intel-section-title">Most recent published indicators</h2>
+            <h2 className="intel-section-title">Latest published indicators</h2>
           </div>
           <ExpandableFeed
             items={feed}

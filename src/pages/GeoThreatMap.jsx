@@ -333,9 +333,7 @@ export default function GeoThreatMap() {
               <MapPin size={18} color={palette.blue} />
               Marker Feed
             </h2>
-            <p>
-            This feed stays populated from the latest available markers and does not require you to apply filters first.
-            </p>
+            <p>This feed stays populated even before filters are applied.</p>
           </div>
 
           <div className="map-list">
@@ -399,33 +397,7 @@ export default function GeoThreatMap() {
         </section>
       </div>
 
-      <div className="intel-two-column fade-in-delay-2">
-        <section className="operations-card propagation-flow-panel">
-          <div className="intel-section-head">
-            <div className="intel-eyebrow">
-              <Radar size={14} />
-              Threat Flow
-            </div>
-            <h2 className="intel-section-title">Active geography rail</h2>
-            <p className="intel-section-copy">
-              A tighter operational list that highlights where the current playback window is concentrating threat activity.
-            </p>
-          </div>
-          <div className="country-flow-rail">
-            {countryFlows.map((item) => (
-              <article key={item.country} className="country-flow-row">
-                <div className="country-flow-main">
-                  <strong>{item.country}</strong>
-                  <span>{item.count} active markers in the current playback window.</span>
-                </div>
-                <button type="button" className="intel-inline-link" onClick={() => openCountry(item.country)}>
-                  Country drilldown
-                </button>
-              </article>
-            ))}
-          </div>
-        </section>
-
+      <div className="fade-in-delay-2">
         <section className="operations-card propagation-drilldown-panel">
           <div className="intel-section-head">
             <div className="intel-eyebrow">
@@ -433,9 +405,6 @@ export default function GeoThreatMap() {
               Country Drilldown
             </div>
             <h2 className="intel-section-title">{countryDetails.country || 'Select a country from the map feed'}</h2>
-            <p className="intel-section-copy">
-              Indicators and events tied to the selected country and time range are surfaced here in a tighter operations rail.
-            </p>
           </div>
           {countryDetails.items.length ? (
             <ExpandableFeed
@@ -463,7 +432,7 @@ export default function GeoThreatMap() {
               )}
             />
           ) : (
-            <div className="intel-empty-inline">No country selected yet. Use the marker feed or threat flow rail to open a country drilldown.</div>
+            <div className="intel-empty-inline">No country selected yet. Use the marker feed to open a country drilldown.</div>
           )}
         </section>
       </div>

@@ -127,9 +127,6 @@ export default function IntelTimeline() {
             Filters
           </div>
           <h2 className="intel-section-title">Focus the timeline</h2>
-          <p className="intel-section-copy intel-reading-block">
-            Filter the live feed by source, threat level, and time range.
-          </p>
         </div>
 
         <div className="intel-filter-grid">
@@ -172,7 +169,7 @@ export default function IntelTimeline() {
       {!loading && !items.length ? (
         <IntelEmptyState
           title="No timeline events match these filters"
-          copy="The unified timeline only keeps suspicious and threat activity. Relax the filters, run a fresh scan, or wait for automated collection to add new public signals."
+          copy="The timeline keeps only suspicious and threat activity. Relax the filters or run a fresh scan."
           actionLabel="Open Threat Intel"
           actionTo="/threat-intel"
         />
@@ -186,9 +183,6 @@ export default function IntelTimeline() {
               Live Feed
             </div>
             <h2 className="intel-section-title">Newest intelligence and scan activity</h2>
-            <p className="intel-section-copy intel-reading-block">
-              Each row captures the event source, verdict, timing, and a direct path into IOC details when the event is tied to a concrete indicator.
-            </p>
           </div>
 
           <ExpandableFeed

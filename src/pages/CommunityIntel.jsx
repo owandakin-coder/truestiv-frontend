@@ -76,16 +76,13 @@ export default function CommunityIntel() {
             <Users size={14} />
             Community Feed
           </div>
-          <h2 className="intel-section-title">Centered view of recent community intelligence</h2>
-          <p className="intel-section-copy intel-reading-block">
-            Anyone can browse this feed to understand what the platform and its users are surfacing most recently.
-          </p>
+          <h2 className="intel-section-title">Recent community intelligence</h2>
         </div>
 
         {!loading && !items.length ? (
           <IntelEmptyState
             title="No community intelligence has been published yet"
-            copy="The public community board fills only with suspicious and threat findings. Run a scanner request or promote a strong analysis result to help seed the shared feed."
+            copy="Only suspicious and threat findings appear here. Run a scanner request or promote a strong analysis result to seed the feed."
             actionLabel="Open Investigation Center"
             actionTo="/investigation-center/scanner"
           />

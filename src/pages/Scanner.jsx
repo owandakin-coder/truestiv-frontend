@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import ExpandableFeed from '../components/ExpandableFeed'
 import ResultCard from '../components/ResultCard'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -214,16 +215,12 @@ export default function Scanner({ embedded = false }) {
       {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
-            <div className="portal-hero-main">
-              <div className="portal-hero-kicker-row">
-                <div className="portal-hero-kicker-dot" />
-                <span className="portal-hero-kicker-label">Public IOC Scanner</span>
-              </div>
-              <h1 className="portal-hero-title">Scanner <span className="gradient-text">Workspace</span></h1>
-              <p className="portal-hero-copy">Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow.</p>
-            </div>
-          </section>
+          <PortalHero
+            kicker="Public IOC Scanner"
+            title={<><span>Scanner </span><span className="gradient-text">Workspace</span></>}
+            copy="Run single IOC checks or submit bulk lists to push high-signal findings into the public intelligence flow."
+            className="investigation-hero fade-in"
+          />
         ) : null}
 
         <div className="investigation-console-grid">

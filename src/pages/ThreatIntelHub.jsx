@@ -4,6 +4,7 @@ import { GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -61,22 +62,21 @@ export default function ThreatIntelHub() {
 
   return (
     <section className="intel-shell zone-threat-intel">
-      <div className="intel-hero-card portal-hero portal-hero-single threat-intel-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Public Threat Intelligence</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">External feed collection and public incident context.</h1>
-          <p className="portal-hero-copy">Recurring indicators, public briefs, and live collection in one public surface.</p>
-          <div className="intel-hero-actions">
+      <PortalHero
+        kicker="Public Threat Intelligence"
+        title="External feed collection and public incident context."
+        copy="Recurring indicators, public briefs, and live collection in one public surface."
+        className="threat-intel-hero fade-in"
+        titleWide
+        actions={
+          <>
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
             </button>
             <Link className="intel-button ghost" to="/campaign-clusters">Open campaign view</Link>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
 

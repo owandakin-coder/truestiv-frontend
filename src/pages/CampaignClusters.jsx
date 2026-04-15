@@ -4,6 +4,7 @@ import { GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
@@ -70,16 +71,13 @@ export default function CampaignClusters() {
   const selected = payload?.selected || null
   return (
     <section className="intel-shell zone-campaigns">
-      <div className="intel-hero-card portal-hero portal-hero-single campaign-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Campaign / Cluster View</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">Related public signals grouped into actionable clusters.</h1>
-          <p className="portal-hero-copy">Recurring public signals grouped into the clearest active clusters.</p>
-        </div>
-      </div>
+      <PortalHero
+        kicker="Campaign / Cluster View"
+        title="Related public signals grouped into actionable clusters."
+        copy="Recurring public signals grouped into the clearest active clusters."
+        className="campaign-hero fade-in"
+        titleWide
+      />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading campaign clusters...</div> : null}

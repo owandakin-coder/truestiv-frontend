@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Globe2, ScanSearch, Waypoints } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
@@ -214,16 +215,13 @@ function LookupCenter() {
   const headerAnalysis = headerPayload?.analysis
   return (
     <section className="intel-shell zone-lookup">
-      <div className="intel-hero-card portal-hero portal-hero-single lookup-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Lookup Center</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">One workspace for IP, domain, and email header investigation.</h1>
-          <p className="portal-hero-copy">Move between IP, domain, and header enrichment without leaving the same desk.</p>
-        </div>
-      </div>
+      <PortalHero
+        kicker="Lookup Center"
+        title="One workspace for IP, domain, and email header investigation."
+        copy="Move between IP, domain, and header enrichment without leaving the same desk."
+        className="lookup-hero fade-in"
+        titleWide
+      />
 
       <section className="intel-section-card lookup-intake-panel fade-in-delay-1">
         <LookupTabs activeMode={activeMode} navigate={navigate} />

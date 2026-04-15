@@ -13,6 +13,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -165,16 +166,12 @@ export default function MediaLab({ embedded = false }) {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
-          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 32 }}>
-            <div className="portal-hero-main">
-              <div className="portal-hero-kicker-row">
-                <div className="portal-hero-kicker-dot" />
-                <span className="portal-hero-kicker-label">Media Threat Intelligence</span>
-              </div>
-              <h1 className="portal-hero-title">Media <span className="gradient-text">Lab</span></h1>
-              <p className="portal-hero-copy">Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph.</p>
-            </div>
-          </section>
+          <PortalHero
+            kicker="Media Threat Intelligence"
+            title={<><span>Media </span><span className="gradient-text">Lab</span></>}
+            copy="Upload images, videos, or audio for deepfake scoring, OCR extraction, and artifact pivots into the public intel graph."
+            className="investigation-hero fade-in"
+          />
         ) : null}
 
         <div className="investigation-console-grid">

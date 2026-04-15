@@ -4,6 +4,7 @@ import { Users } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -53,19 +54,18 @@ export default function CommunityIntel() {
 
   return (
     <section className="intel-shell zone-community">
-      <div className="intel-hero-card portal-hero portal-hero-single community-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Public Community Intelligence</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">Open threat submissions and shared public indicators.</h1>
-          <p className="portal-hero-copy">A public board of moderated suspicious and threat signals.</p>
+      <PortalHero
+        kicker="Public Community Intelligence"
+        title="Open threat submissions and shared public indicators."
+        copy="A public board of moderated suspicious and threat signals."
+        className="community-hero fade-in"
+        titleWide
+        actions={(
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
-        </div>
-      </div>
+        )}
+      />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading community intelligence...</div> : null}

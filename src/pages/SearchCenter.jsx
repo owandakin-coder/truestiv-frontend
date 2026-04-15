@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { Radar, Search, ShieldAlert } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { formatRelativeDate } from '../utils/intelTools'
@@ -71,16 +72,13 @@ export default function SearchCenter() {
 
   return (
     <section className="intel-shell">
-      <div className="intel-hero-card portal-hero portal-hero-single fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Global Search</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">Find indicators, senders, and subjects across Trustive AI.</h1>
-          <p className="portal-hero-copy">Search once and jump directly into scanner history, community visibility, message analyses, or media findings.</p>
-        </div>
-      </div>
+      <PortalHero
+        kicker="Global Search"
+        title="Find indicators, senders, and subjects across Trustive AI."
+        copy="Search once, then jump straight into the strongest matching public signal."
+        className="fade-in"
+        titleWide
+      />
 
       <section className="intel-section-card fade-in-delay-1">
         <form onSubmit={submit} className="intel-search-row">
@@ -116,9 +114,6 @@ export default function SearchCenter() {
               Search Results
             </div>
             <h2 className="intel-section-title">Matched intelligence context</h2>
-            <p className="intel-section-copy intel-reading-block">
-              Results are restricted to suspicious and threat findings so the search surface stays high-signal.
-            </p>
           </div>
 
           <div className="feed-rail">

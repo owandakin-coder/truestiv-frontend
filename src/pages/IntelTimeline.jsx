@@ -4,6 +4,7 @@ import { Activity, Clock3, Waves } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
@@ -96,19 +97,18 @@ export default function IntelTimeline() {
   const spotlight = items[0] || null
   return (
     <section className="intel-shell zone-timeline">
-      <div className="intel-hero-card portal-hero portal-hero-single timeline-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Unified Intel Timeline</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">Scanner activity, community publishing, and analysis verdicts in one feed.</h1>
-          <p className="portal-hero-copy">The shortest path from a new event to its IOC context.</p>
+      <PortalHero
+        kicker="Unified Intel Timeline"
+        title="Scanner activity, community publishing, and analysis verdicts in one feed."
+        copy="The shortest path from a new event to its IOC context."
+        className="timeline-hero fade-in"
+        titleWide
+        actions={(
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}
           </button>
-        </div>
-      </div>
+        )}
+      />
 
       {spotlight ? (
         <section className="intel-section-card timeline-spotlight-panel fade-in-delay-1">

@@ -5,6 +5,7 @@ import { Globe2, MapPin, Radar } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 import ExpandableFeed from '../components/ExpandableFeed'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 
@@ -186,36 +187,22 @@ export default function GeoThreatMap() {
 
   return (
     <div className="map-shell zone-propagation">
-      <section className="portal-hero map-hero fade-in">
-        <div className="portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Threat Geography</span>
-          </div>
-          <h1 className="portal-hero-title">Geo <span className="gradient-text">Threat Map</span></h1>
-          <p className="portal-hero-copy">Real-world threat locations from community indicators and recent scanned IP activity.</p>
-          <div style={{ marginTop: 18, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <PortalHero
+        kicker="Threat Geography"
+        title={<><span>Geo </span><span className="gradient-text">Threat Map</span></>}
+        copy="Real-world threat locations from community indicators and recent scanned IP activity."
+        className="map-hero fade-in"
+        actions={
+          <>
             <button className="console-cta" type="button" onClick={() => setLive((current) => !current)}>
               {live ? 'Live refresh on' : 'Live refresh off'}
             </button>
             <button className="console-tab" type="button" onClick={() => setPlaybackIndex(-1)}>
               Reset playback
             </button>
-          </div>
-        </div>
-        <div className="portal-hero-rail">
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Map mode</span>
-            <strong>Live geography</strong>
-            <p>Clusters and playback show where public indicators are concentrating right now.</p>
-          </article>
-          <article className="portal-spotlight-card">
-            <span className="portal-spotlight-kicker">Feed behavior</span>
-            <strong>Trimmed marker list</strong>
-            <p>The marker feed now opens with a short, readable slice and expands only when needed.</p>
-          </article>
-        </div>
-      </section>
+          </>
+        }
+      />
 
       <section className="console-surface propagation-ops-console fade-in-delay-1">
         <div className="console-heading">
@@ -293,31 +280,6 @@ export default function GeoThreatMap() {
         </div>
       ) : null}
 
-      <section className="dossier-surface fade-in-delay-1">
-        <div className="map-summary-grid">
-          <article className="map-stat">
-            <span className="signal-strip-label">Visible markers</span>
-            <strong>{playbackMarkers.length}</strong>
-            <p>Markers currently rendered into the live world view.</p>
-          </article>
-          <article className="map-stat">
-            <span className="signal-strip-label">Clustered points</span>
-            <strong>{mapMarkers.length}</strong>
-            <p>Geo buckets after clustering the current playback slice.</p>
-          </article>
-          <article className="map-stat">
-            <span className="signal-strip-label">Countries</span>
-            <strong>{countryFlows.length}</strong>
-            <p>Active geographies carrying threat pressure right now.</p>
-          </article>
-          <article className="map-stat">
-            <span className="signal-strip-label">Feed markers</span>
-            <strong>{feedMarkers.length}</strong>
-            <p>Latest marker feed rows kept visible without extra filters.</p>
-          </article>
-        </div>
-      </section>
-
       <div className="map-layout">
         <section className="dossier-surface propagation-map-panel">
           <div className="console-heading" style={{ marginBottom: 16 }}>
@@ -325,7 +287,7 @@ export default function GeoThreatMap() {
               <Globe2 size={18} color={palette.blue} />
               World Map
             </h2>
-            <p>The map stretches wider now so the geographic signal is the main event, not a small center card.</p>
+            <p>{playbackMarkers.length} live markers, {mapMarkers.length} clustered points, {countryFlows.length} active countries.</p>
           </div>
 
           <div className="map-canvas">

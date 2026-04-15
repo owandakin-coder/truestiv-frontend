@@ -4,6 +4,7 @@ import { FileImage, ScanSearch, ShieldAlert } from 'lucide-react'
 import Analysis from './Analysis'
 import MediaLab from './MediaLab'
 import Scanner from './Scanner'
+import PortalHero from '../components/PortalHero'
 
 const investigationTabs = [
   {
@@ -37,16 +38,13 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell zone-investigation">
-      <div className="intel-hero-card portal-hero portal-hero-single investigation-shell-hero fade-in">
-        <div className="intel-hero-content portal-hero-main">
-          <div className="portal-hero-kicker-row">
-            <div className="portal-hero-kicker-dot" />
-            <span className="portal-hero-kicker-label">Investigation Center</span>
-          </div>
-          <h1 className="portal-hero-title portal-hero-title-wide">{activeTab.title}</h1>
-          <p className="portal-hero-copy">{activeTab.copy}</p>
-        </div>
-      </div>
+      <PortalHero
+        kicker="Investigation Center"
+        title={activeTab.title}
+        copy={activeTab.copy}
+        className="investigation-shell-hero fade-in"
+        titleWide
+      />
 
       <section className="intel-section-card investigation-hub-panel fade-in-delay-1">
         <div className="investigation-tab-row">

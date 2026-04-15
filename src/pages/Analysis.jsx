@@ -16,6 +16,7 @@ import {
 import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
+import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -321,16 +322,12 @@ export default function Analysis({ embedded = false }) {
       {!embedded ? <div className="grid-dots" /> : null}
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
         {!embedded ? (
-          <section className="portal-hero portal-hero-single investigation-hero fade-in" style={{ marginBottom: 8 }}>
-            <div className="portal-hero-main">
-              <div className="portal-hero-kicker-row">
-                <div className="portal-hero-kicker-dot" />
-                <span className="portal-hero-kicker-label">Analysis Studio</span>
-              </div>
-              <h1 className="portal-hero-title">Message <span className="gradient-text">Analysis</span></h1>
-              <p className="portal-hero-copy">Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context.</p>
-            </div>
-          </section>
+          <PortalHero
+            kicker="Analysis Studio"
+            title={<><span>Message </span><span className="gradient-text">Analysis</span></>}
+            copy="Submit suspicious email, SMS, or WhatsApp content and get a clear verdict with direct pivots into IOC and infrastructure context."
+            className="investigation-hero fade-in"
+          />
         ) : null}
 
         <div className="investigation-console-grid" style={{ alignItems: 'start' }}>

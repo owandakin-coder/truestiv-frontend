@@ -153,7 +153,7 @@ body {
 
 .portal-hero-title {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(2.5rem, 5vw, 4.25rem);
+  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
   line-height: 1.02;
   font-weight: 800;
   color: var(--portal-text-soft);
@@ -1729,8 +1729,8 @@ body {
     right: 4%;
   }
   .portal-hero-title {
-    font-size: clamp(2rem, 10vw, 3rem);
-  }
+      font-size: clamp(1.7rem, 8vw, 2.45rem);
+    }
   .portal-hero-copy {
     font-size: 13px;
   }

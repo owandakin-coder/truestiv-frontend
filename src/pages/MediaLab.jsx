@@ -63,6 +63,7 @@ export default function MediaLab({ embedded = false }) {
   const [history, setHistory] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
   const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
+  const [showResultOnly, setShowResultOnly] = useState(false)
 
   const loadHistory = async () => {
     try {
@@ -93,6 +94,7 @@ export default function MediaLab({ embedded = false }) {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       setResult(data)
+      setShowResultOnly(true)
       if (isActionable(data?.threat_level)) {
         await loadHistory()
       }
@@ -100,6 +102,7 @@ export default function MediaLab({ embedded = false }) {
       setResult(null)
       setPivot({ loading: false, error: '', result: null, type: 'url', value: '' })
       setError(getErrorMessage(requestError, 'Media analysis failed. Please try again.'))
+      setShowResultOnly(false)
     } finally {
       setLoading(false)
     }
@@ -108,6 +111,14 @@ export default function MediaLab({ embedded = false }) {
   const onFileSelected = async (selectedFile) => {
     setFile(selectedFile)
     await runAnalysis(selectedFile)
+  }
+
+  const startNewAnalysis = () => {
+    setResult(null)
+    setShowResultOnly(false)
+    setError('')
+    setPublishState({ status: 'idle', message: '' })
+    setFile(null)
   }
 
   const iocs = useMemo(() => flattenIocs(extractIocsFromText(result?.ocr_text, result?.summary, file?.name)), [result, file])
@@ -174,140 +185,137 @@ export default function MediaLab({ embedded = false }) {
           />
         ) : null}
 
-        <div className="investigation-console-grid">
-          <section
-            className="console-surface fade-in"
-          >
-            <div className="console-heading">
-              <h2>Upload suspicious media</h2>
-              <p>Choose a media type, drop a file, and inspect the forensic output.</p>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
-              <div>
-                <span className="analysis-meta-label">Media triage</span>
+        {!showResultOnly ? (
+          <div className="investigation-console-grid">
+            {/* Upload panel */}
+            <section className="console-surface fade-in">
+              <div className="console-heading">
+                <h2>Upload suspicious media</h2>
+                <p>Choose a media type, drop a file, and inspect the forensic output.</p>
               </div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 500, background: '#08111f', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
-                <Sparkles size={16} />
-                Deepfake and OCR
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 20, alignItems: 'center', marginBottom: 24, flexWrap: 'wrap' }}>
+                <div>
+                  <span className="analysis-meta-label">Media triage</span>
+                </div>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: palette.orange, fontWeight: 500, background: '#08111f', border: '1px solid #1e3a5f', borderRadius: 8, padding: '10px 14px', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>
+                  <Sparkles size={16} />
+                  Deepfake and OCR
+                </div>
               </div>
-            </div>
 
-            <div className="console-tab-grid" style={{ marginBottom: 24 }}>
-              {mediaTabs.map(({ id, label, icon: Icon }) => {
-                const active = activeTab === id
-                return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setActiveTab(id)}
-                    className={`console-tab ${active ? 'is-active' : ''}`}
-                  >
-                    <Icon size={16} color={active ? palette.orange : palette.subtle} />
-                    {label}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button
-              type="button"
-              className="media-dropzone"
-              onDragOver={(event) => {
-                event.preventDefault()
-                setDragOver(true)
-              }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={async (event) => {
-                event.preventDefault()
-                setDragOver(false)
-                const selectedFile = event.dataTransfer.files?.[0]
-                if (selectedFile) await onFileSelected(selectedFile)
-              }}
-              onClick={() => inputRef.current?.click()}
-              style={{
-                width: '100%',
-                textAlign: 'center',
-                cursor: 'pointer',
-                background: dragOver ? 'rgba(37,99,235,0.12)' : palette.cardStrong,
-                border: dragOver ? '1px solid rgba(56,189,248,0.28)' : palette.border,
-              }}
-            >
-              <UploadCloud size={32} color={palette.orange} />
-              <h3 style={{ color: palette.text, fontSize: 20, fontWeight: 800, marginTop: 16 }}>
-                Drag and drop a {activeTab} file
-              </h3>
-              <p style={{ color: palette.muted, marginTop: 8 }}>
-                Or click to choose a local file for analysis.
-              </p>
-              <div className="console-cta" style={{ marginTop: 18, display: 'inline-flex' }}>
-                <ScanSearch size={16} />
-                Select File
+              <div className="console-tab-grid" style={{ marginBottom: 24 }}>
+                {mediaTabs.map(({ id, label, icon: Icon }) => {
+                  const active = activeTab === id
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={() => setActiveTab(id)}
+                      className={`console-tab ${active ? 'is-active' : ''}`}
+                    >
+                      <Icon size={16} color={active ? palette.orange : palette.subtle} />
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
-              {file ? <p style={{ marginTop: 14, color: palette.subtle, fontSize: 13 }}>Current file: {file.name}</p> : null}
-            </button>
 
-            <input
-              ref={inputRef}
-              type="file"
-              hidden
-              accept={activeTab === 'image' ? 'image/*' : activeTab === 'video' ? 'video/*' : 'audio/*'}
-              onChange={async (event) => {
-                const selectedFile = event.target.files?.[0]
-                if (selectedFile) await onFileSelected(selectedFile)
-              }}
-            />
+              <button
+                type="button"
+                className="media-dropzone"
+                onDragOver={(event) => {
+                  event.preventDefault()
+                  setDragOver(true)
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={async (event) => {
+                  event.preventDefault()
+                  setDragOver(false)
+                  const selectedFile = event.dataTransfer.files?.[0]
+                  if (selectedFile) await onFileSelected(selectedFile)
+                }}
+                onClick={() => inputRef.current?.click()}
+                style={{
+                  width: '100%',
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  background: dragOver ? 'rgba(37,99,235,0.12)' : palette.cardStrong,
+                  border: dragOver ? '1px solid rgba(56,189,248,0.28)' : palette.border,
+                }}
+              >
+                <UploadCloud size={32} color={palette.orange} />
+                <h3 style={{ color: palette.text, fontSize: 20, fontWeight: 800, marginTop: 16 }}>
+                  Drag and drop a {activeTab} file
+                </h3>
+                <p style={{ color: palette.muted, marginTop: 8 }}>
+                  Or click to choose a local file for analysis.
+                </p>
+                <div className="console-cta" style={{ marginTop: 18, display: 'inline-flex' }}>
+                  <ScanSearch size={16} />
+                  Select File
+                </div>
+                {file ? <p style={{ marginTop: 14, color: palette.subtle, fontSize: 13 }}>Current file: {file.name}</p> : null}
+              </button>
 
-            <div className="feed-surface" style={{ marginTop: 20, padding: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <Zap size={16} color={palette.orange} />
-                <span className="analysis-meta-label">Recent Media Runs</span>
-              </div>
-              {!history.length ? (
-                <IntelEmptyState
-                  title="No suspicious media runs yet"
-                  copy="Only suspicious and threat media analyses are stored here."
-                  examples={[
-                    { label: 'Try image analysis', onClick: () => setActiveTab('image') },
-                    { label: 'Switch to audio triage', onClick: () => setActiveTab('audio') },
-                  ]}
-                />
-              ) : (
-                <ExpandableFeed
-                  items={history.filter((entry) => isActionable(entry?.threat_level))}
-                  initialCount={4}
-                  className="recent-rail"
-                  renderItem={(entry) => (
-                    <div key={entry.id} className="recent-rail-item">
-                      <div className="recent-rail-main">
-                        <strong>{entry.filename}</strong>
-                        <div className="recent-rail-copy">{entry.summary}</div>
+              <input
+                ref={inputRef}
+                type="file"
+                hidden
+                accept={activeTab === 'image' ? 'image/*' : activeTab === 'video' ? 'video/*' : 'audio/*'}
+                onChange={async (event) => {
+                  const selectedFile = event.target.files?.[0]
+                  if (selectedFile) await onFileSelected(selectedFile)
+                }}
+              />
+
+              <div className="feed-surface" style={{ marginTop: 20, padding: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <Zap size={16} color={palette.orange} />
+                  <span className="analysis-meta-label">Recent Media Runs</span>
+                </div>
+                {!history.length ? (
+                  <IntelEmptyState
+                    title="No suspicious media runs yet"
+                    copy="Only suspicious and threat media analyses are stored here."
+                    examples={[
+                      { label: 'Try image analysis', onClick: () => setActiveTab('image') },
+                      { label: 'Switch to audio triage', onClick: () => setActiveTab('audio') },
+                    ]}
+                  />
+                ) : (
+                  <ExpandableFeed
+                    items={history.filter((entry) => isActionable(entry?.threat_level))}
+                    initialCount={4}
+                    className="recent-rail"
+                    renderItem={(entry) => (
+                      <div key={entry.id} className="recent-rail-item">
+                        <div className="recent-rail-main">
+                          <strong>{entry.filename}</strong>
+                          <div className="recent-rail-copy">{entry.summary}</div>
+                        </div>
+                        <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(37,99,235,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12, width: 'fit-content' }}>
+                          {normalizeThreatLevel(entry.threat_level)}
+                        </span>
                       </div>
-                      <span style={{ padding: '8px 10px', borderRadius: 999, background: 'rgba(37,99,235,0.1)', color: palette.orange, fontWeight: 800, fontSize: 12, width: 'fit-content' }}>
-                        {normalizeThreatLevel(entry.threat_level)}
-                      </span>
-                    </div>
-                  )}
-                />
-              )}
-            </div>
-
-            {error ? (
-              <div className="console-status" style={{ marginTop: 20, borderColor: 'rgba(251,191,36,0.18)', color: '#fbbf24', fontWeight: 600 }}>
-                {error}
+                    )}
+                  />
+                )}
               </div>
-            ) : null}
-          </section>
 
-          <section
-            className="dossier-surface fade-in"
-          >
-            <div className="console-heading" style={{ marginBottom: 20 }}>
-              <h2>Media analysis result</h2>
-              <p>Verdict first, then OCR and artifacts.</p>
-            </div>
+              {error ? (
+                <div className="console-status" style={{ marginTop: 20, borderColor: 'rgba(251,191,36,0.18)', color: '#fbbf24', fontWeight: 600 }}>
+                  {error}
+                </div>
+              ) : null}
+            </section>
 
-            {!result && !loading ? (
+            {/* Right panel – empty state (result area) */}
+            <section className="dossier-surface fade-in">
+              <div className="console-heading" style={{ marginBottom: 20 }}>
+                <h2>Media analysis result</h2>
+                <p>Verdict first, then OCR and artifacts.</p>
+              </div>
               <IntelEmptyState
                 title="Upload media to begin analysis"
                 copy="The result view will surface verdict, OCR, and artifacts."
@@ -317,18 +325,24 @@ export default function MediaLab({ embedded = false }) {
                   { label: 'Video workflow', onClick: () => setActiveTab('video') },
                 ]}
               />
-            ) : null}
-
-            {loading ? (
-              <div style={{ minHeight: 280, display: 'grid', placeItems: 'center', borderRadius: 22, background: palette.cardStrong, border: palette.border }}>
-                <div style={{ textAlign: 'center', color: palette.muted }}>
-                  <Loader2 size={24} className="analysis-spinner" />
-                  <p style={{ marginTop: 14 }}>Analyzing {activeTab} media...</p>
-                </div>
-              </div>
-            ) : null}
-
-            {result && !loading ? (
+            </section>
+          </div>
+        ) : (
+          // Modern centered result view – no "Media analysis result" heading
+          <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto', padding: '20px' }}>
+            <div style={{ marginBottom: 24, textAlign: 'center' }}>
+              <button onClick={startNewAnalysis} className="console-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                ← New Analysis
+              </button>
+            </div>
+            <div style={{
+              background: palette.card,
+              border: `1px solid ${palette.border}`,
+              borderRadius: 28,
+              padding: '32px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(56,189,248,0.1)',
+              backdropFilter: 'blur(8px)',
+            }}>
               <div className="split-dossier">
                 <div className="split-dossier-row">
                   <div className="brief-panel">
@@ -368,9 +382,9 @@ export default function MediaLab({ embedded = false }) {
                 </div>
 
                 <div className="brief-panel">
-                    <div>
-                      <div className="analysis-meta-label">Public Actions</div>
-                    </div>
+                  <div>
+                    <div className="analysis-meta-label">Public Actions</div>
+                  </div>
                   <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
                     <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
                       {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
@@ -405,9 +419,9 @@ export default function MediaLab({ embedded = false }) {
                   )}
                 </div>
               </div>
-            ) : null}
-          </section>
-        </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

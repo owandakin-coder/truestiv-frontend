@@ -1,10 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { FileImage, ScanSearch, ShieldAlert } from 'lucide-react'
+import { ScanSearch, ShieldAlert } from 'lucide-react'
 
 import Analysis from './Analysis'
-import MediaLab from './MediaLab'
 import Scanner from './Scanner'
-import PortalHero from '../components/PortalHero'
 
 const investigationTabs = [
   {
@@ -13,7 +11,7 @@ const investigationTabs = [
     icon: ShieldAlert,
     titleMain: 'Message Analysis',
     titleHighlight: 'AI-Powered',
-    copy: 'Email, SMS, and Chats — one unified workspace.',
+    copy: 'Email, SMS, and chats in one unified workspace.',
   },
   {
     id: 'scanner',
@@ -22,14 +20,6 @@ const investigationTabs = [
     titleMain: 'Public Scanner',
     titleHighlight: 'Multi-Engine',
     copy: 'Inspect suspicious links and obvious phishing patterns.',
-  },
-  {
-    id: 'media-lab',
-    label: 'Media Lab',
-    icon: FileImage,
-    titleMain: 'Media Lab',
-    titleHighlight: 'Deepfake & OCR',
-    copy: 'Images, video, and audio — with deepfake detection and OCR.',
   },
 ]
 
@@ -41,7 +31,6 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell zone-investigation">
-      {/* Simple hero – exactly like the screenshot */}
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
           <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8' }} />
@@ -58,8 +47,10 @@ export default function InvestigationCenter() {
         </p>
       </div>
 
-      {/* Clean tab bar – no card, no background, only border-bottom */}
-      <div className="investigation-tab-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px', paddingBottom: '0' }}>
+      <div
+        className="investigation-tab-row"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px', paddingBottom: '0' }}
+      >
         {investigationTabs.map((tab) => {
           const Icon = tab.icon
           const active = tab.id === activeTab.id
@@ -88,7 +79,6 @@ export default function InvestigationCenter() {
       <section className="fade-in-delay-2" style={{ position: 'relative', zIndex: 1 }}>
         {activeTab.id === 'analysis' && <Analysis embedded />}
         {activeTab.id === 'scanner' && <Scanner embedded />}
-        {activeTab.id === 'media-lab' && <MediaLab embedded />}
       </section>
     </section>
   )

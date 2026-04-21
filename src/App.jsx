@@ -95,7 +95,7 @@ function App() {
 
         <Route path="/analysis" element={<Navigate to="/investigation-center/analysis" replace />} />
         <Route path="/scanner" element={<Navigate to="/investigation-center/scanner" replace />} />
-        <Route path="/media-lab" element={<Navigate to="/investigation-center/media-lab" replace />} />
+        <Route path="/media-lab" element={<Navigate to="/investigation-center/scanner" replace />} />
         <Route path="/dashboard" element={<Navigate to="/investigation-center/scanner" replace />} />
         <Route path="/settings" element={<Navigate to="/investigation-center/scanner" replace />} />
         <Route path="/developer" element={<Navigate to="/investigation-center/scanner" replace />} />

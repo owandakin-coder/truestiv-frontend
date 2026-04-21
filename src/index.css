@@ -3344,6 +3344,18 @@ body {
 .investigation-actions .intel-pill-button,
 .investigation-actions .intel-inline-link { border-radius: 8px; }
 
+.investigation-centered-flow {
+  width: min(100%, 860px);
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.scanner-console-centered,
+.investigation-feed-centered {
+  width: 100%;
+}
+
 /* Recent rail */
 .recent-rail {
   display: grid;

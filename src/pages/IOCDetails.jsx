@@ -279,37 +279,6 @@ export default function IOCDetails() {
             )}
           </Section>
 
-          <Section
-            title="Media extraction matches"
-            eyebrow={<><Waves size={14} /> Media lab</>}
-            copy="Media analyses where OCR or extracted context included this indicator."
-          >
-            {!payload.media?.length ? (
-              <div className="intel-empty-card">No media analysis matches were found for this indicator.</div>
-            ) : (
-              <div className="intel-feed-list">
-                {payload.media.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.filename || 'Media match'}</div>
-                      <div className="intel-feed-row-meta">
-                        {String(item.media_type || 'media').toUpperCase()} | {formatRelativeDate(item.created_at)}
-                      </div>
-                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                    </div>
-                    <div className="intel-meta">{item.media_type}</div>
-                    <div />
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </Section>
-
           {payload.observations?.length ? (
             <Section
               title="Infrastructure observations"

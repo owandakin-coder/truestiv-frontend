@@ -7,13 +7,11 @@ import {
   Mail,
   MessageSquareText,
   Phone,
-  Radar,
   ShieldAlert,
   Sparkles,
   Zap,
 } from 'lucide-react'
 
-import ResultCard from '../components/ResultCard'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
@@ -23,7 +21,6 @@ import {
   buildCommunityPayload,
   detectBrandImpersonation,
   extractIocsFromText,
-  flattenIocs,
   makeStorageList,
   normalizeThreatLevel,
   readStorageList,
@@ -70,13 +67,6 @@ function normalizeAnalysis(payload) {
     related_threats_count: Number(source.related_threats_count || payload?.related_threats_count || 0),
     raw: source,
   }
-}
-
-function pivotConfig(type, value) {
-  if (type === 'ip') return { path: '/api/scanner/ip/enhanced', body: { ip: value }, resultType: 'ip' }
-  if (type === 'hash') return { path: '/api/scanner/hash', body: { hash: value }, resultType: 'hash' }
-  if (type === 'domain') return { path: '/api/scanner/url', body: { url: `https://${value}` }, resultType: 'url' }
-  return { path: '/api/scanner/url', body: { url: value }, resultType: 'url' }
 }
 
 function primaryIndicator(channel, form, iocs) {
@@ -135,12 +125,10 @@ export default function Analysis({ embedded = false }) {
   const [channel, setChannel] = useState('email')
   const [form, setForm] = useState({ sender: '', subject: '', phone: '', content: '' })
   const [result, setResult] = useState(null)
-  const [ipIntel, setIpIntel] = useState([])
   const [history, setHistory] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
-  const [pivot, setPivot] = useState({ loading: false, error: '', result: null, type: 'url', value: '' })
   const [showResultOnly, setShowResultOnly] = useState(false)
 
   useEffect(() => {
@@ -177,7 +165,6 @@ export default function Analysis({ embedded = false }) {
     () => extractIocsFromText(form.sender, form.subject, form.content, ...(result?.indicators || [])),
     [form.sender, form.subject, form.content, result?.indicators]
   )
-  const allIocs = useMemo(() => flattenIocs(derivedIocs), [derivedIocs])
   const analysisRows = useMemo(() => {
     if (!result) return []
     return [
@@ -218,21 +205,6 @@ export default function Analysis({ embedded = false }) {
     setHistory(next)
   }
 
-  const fetchIpIntel = async (ips) => {
-    if (!ips.length) return setIpIntel([])
-    const responses = await Promise.all(
-      ips.slice(0, 3).map(async (ip) => {
-        try {
-          const response = await client.post('/api/scanner/ip/enhanced', { ip })
-          return { ip, data: response.data }
-        } catch {
-          return { ip, data: { threat_level: 'Unavailable', summary: 'IP intelligence is currently unavailable.' } }
-        }
-      })
-    )
-    setIpIntel(responses)
-  }
-
   const runAnalysis = async (event) => {
     event.preventDefault()
     setLoading(true)
@@ -250,12 +222,9 @@ export default function Analysis({ embedded = false }) {
       setResult(normalized)
       setShowResultOnly(true)
       saveLocalHistory(normalized)
-      const iocs = extractIocsFromText(form.sender, form.subject, form.content, ...(normalized.indicators || []))
-      await fetchIpIntel(iocs.ips)
     } catch (requestError) {
       setError(getErrorMessage(requestError, 'Unable to complete the analysis right now.'))
       setResult(null)
-      setIpIntel([])
       setShowResultOnly(false)
     } finally {
       setLoading(false)
@@ -267,25 +236,6 @@ export default function Analysis({ embedded = false }) {
     setShowResultOnly(false)
     setError('')
     setPublishState({ status: 'idle', message: '' })
-    setIpIntel([])
-    setPivot({ loading: false, error: '', result: null, type: 'url', value: '' })
-  }
-
-  const runPivot = async (type, value) => {
-    const config = pivotConfig(type, value)
-    setPivot({ loading: true, error: '', result: null, type: config.resultType, value })
-    try {
-      const response = await client.post(config.path, config.body)
-      setPivot({ loading: false, error: '', result: response.data, type: config.resultType, value })
-    } catch (requestError) {
-      setPivot({
-        loading: false,
-        error: getErrorMessage(requestError, 'Unable to enrich this IOC right now.'),
-        result: null,
-        type: config.resultType,
-        value,
-      })
-    }
   }
 
   const publishThreat = async () => {
@@ -534,8 +484,7 @@ export default function Analysis({ embedded = false }) {
         ) : null}
 
         {!showResultOnly ? (
-          <div className="investigation-console-grid" style={{ alignItems: 'start' }}>
-            {/* Left column: analysis form and history */}
+          <div className="investigation-centered-flow" style={{ alignItems: 'start' }}>
             <div style={{ display: 'grid', gap: 24 }}>
               <div className="console-surface">
                 <div className="console-heading">
@@ -610,87 +559,6 @@ export default function Analysis({ embedded = false }) {
                       </div>
                     )}
                   />
-                )}
-              </div>
-            </div>
-
-            {/* Right column: result area (empty state when no result) */}
-            <div style={{ display: 'grid', gap: 24 }}>
-              <div className="dossier-surface">
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
-                  <div>
-                    <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>Result</div>
-                    <h2 style={{ margin: '8px 0 0', fontSize: 28, fontWeight: 900 }}>Analysis outcome</h2>
-                  </div>
-                </div>
-                {!result ? (
-                  <IntelEmptyState
-                    title="Run an analysis to generate an AI-backed verdict"
-                    copy="Try a phishing-style subject, a suspicious SMS, or a WhatsApp lure."
-                    icon={Radar}
-                    examples={[
-                      { label: 'Email fraud example', onClick: () => { setChannel('email'); setForm({ sender: 'finance-update@secure-paypaI.com', subject: 'Urgent invoice confirmation', phone: '', content: 'Review the updated invoice at https://secure-paypaI-login-check.com before end of day.' }) } },
-                      { label: 'SMS lure example', onClick: () => { setChannel('sms'); setForm({ sender: '', subject: '', phone: '+1 202 555 0172', content: 'Your package is pending. Confirm delivery at https://fedex-secure-track-check.com' }) } },
-                    ]}
-                  />
-                ) : (
-                  <ResultContent />
-                )}
-              </div>
-
-              {/* IOC Context Panel */}
-              <div className="dossier-surface">
-                <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IOC Context</div>
-                  <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>IOC enrichment pivots</h2>
-                </div>
-                {!allIocs.length ? (
-                  <div style={{ borderRadius: 20, border: `1px dashed ${borderColor}`, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
-                    URLs, IPs, domains, and hashes extracted from the message and returned indicators will appear here for one-click enrichment.
-                  </div>
-                ) : (
-                  <div style={{ display: 'grid', gap: 18 }}>
-                    <div className="artifact-chip-row">
-                      {allIocs.map((item) => {
-                        const enrichable = ['url', 'ip', 'hash', 'domain'].includes(item.type)
-                        return (
-                          <button key={`${item.type}-${item.value}`} type="button" className="artifact-chip" disabled={!enrichable} onClick={() => enrichable && runPivot(item.type, item.value)} style={{ opacity: enrichable ? 1 : 0.55, cursor: enrichable ? 'pointer' : 'default' }}>
-                            {item.type.toUpperCase()}: {item.value}
-                          </button>
-                        )
-                      })}
-                    </div>
-                    {pivot.loading ? <div style={{ borderRadius: 20, border: `1px solid ${borderColor}`, background: inputColor, padding: 20, color: mutedColor, display: 'flex', alignItems: 'center', gap: 12 }}><Loader2 size={18} className="analysis-spinner" />Enriching {pivot.value}...</div> : null}
-                    {pivot.error ? <div style={{ borderRadius: 20, border: '1px solid rgba(56,189,248,0.2)', background: 'rgba(37,99,235,0.12)', padding: 16, color: '#bae6fd' }}>{pivot.error}</div> : null}
-                    {pivot.result ? <ResultCard result={pivot.result} type={pivot.type} theme={theme} /> : null}
-                  </div>
-                )}
-              </div>
-
-              {/* IP Intelligence Panel */}
-              <div className="dossier-surface">
-                <div style={{ marginBottom: 18 }}>
-                  <div style={{ fontSize: 13, color: '#7dd3fc', textTransform: 'uppercase', letterSpacing: '0.18em' }}>IP Intelligence</div>
-                  <h2 style={{ margin: '8px 0 0', fontSize: 24, fontWeight: 900 }}>Infrastructure</h2>
-                </div>
-                {!ipIntel.length ? (
-                  <div style={{ borderRadius: 20, border: `1px dashed ${borderColor}`, padding: 20, color: mutedColor, lineHeight: 1.7 }}>
-                    If the content exposes IP addresses, enhanced infrastructure intelligence will appear here automatically after the analysis completes.
-                  </div>
-                ) : (
-                  <div className="result-stack" style={{ display: 'grid', gap: 14 }}>
-                    {ipIntel.map((entry) => (
-                      <div key={entry.ip} className="brief-panel">
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                          <div style={{ fontWeight: 900, fontSize: 18 }}>{entry.ip}</div>
-                          <div style={{ padding: '8px 12px', borderRadius: 999, border: '1px solid rgba(56,189,248,0.2)', background: 'rgba(37,99,235,0.1)', color: '#bae6fd', fontWeight: 700 }}>
-                            {normalizeThreatLevel(entry.data?.threat_level || 'unknown')}
-                          </div>
-                        </div>
-                        <div style={{ color: mutedColor, lineHeight: 1.7 }}>{entry.data?.summary || 'Enhanced IP intelligence was collected for this indicator.'}</div>
-                      </div>
-                    ))}
-                  </div>
                 )}
               </div>
             </div>

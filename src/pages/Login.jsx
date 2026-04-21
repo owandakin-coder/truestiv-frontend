@@ -44,13 +44,13 @@ export default function Login() {
           </h1>
           <p style={{ color: 'rgba(191,219,254,0.74)', lineHeight: 1.8, maxWidth: 560, marginBottom: 26 }}>
             Trustive now creates a free guest workspace automatically. Launch the scanner,
-            run scans, analyze messages, review media, and inspect intelligence feeds instantly.
+            run scans, analyze messages, and inspect intelligence feeds instantly.
           </p>
 
           <div style={{ display: 'grid', gap: 14, marginBottom: 28 }}>
             {[
               'Guest token is created automatically',
-              'Analysis, scanner, and media workflows are immediately available',
+              'Analysis and scanner workflows are immediately available',
               'No signup wall and no pricing gate',
             ].map((line) => (
               <div key={line} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -82,7 +82,7 @@ export default function Login() {
             {[
               ['Analysis', 'AI verdicts, IOC extraction, enrichment pivots'],
               ['Scanner', 'URL, IP, hash, and file triage from one console'],
-              ['Media Lab', 'Deepfake, OCR, object hints, and artifact pivots'],
+              ['Lookup Center', 'IP, domain, and header pivots from one place'],
             ].map(([title, copy]) => (
               <div key={title} className="card" style={{ padding: 18, background: 'rgba(8,15,30,0.88)' }}>
                 <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>

@@ -3,7 +3,7 @@ import { Search, Shield, ScanLine, Globe, Map, ArrowRight, X, Activity, Newspape
 import { useNavigate } from 'react-router-dom'
 
 const pages = [
-  { label: 'Investigation Center', path: '/investigation-center/scanner', icon: <ScanLine size={16} />, desc: 'Scanner, message analysis, media lab, and bulk IOC triage', color: '#38bdf8' },
+  { label: 'Investigation Center', path: '/investigation-center/scanner', icon: <ScanLine size={16} />, desc: 'Scanner, message analysis, and bulk IOC triage', color: '#38bdf8' },
   { label: 'Message Analysis', path: '/investigation-center/analysis', icon: <Shield size={16} />, desc: 'Analyze suspicious emails, SMS, and WhatsApp messages', color: '#60a5fa' },
   { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Public feeds, recurring indicators, and incident briefs', color: '#f97316' },
   { label: 'Timeline', path: '/timeline', icon: <Activity size={16} />, desc: 'Unified feed of public intelligence events', color: '#22c55e' },

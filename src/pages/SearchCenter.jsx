@@ -74,10 +74,9 @@ export default function SearchCenter() {
     <section className="intel-shell">
       <PortalHero
         kicker="Global Search"
-        title="Find indicators, senders, and subjects across Trustive AI."
+        title="Global Search"
         copy="Search once, then jump straight into the strongest match."
         className="fade-in"
-        titleWide
       />
 
       <section className="intel-section-card fade-in-delay-1">

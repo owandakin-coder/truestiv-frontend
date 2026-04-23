@@ -56,10 +56,9 @@ export default function CommunityIntel() {
     <section className="intel-shell zone-community">
       <PortalHero
         kicker="Public Community Intelligence"
-        title="Open threat submissions and shared public indicators."
+        title="Public Community Signals"
         copy="A public board of moderated suspicious and threat signals."
         className="community-hero fade-in"
-        titleWide
         actions={(
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}

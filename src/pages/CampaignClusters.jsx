@@ -73,10 +73,9 @@ export default function CampaignClusters() {
     <section className="intel-shell zone-campaigns">
       <PortalHero
         kicker="Campaign / Cluster View"
-        title="Related public signals grouped into actionable clusters."
+        title="Campaign Clusters"
         copy="Recurring public signals grouped into active clusters."
         className="campaign-hero fade-in"
-        titleWide
       />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}

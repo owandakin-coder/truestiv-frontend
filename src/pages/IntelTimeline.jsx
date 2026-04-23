@@ -99,10 +99,9 @@ export default function IntelTimeline() {
     <section className="intel-shell zone-timeline">
       <PortalHero
         kicker="Unified Intel Timeline"
-        title="Scanner activity, community publishing, and analysis verdicts in one feed."
+        title="Unified Intel Timeline"
         copy="The shortest path from a new event to its IOC context."
         className="timeline-hero fade-in"
-        titleWide
 
       />
 

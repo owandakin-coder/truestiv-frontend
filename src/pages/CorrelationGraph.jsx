@@ -63,7 +63,7 @@ export default function CorrelationGraph() {
             <span className="intel-eyebrow-dot" />
             Correlation Graph
           </div>
-          <h1 className="intel-title">How this indicator connects across Trustive AI.</h1>
+          <h1 className="intel-title">Indicator Correlation</h1>
           <p className="intel-copy">
             This view links scans, analyses, media findings, community publications, and actor tags into one relationship graph.
           </p>

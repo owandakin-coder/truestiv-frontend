@@ -153,18 +153,18 @@ body {
 
 .portal-hero-title {
   font-family: 'Inter', sans-serif;
-  font-size: clamp(2.1rem, 4.2vw, 3.4rem);
-  line-height: 1.02;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  line-height: 1.08;
   font-weight: 800;
   color: var(--portal-text-soft);
   margin: 0 0 14px;
-  max-width: 14ch;
+  max-width: 24ch;
   letter-spacing: -0.05em;
   text-wrap: balance;
 }
 
 .portal-hero-title.portal-hero-title-wide {
-  max-width: 18ch;
+  max-width: 28ch;
 }
 
 .portal-hero-meta-row {
@@ -1729,7 +1729,7 @@ body {
     right: 4%;
   }
   .portal-hero-title {
-      font-size: clamp(1.7rem, 8vw, 2.45rem);
+      font-size: clamp(1.45rem, 6.6vw, 1.95rem);
     }
   .portal-hero-copy {
     font-size: 13px;

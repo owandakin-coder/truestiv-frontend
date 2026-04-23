@@ -217,10 +217,9 @@ function LookupCenter() {
     <section className="intel-shell zone-lookup">
       <PortalHero
         kicker="Lookup Center"
-        title="One workspace for IP, domain, and email header investigation."
+        title="Lookup Center"
         copy="Move between IP, domain, and header enrichment from one desk."
         className="lookup-hero fade-in"
-        titleWide
       />
 
       <section className="intel-section-card lookup-intake-panel fade-in-delay-1">

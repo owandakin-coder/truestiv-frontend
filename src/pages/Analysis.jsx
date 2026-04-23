@@ -477,7 +477,7 @@ export default function Analysis({ embedded = false }) {
         {!embedded ? (
           <PortalHero
             kicker="Analysis Studio"
-            title={<><span>Message </span><span className="gradient-text">Analysis</span></>}
+            title="Message Analysis"
             copy="Submit suspicious email, SMS, or WhatsApp content and get a clear verdict."
             className="investigation-hero fade-in"
           />

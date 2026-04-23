@@ -10,7 +10,6 @@ const investigationTabs = [
     label: 'Message Analysis',
     icon: ShieldAlert,
     titleMain: 'Message Analysis',
-    titleHighlight: 'AI-Powered',
     copy: 'Email, SMS, and chats in one unified workspace.',
   },
   {
@@ -18,7 +17,6 @@ const investigationTabs = [
     label: 'Scanner',
     icon: ScanSearch,
     titleMain: 'Public Scanner',
-    titleHighlight: 'Multi-Engine',
     copy: 'Inspect suspicious links and obvious phishing patterns.',
   },
 ]
@@ -38,9 +36,8 @@ export default function InvestigationCenter() {
             THREAT ANALYSIS HUB
           </span>
         </div>
-        <h1 style={{ fontSize: 'clamp(1.8rem, 5vw, 2.5rem)', fontWeight: 800, marginBottom: 8 }}>
-          {activeTab.titleMain}{' '}
-          <span className="gradient-text">{activeTab.titleHighlight}</span>
+        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, marginBottom: 8 }}>
+          {activeTab.titleMain}
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem', maxWidth: 600 }}>
           {activeTab.copy}

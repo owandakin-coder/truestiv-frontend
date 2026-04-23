@@ -54,10 +54,9 @@ export default function ThreatIntelHub() {
     <section className="intel-shell zone-threat-intel">
       <PortalHero
         kicker="Public Threat Intelligence"
-        title="External feed collection and public incident context."
+        title="Public Threat Intelligence"
         copy="Recurring indicators and public briefs in one surface."
         className="threat-intel-hero fade-in"
-        titleWide
         actions={
           <>
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>

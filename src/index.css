@@ -97,6 +97,11 @@ body {
   margin: 0 auto;
 }
 
+.portal-hero-left.portal-hero-single .portal-hero-main {
+  margin: 0;
+  max-width: 820px;
+}
+
 .investigation-hero.portal-hero-single .portal-hero-main {
   max-width: 920px;
 }
@@ -112,6 +117,11 @@ body {
   text-align: center;
   position: relative;
   z-index: 1;
+}
+
+.portal-hero-left .portal-hero-main {
+  justify-items: start;
+  text-align: left;
 }
 
 .portal-hero::after {
@@ -131,6 +141,12 @@ body {
   gap: 10px;
   margin-bottom: 12px;
   justify-content: center;
+}
+
+.portal-hero-left .portal-hero-kicker-row,
+.portal-hero-left .portal-hero-meta-row,
+.portal-hero-left .intel-hero-actions {
+  justify-content: flex-start;
 }
 
 .portal-hero-kicker-dot {

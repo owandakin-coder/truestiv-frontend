@@ -239,7 +239,7 @@ export default function Scanner({ embedded = false }) {
             title="Scan Anything. Instantly."
             eyebrowItems={['URL', 'IP', 'Hash', 'File', 'Bulk IOC']}
             copy="Fast threat detection with real-time intelligence."
-            className="investigation-hero fade-in"
+            className="investigation-hero portal-hero-left fade-in"
             actions={(
               <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
                 <Search size={18} />

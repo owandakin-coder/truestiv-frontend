@@ -101,7 +101,7 @@ export default function IntelTimeline() {
         kicker="Unified Intel Timeline"
         title="Unified Intel Timeline"
         copy="The shortest path from a new event to its IOC context."
-        className="timeline-hero fade-in"
+        className="timeline-hero portal-hero-left fade-in"
 
       />
 

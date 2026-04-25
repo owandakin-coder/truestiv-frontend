@@ -74,7 +74,7 @@ export default function CampaignClusters() {
       <PortalHero
         kicker="Campaign / Cluster View"
         title="Campaign Clusters"
-        copy="Recurring public signals grouped into active clusters."
+        copy="Recurring public signals grouped into clusters."
         className="campaign-hero portal-hero-left fade-in"
       />
 

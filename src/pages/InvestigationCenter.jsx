@@ -37,34 +37,37 @@ export default function InvestigationCenter() {
         className="investigation-shell-hero portal-hero-left fade-in"
       />
 
-      <div
-        className="investigation-tab-row"
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.1)', marginBottom: '24px', paddingBottom: '0' }}
-      >
-        {investigationTabs.map((tab) => {
-          const Icon = tab.icon
-          const active = tab.id === activeTab.id
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => navigate(`/investigation-center/${tab.id}`)}
-              className={`investigation-lane-button ${active ? 'is-active' : ''}`}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                borderBottom: active ? '2px solid var(--portal-blue, #38bdf8)' : '2px solid transparent',
-                borderRadius: 0,
-                padding: '8px 16px',
-                marginBottom: '-1px',
-              }}
-            >
-              <Icon size={16} />
-              <span>{tab.label}</span>
-            </button>
-          )
-        })}
-      </div>
+      <section className="intel-section-card investigation-hub-panel fade-in-delay-1">
+        <div className="investigation-hub-topline">
+          <div className="investigation-hub-copy">
+            <span className="analysis-meta-label">Workspace</span>
+            <p>Choose the fastest path: scan an IOC or analyze a message.</p>
+          </div>
+          <div className="investigation-hub-tags">
+            <span className="intel-tag-chip">Scanner first</span>
+            <span className="intel-tag-chip">Actionable history only</span>
+            <span className="intel-tag-chip">Public portal</span>
+          </div>
+        </div>
+
+        <div className="investigation-tab-row investigation-tab-row-framed">
+          {investigationTabs.map((tab) => {
+            const Icon = tab.icon
+            const active = tab.id === activeTab.id
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => navigate(`/investigation-center/${tab.id}`)}
+                className={`investigation-lane-button ${active ? 'is-active' : ''}`}
+              >
+                <Icon size={16} />
+                <span>{tab.label}</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
 
       <section className="fade-in-delay-2" style={{ position: 'relative', zIndex: 1 }}>
         {activeTab.id === 'analysis' && <Analysis embedded />}

@@ -55,7 +55,7 @@ export default function ThreatIntelHub() {
       <PortalHero
         kicker="Public Threat Intelligence"
         title="Public Threat Intelligence"
-        copy="Recurring indicators and public briefs in one surface."
+        copy="Recurring indicators and public briefs in one place."
         className="threat-intel-hero portal-hero-left fade-in"
         actions={
           <>

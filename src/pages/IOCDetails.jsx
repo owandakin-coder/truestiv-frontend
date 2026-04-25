@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
+import { DatabaseZap, Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
@@ -85,7 +85,7 @@ export default function IOCDetails() {
           </div>
           <h1 className="intel-title">{indicator}</h1>
           <p className="intel-copy">
-            Full context for this {iocType?.toUpperCase()} across server-side scan history, community publications, analysis matches, media extraction, and infrastructure observations.
+            Full context for this {iocType?.toUpperCase()} across scan history, collected intelligence, community sightings, analysis matches, and infrastructure observations.
           </p>
         </div>
       </div>
@@ -207,6 +207,37 @@ export default function IOCDetails() {
                       <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
                     </div>
                     <div className="intel-meta">{item.scan_type}</div>
+                    <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
+                    <div>
+                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
+                        {item.threat_level}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          <Section
+            title="Collected intelligence"
+            eyebrow={<><DatabaseZap size={14} /> Collection pipeline</>}
+            copy="Signals gathered by the Trustive collection engine before or beyond direct community publication."
+          >
+            {!payload.collected_signals?.length ? (
+              <div className="intel-empty-card">No collected pipeline signals are attached to this indicator yet.</div>
+            ) : (
+              <div className="intel-feed-list">
+                {payload.collected_signals.map((item) => (
+                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
+                    <div className="intel-feed-row-main">
+                      <div className="intel-indicator">{item.indicator}</div>
+                      <div className="intel-feed-row-meta">
+                        {formatRelativeDate(item.last_seen_at || item.first_seen_at)} | {(item.sources || []).join(', ') || 'collector'}
+                      </div>
+                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
+                    </div>
+                    <div className="intel-meta">{item.indicator_type}</div>
                     <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
                     <div>
                       <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>

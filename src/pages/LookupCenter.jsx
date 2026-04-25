@@ -93,6 +93,35 @@ function DossierSidePanel({ verdict, recommendation, copy, accent, children }) {
   )
 }
 
+function RecentSignalSection({ title, eyebrow, items, palette }) {
+  if (!items?.length) return null
+
+  return (
+    <section className="intel-section-card">
+      <div className="intel-section-head">
+        <div className="intel-eyebrow">{eyebrow}</div>
+        <h2 className="intel-section-title">{title}</h2>
+      </div>
+      <div className="intel-row-feed">
+        {items.map((item, index) => (
+          <div key={`${item.event_type}-${item.path || item.title}-${index}`} className="intel-row-item">
+            <div>
+              <div className="intel-row-title">{item.title || 'Collected signal'}</div>
+              <div className="intel-row-copy">{item.summary || 'Signal captured by Trustive intelligence.'}</div>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <div className="intel-row-badge" style={{ color: levelColor(item.threat_level, palette) }}>
+                {normalizeThreatLevel(item.threat_level)}
+              </div>
+              <div className="intel-row-date">{formatRelativeDate(item.created_at)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function LookupCenter() {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
@@ -375,6 +404,13 @@ function LookupCenter() {
               </div>
             </DossierSidePanel>
           </div>
+
+          <RecentSignalSection
+            title="Recent signals"
+            eyebrow="Collection and sightings"
+            items={ipPayload?.recent_events || []}
+            palette={palette}
+          />
         </>
       ) : null}
 
@@ -482,6 +518,13 @@ function LookupCenter() {
               </div>
             </DossierSidePanel>
           </div>
+
+          <RecentSignalSection
+            title="Recent signals"
+            eyebrow="Collection and sightings"
+            items={domainPayload?.recent_events || []}
+            palette={palette}
+          />
         </>
       ) : null}
 

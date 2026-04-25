@@ -91,6 +91,25 @@ function resultTitle(level) {
   return 'SAFE'
 }
 
+function scannerExamplesFor(tab) {
+  if (tab === 'url') {
+    return [{ label: 'http://example-phish.com', value: 'http://example-phish.com' }]
+  }
+  if (tab === 'ip') {
+    return [{ label: '185.220.101.42', value: '185.220.101.42' }]
+  }
+  if (tab === 'hash') {
+    return [{ label: '44d88612fea8a8f36de82e1278abb02f', value: '44d88612fea8a8f36de82e1278abb02f' }]
+  }
+  if (tab === 'file') {
+    return [{ label: 'invoice-update.docm', value: 'invoice-update.docm' }]
+  }
+  return [
+    { label: 'http://example-phish.com', value: 'http://example-phish.com' },
+    { label: '185.220.101.42', value: '185.220.101.42' },
+  ]
+}
+
 export default function Scanner({ embedded = false }) {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
@@ -237,6 +256,7 @@ export default function Scanner({ embedded = false }) {
     if (!candidate || !candidate.active) return null
     return candidate
   }, [activeTab, form.url, result])
+  const helperExamples = scannerExamplesFor(activeTab)
 
   const bulkExamples = [
     {
@@ -299,24 +319,54 @@ export default function Scanner({ embedded = false }) {
 
               <div className="console-form-grid">
                 {activeTab === 'url' ? (
-                  <label className="console-input-group">
-                    <span>URL</span>
-                    <input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" />
-                  </label>
+                  <>
+                    <label className="console-input-group">
+                      <span>URL</span>
+                      <input className="analysis-input" value={form.url} onChange={(event) => updateField('url', event.target.value)} placeholder="https://suspicious-login.example" />
+                    </label>
+                    <div className="scanner-helper">
+                      <span className="scanner-helper-label">Try:</span>
+                      {helperExamples.map((example) => (
+                        <button key={example.value} type="button" className="scanner-helper-chip" onClick={() => updateField('url', example.value)}>
+                          {example.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 ) : null}
 
                 {activeTab === 'ip' ? (
-                  <label className="console-input-group">
-                    <span>IP Address</span>
-                    <input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" />
-                  </label>
+                  <>
+                    <label className="console-input-group">
+                      <span>IP Address</span>
+                      <input className="analysis-input" value={form.ip} onChange={(event) => updateField('ip', event.target.value)} placeholder="185.220.101.42" />
+                    </label>
+                    <div className="scanner-helper">
+                      <span className="scanner-helper-label">Try:</span>
+                      {helperExamples.map((example) => (
+                        <button key={example.value} type="button" className="scanner-helper-chip" onClick={() => updateField('ip', example.value)}>
+                          {example.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 ) : null}
 
                 {activeTab === 'hash' ? (
-                  <label className="console-input-group">
-                    <span>MD5 / SHA1 / SHA256</span>
-                    <input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" />
-                  </label>
+                  <>
+                    <label className="console-input-group">
+                      <span>MD5 / SHA1 / SHA256</span>
+                      <input className="analysis-input" value={form.hash} onChange={(event) => updateField('hash', event.target.value)} placeholder="44d88612fea8a8f36de82e1278abb02f" />
+                    </label>
+                    <div className="scanner-helper">
+                      <span className="scanner-helper-label">Try:</span>
+                      {helperExamples.map((example) => (
+                        <button key={example.value} type="button" className="scanner-helper-chip" onClick={() => updateField('hash', example.value)}>
+                          {example.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 ) : null}
 
                 {activeTab === 'file' ? (
@@ -325,6 +375,14 @@ export default function Scanner({ embedded = false }) {
                       <span>Filename</span>
                       <input className="analysis-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="invoice-update.docm" />
                     </label>
+                    <div className="scanner-helper">
+                      <span className="scanner-helper-label">Try:</span>
+                      {helperExamples.map((example) => (
+                        <button key={example.value} type="button" className="scanner-helper-chip" onClick={() => updateField('filename', example.value)}>
+                          {example.label}
+                        </button>
+                      ))}
+                    </div>
                     <div className="field-grid">
                       <label className="console-input-group">
                         <span>File Size</span>
@@ -339,17 +397,32 @@ export default function Scanner({ embedded = false }) {
                 ) : null}
 
                 {activeTab === 'bulk' ? (
-                  <label className="console-input-group">
-                    <span>Bulk Indicators</span>
-                    <textarea
-                      className="analysis-textarea"
-                      rows={10}
-                      value={form.bulk_input}
-                      onChange={(event) => updateField('bulk_input', event.target.value)}
-                      placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'}
-                      style={{ minHeight: 240 }}
-                    />
-                  </label>
+                  <>
+                    <label className="console-input-group">
+                      <span>Bulk Indicators</span>
+                      <textarea
+                        className="analysis-textarea"
+                        rows={10}
+                        value={form.bulk_input}
+                        onChange={(event) => updateField('bulk_input', event.target.value)}
+                        placeholder={'Paste one indicator per line.\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'}
+                        style={{ minHeight: 240 }}
+                      />
+                    </label>
+                    <div className="scanner-helper">
+                      <span className="scanner-helper-label">Try:</span>
+                      {helperExamples.map((example) => (
+                        <button
+                          key={example.value}
+                          type="button"
+                          className="scanner-helper-chip"
+                          onClick={() => updateField('bulk_input', `${example.value}\nsecure-billing-portal.example`)}
+                        >
+                          {example.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
                 ) : null}
 
                 {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
@@ -385,27 +458,29 @@ export default function Scanner({ embedded = false }) {
                   ]}
                 />
               ) : (
-                <ExpandableFeed
-                  items={recentScans}
-                  initialCount={6}
-                  className="scanner-history-grid"
-                  renderItem={(entry) => (
-                    <article key={entry.id} className={`scanner-history-card scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
-                      <div className="scanner-history-status" />
-                      <div className="scanner-history-top">
-                        <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
-                        <span className="scanner-history-badge">{entry.threat_level}</span>
-                      </div>
-                      <div className="scanner-history-url">{entry.indicator}</div>
-                      <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
-                      <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</div>
-                      <div className="scanner-history-actions">
-                        <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
-                        <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
-                      </div>
-                    </article>
-                  )}
-                />
+                <div className="scanner-history-scroll">
+                  <ExpandableFeed
+                    items={recentScans}
+                    initialCount={6}
+                    className="scanner-history-grid"
+                    renderItem={(entry) => (
+                      <article key={entry.id} className={`scanner-history-card scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
+                        <div className="scanner-history-status" />
+                        <div className="scanner-history-top">
+                          <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
+                          <span className="scanner-history-badge">{entry.threat_level}</span>
+                        </div>
+                        <div className="scanner-history-url">{entry.indicator}</div>
+                        <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
+                        <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</div>
+                        <div className="scanner-history-actions">
+                          <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
+                          <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
+                        </div>
+                      </article>
+                    )}
+                  />
+                </div>
               )}
             </div>
           </div>

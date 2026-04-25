@@ -1367,12 +1367,25 @@ body {
 }
 
 .lookup-signal-feed {
+  display: grid;
   gap: 0;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.lookup-signal-row {
+.lookup-signal-result {
+  display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
+  gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+  background: rgba(6, 18, 34, 0.9);
+}
+
+.lookup-signal-result:last-child {
+  border-bottom: none;
 }
 
 .lookup-signal-main,
@@ -1381,10 +1394,20 @@ body {
 }
 
 .lookup-signal-side {
-  display: grid;
+  display: flex;
+  align-items: flex-start;
   justify-items: end;
-  gap: 8px;
+  justify-content: flex-end;
   text-align: right;
+}
+
+.lookup-signal-meta {
+  margin-top: 4px;
+  color: #5a8fc2;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .intel-row-badge {

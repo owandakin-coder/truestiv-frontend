@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { GitBranch, Radar } from 'lucide-react'
+import { Database, GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
@@ -17,6 +17,8 @@ export default function ThreatIntelHub() {
   const [feed, setFeed] = useState([])
   const [trending, setTrending] = useState([])
   const [briefs, setBriefs] = useState([])
+  const [collectionOverview, setCollectionOverview] = useState(null)
+  const [collectionIndicators, setCollectionIndicators] = useState([])
   const [error, setError] = useState('')
   const [live, setLive] = useState(true)
 
@@ -27,13 +29,17 @@ export default function ThreatIntelHub() {
         apiRequest('/api/community/threats'),
         apiRequest('/api/intelligence/trending-indicators?time_range=30d&limit=10'),
         apiRequest('/api/intelligence/public-incident-briefs?limit=6'),
+        apiRequest('/api/intelligence/collection/overview'),
+        apiRequest('/api/intelligence/collection/indicators?limit=8&threat_level=threat'),
       ])
-        .then(([feedPayload, trendingPayload, briefsPayload]) => {
+        .then(([feedPayload, trendingPayload, briefsPayload, collectionPayload, indicatorsPayload]) => {
           if (!active) return
           setError('')
           setFeed(feedPayload || [])
           setTrending(trendingPayload.items || [])
           setBriefs(briefsPayload.items || [])
+          setCollectionOverview(collectionPayload || null)
+          setCollectionIndicators(indicatorsPayload.items || [])
         })
         .catch((err) => {
           if (active) setError(err.message)
@@ -50,6 +56,8 @@ export default function ThreatIntelHub() {
   }, [live])
 
   const featuredBrief = briefs[0] || null
+  const summary = collectionOverview?.summary || null
+  const sourceBreakdown = collectionOverview?.source_breakdown || []
   return (
     <section className="intel-shell zone-threat-intel">
       <PortalHero
@@ -102,6 +110,89 @@ export default function ThreatIntelHub() {
                 <div className="signal-strip-label">Latest level</div>
                 <strong>{threatLabel(featuredBrief.latest_threat_level)}</strong>
               </article>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {summary ? (
+        <section className="intel-section-card threat-intel-collection-section fade-in-delay-1">
+          <div className="intel-section-head">
+            <div className="intel-eyebrow"><Database size={14} />Collection Pipeline</div>
+            <h2 className="intel-section-title">Collection pipeline</h2>
+          </div>
+
+          <div className="signal-strip">
+            <article className="signal-strip-item">
+              <div className="signal-strip-label">Raw items</div>
+              <strong className="signal-strip-value">{summary.raw_items || 0}</strong>
+              <div className="signal-strip-copy">Feed items stored before normalization.</div>
+            </article>
+            <article className="signal-strip-item">
+              <div className="signal-strip-label">Indicators</div>
+              <strong className="signal-strip-value">{summary.indicators || 0}</strong>
+              <div className="signal-strip-copy">Normalized indicators tracked across sources.</div>
+            </article>
+            <article className="signal-strip-item">
+              <div className="signal-strip-label">Actionable</div>
+              <strong className="signal-strip-value">{summary.actionable_indicators || 0}</strong>
+              <div className="signal-strip-copy">Indicators currently marked suspicious or threat.</div>
+            </article>
+            <article className="signal-strip-item">
+              <div className="signal-strip-label">Sources</div>
+              <strong className="signal-strip-value">{summary.sources || 0}</strong>
+              <div className="signal-strip-copy">Active collectors feeding the intelligence pipeline.</div>
+            </article>
+            <article className="signal-strip-item">
+              <div className="signal-strip-label">Latest run</div>
+              <strong className="signal-strip-value">{summary.latest_collection_at ? new Date(summary.latest_collection_at).toLocaleString() : 'Waiting'}</strong>
+              <div className="signal-strip-copy">Most recent scheduled or manual collection window.</div>
+            </article>
+          </div>
+
+          <div className="threat-intel-collection-grid">
+            <div className="brief-panel">
+              <div className="analysis-meta-label">Source activity</div>
+              {!sourceBreakdown.length ? (
+                <p>No collector output has been recorded yet.</p>
+              ) : (
+                <div className="collection-source-list">
+                  {sourceBreakdown.slice(0, 6).map((item) => (
+                    <div key={item.source} className="collection-source-row">
+                      <strong>{item.source}</strong>
+                      <span>{item.count} items</span>
+                      <span>confidence {Math.round((item.confidence_score || 0) * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="brief-panel">
+              <div className="analysis-meta-label">Collector spotlight</div>
+              {!collectionIndicators.length ? (
+                <p>No high-severity collected indicators yet.</p>
+              ) : (
+                <ExpandableFeed
+                  items={collectionIndicators}
+                  initialCount={4}
+                  className="flat-rail"
+                  renderItem={(item) => (
+                    <article key={`${item.indicator_type}-${item.indicator}`} className={`flat-rail-row ${threatLabel(item.threat_level)}`}>
+                      <div className="flat-rail-main">
+                        <div className="flat-rail-title">{item.indicator}</div>
+                        <div className="flat-rail-meta">
+                          {item.indicator_type} | {item.source_count} sources | {item.sightings} sightings
+                        </div>
+                        <div className="flat-rail-copy">{item.summary}</div>
+                      </div>
+                      <div className="flat-rail-side">Risk {item.risk_score}</div>
+                      <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>
+                      <div><Link className="intel-inline-link" to={buildIocPath(item.indicator_type, item.indicator)}>IOC details</Link></div>
+                    </article>
+                  )}
+                />
+              )}
             </div>
           </div>
         </section>

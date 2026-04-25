@@ -2287,6 +2287,7 @@ body {
 .zone-threat-intel .threat-intel-trending-section,
 .zone-threat-intel .threat-intel-latest-section { border-left: 3px solid #2d7de0; }
 .zone-threat-intel .threat-intel-briefs-section { border-top: 3px solid #f04040; }
+.zone-threat-intel .threat-intel-collection-section { border-top: 3px solid #22d3ee; }
 .zone-threat-intel .threat-intel-jobs-section,
 .zone-threat-intel .threat-intel-sources-section { background: #06101d; }
 
@@ -2981,6 +2982,40 @@ body {
   -webkit-line-clamp: 3;
 }
 
+.threat-intel-collection-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.collection-source-list {
+  display: grid;
+  gap: 8px;
+}
+
+.collection-source-row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 13px;
+  border: 1px solid var(--portal-border);
+  border-radius: 8px;
+  background: #08111f;
+}
+
+.collection-source-row strong {
+  color: var(--portal-text-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.collection-source-row span {
+  color: #8ab8d8;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
 .threat-intel-trending-section .compact-rail-row,
 .threat-intel-briefs-section .flat-rail-row,
 .threat-intel-latest-section .flat-rail-row,
@@ -3537,6 +3572,7 @@ body {
   .dossier-layout,
   .featured-brief,
   .featured-brief-signal-grid,
+  .threat-intel-collection-grid,
   .cluster-summary-strip,
   .flat-rail-row {
     grid-template-columns: 1fr;

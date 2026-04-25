@@ -29,6 +29,10 @@ function PlatformLayout() {
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const activeSearchQuery = useMemo(() => {
+    if (!location.pathname.startsWith('/search')) return ''
+    return new URLSearchParams(location.search).get('q') || ''
+  }, [location.pathname, location.search])
 
   const pageTitle = useMemo(() => {
     const active = navItems.find((item) => location.pathname.startsWith(item.path))
@@ -48,6 +52,14 @@ function PlatformLayout() {
   useEffect(() => {
     setMobileMenuOpen(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (location.pathname.startsWith('/search')) {
+      setQuery(activeSearchQuery)
+      return
+    }
+    setQuery('')
+  }, [activeSearchQuery, location.pathname])
 
   return (
     <div className="platform-shell">

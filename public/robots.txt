@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://trustive-ai.vercel.app/sitemap.xml

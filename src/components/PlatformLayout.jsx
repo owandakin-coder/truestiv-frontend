@@ -172,6 +172,7 @@ function PlatformLayout() {
             <span className="platform-footer-copy">Threat scanning, history, and legal guidance in one cleaner workspace.</span>
           </div>
           <div className="platform-footer-links">
+            <NavLink to="/privacy" className="platform-footer-link">Privacy Policy</NavLink>
             <NavLink to="/terms" className="platform-footer-link">Terms of Use</NavLink>
             <NavLink to="/disclaimer" className="platform-footer-link">Disclaimer</NavLink>
             <a href="mailto:contact@trustive.ai" className="platform-footer-link">Contact Us</a>

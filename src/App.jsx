@@ -16,6 +16,7 @@ const CorrelationGraph = lazy(() => import('./pages/CorrelationGraph'))
 const CampaignClusters = lazy(() => import('./pages/CampaignClusters'))
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
 const Disclaimer = lazy(() => import('./pages/Disclaimer'))
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Landing = lazy(() => import('./pages/Landing'))
@@ -93,6 +94,7 @@ function App() {
           <Route path="/search" element={<SearchCenter />} />
           <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/disclaimer" element={<Disclaimer />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
           <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
         </Route>

@@ -17,6 +17,8 @@ const CampaignClusters = lazy(() => import('./pages/CampaignClusters'))
 const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
 const Disclaimer = lazy(() => import('./pages/Disclaimer'))
 const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy'))
+const AboutMethodology = lazy(() => import('./pages/AboutMethodology'))
+const Contact = lazy(() => import('./pages/Contact'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Landing = lazy(() => import('./pages/Landing'))
@@ -92,6 +94,8 @@ function App() {
           <Route path="/threat-intel" element={<ThreatIntelHub />} />
           <Route path="/campaign-clusters" element={<CampaignClusters />} />
           <Route path="/search" element={<SearchCenter />} />
+          <Route path="/about" element={<AboutMethodology />} />
+          <Route path="/contact" element={<Contact />} />
           <Route path="/terms" element={<TermsOfUse />} />
           <Route path="/disclaimer" element={<Disclaimer />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />

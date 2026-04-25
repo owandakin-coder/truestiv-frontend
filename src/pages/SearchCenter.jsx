@@ -44,6 +44,23 @@ export default function SearchCenter() {
   const [error, setError] = useState('')
 
   const activeQuery = searchParams.get('q') || ''
+  const groupedItems = useMemo(() => {
+    const groups = {
+      collection: [],
+      community: [],
+      brief: [],
+      result: [],
+    }
+    items.forEach((item) => {
+      const kind = String(item.kind || '').toLowerCase()
+      if (kind.includes('collection')) groups.collection.push(item)
+      else if (kind.includes('community')) groups.community.push(item)
+      else if (kind.includes('brief') || kind.includes('cluster')) groups.brief.push(item)
+      else groups.result.push(item)
+    })
+    return groups
+  }, [items])
+
   useEffect(() => {
     if (!activeQuery || activeQuery.trim().length < 2) {
       setItems([])
@@ -81,7 +98,7 @@ export default function SearchCenter() {
       <PortalHero
         kicker="Global Search"
         title="Global Search"
-        copy="Search once, then jump straight into the strongest match."
+        copy="Search once, then jump into scans, collected signals, community context, and linked briefs."
         className="fade-in"
       />
 
@@ -121,37 +138,53 @@ export default function SearchCenter() {
             <h2 className="intel-section-title">Matched context</h2>
           </div>
 
-          <div className="feed-rail">
-            {items.map((item) => (
-              <article key={item.id} className={`intel-feed-row intel-feed-row-wide ${String(item.threat_level || 'info').toLowerCase()}`}>
-                <div className="intel-feed-row-main">
-                  <div className="intel-indicator">{item.title}</div>
-                  <div className="intel-feed-row-meta">
-                    {kindLabel(item.kind).toUpperCase()} | {formatRelativeDate(item.created_at)}
+          <div className="search-group-list">
+            {[
+              ['collection', 'Collection Pipeline'],
+              ['community', 'Community Signals'],
+              ['brief', 'Briefs and Clusters'],
+              ['result', 'Other Results'],
+            ].map(([groupKey, label]) => {
+              const groupItems = groupedItems[groupKey] || []
+              if (!groupItems.length) return null
+              return (
+                <section key={groupKey} className="search-group-block">
+                  <div className="signal-strip-label">{label}</div>
+                  <div className="feed-rail">
+                    {groupItems.map((item) => (
+                      <article key={item.id} className={`intel-feed-row intel-feed-row-wide ${String(item.threat_level || 'info').toLowerCase()}`}>
+                        <div className="intel-feed-row-main">
+                          <div className="intel-indicator">{item.title}</div>
+                          <div className="intel-feed-row-meta">
+                            {kindLabel(item.kind).toUpperCase()} | {formatRelativeDate(item.created_at)}
+                          </div>
+                          <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
+                        </div>
+                        <div className="intel-meta">{kindLabel(item.kind)}</div>
+                        <div />
+                        <div>
+                          <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
+                            {item.threat_level}
+                          </span>
+                        </div>
+                        <div>
+                          {item.details_path ? (
+                            <Link className="intel-inline-link" to={item.details_path}>
+                              IOC details
+                            </Link>
+                          ) : (
+                            <span className="intel-inline-link intel-inline-link-disabled">
+                              <ShieldAlert size={14} style={{ marginRight: 6 }} />
+                              Context
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    ))}
                   </div>
-                  <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                </div>
-                <div className="intel-meta">{kindLabel(item.kind)}</div>
-                <div />
-                <div>
-                  <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                    {item.threat_level}
-                  </span>
-                </div>
-                <div>
-                  {item.details_path ? (
-                    <Link className="intel-inline-link" to={item.details_path}>
-                      IOC details
-                    </Link>
-                  ) : (
-                    <span className="intel-inline-link intel-inline-link-disabled">
-                      <ShieldAlert size={14} style={{ marginRight: 6 }} />
-                      Context
-                    </span>
-                  )}
-                </div>
-              </article>
-            ))}
+                </section>
+              )
+            })}
           </div>
         </section>
       ) : null}

@@ -13,6 +13,10 @@ function threatLabel(level) {
   return value || 'unknown'
 }
 
+function firstLabel(values, fallback = 'Waiting') {
+  return values?.[0] || fallback
+}
+
 export default function ThreatIntelHub() {
   const [feed, setFeed] = useState([])
   const [trending, setTrending] = useState([])
@@ -59,11 +63,33 @@ export default function ThreatIntelHub() {
   const featuredBrief = briefs[0] || null
   const summary = collectionOverview?.summary || null
   const sourceBreakdown = collectionOverview?.source_breakdown || []
+  const overviewCards = [
+    {
+      label: 'What matters now',
+      value: featuredBrief?.title || 'Waiting for cluster activity',
+      copy: featuredBrief?.summary || 'The strongest recurring brief will appear here first.',
+    },
+    {
+      label: 'Fastest recurring signal',
+      value: trending[0]?.indicator || 'No recurring indicator yet',
+      copy: trending[0] ? `${trending[0].sightings} sightings across ${trending[0].sources?.length || 0} sources.` : 'Recurring indicators will surface here once the feed warms up.',
+    },
+    {
+      label: 'Top country',
+      value: firstLabel(featuredBrief?.countries, firstLabel(trending[0]?.countries, 'Global')),
+      copy: 'Country emphasis is derived from clustered signals and recurring activity.',
+    },
+    {
+      label: 'Collector health',
+      value: summary?.latest_collection_at ? 'Collecting' : 'Waiting',
+      copy: summary?.latest_collection_at ? `Latest run ${new Date(summary.latest_collection_at).toLocaleString()}.` : 'The collection pipeline has not produced a visible run yet.',
+    },
+  ]
   const sections = [
-    { id: 'overview', label: 'Overview' },
-    { id: 'trending', label: 'Trending' },
-    { id: 'briefs', label: 'Briefs' },
-    { id: 'latest', label: 'Latest' },
+    { id: 'overview', label: 'Overview', count: featuredBrief ? 1 : 0 },
+    { id: 'trending', label: 'Trending', count: trending.length },
+    { id: 'briefs', label: 'Briefs', count: briefs.length },
+    { id: 'latest', label: 'Latest', count: feed.length },
   ]
   return (
     <section className="intel-shell zone-threat-intel">
@@ -92,10 +118,23 @@ export default function ThreatIntelHub() {
             className={`threat-intel-category-button ${activeSection === section.id ? 'is-active' : ''}`}
             onClick={() => setActiveSection(section.id)}
           >
-            {section.label}
+            <span>{section.label}</span>
+            {section.count ? <span className="threat-intel-category-count">{section.count}</span> : null}
           </button>
         ))}
       </div>
+
+      {activeSection === 'overview' ? (
+        <section className="threat-intel-editorial-row fade-in-delay-1">
+          {overviewCards.map((card) => (
+            <article key={card.label} className="threat-intel-editorial-card">
+              <div className="signal-strip-label">{card.label}</div>
+              <strong>{card.value}</strong>
+              <p>{card.copy}</p>
+            </article>
+          ))}
+        </section>
+      ) : null}
 
       {activeSection === 'overview' && featuredBrief ? (
         <section className="featured-brief featured-brief-large fade-in-delay-1">

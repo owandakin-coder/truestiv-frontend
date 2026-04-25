@@ -4167,6 +4167,15 @@ body {
   color: #8ff6ff;
 }
 
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid rgba(0,229,255,0.9);
+  outline-offset: 2px;
+}
+
 .legal-shell {
   width: min(100%, 980px);
 }
@@ -4200,6 +4209,93 @@ body {
   line-height: 1.75;
 }
 
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.contact-card {
+  border: 1px solid rgba(0,229,255,0.12);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(19,31,49,0.96) 0%, rgba(14,22,37,0.96) 100%);
+  display: grid;
+  gap: 10px;
+}
+
+.contact-value {
+  color: #f8fbff;
+  text-decoration: none;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.contact-value:hover {
+  color: #00E5FF;
+}
+
+.threat-intel-category-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.threat-intel-category-count {
+  min-width: 22px;
+  min-height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  border: 1px solid rgba(0,229,255,0.18);
+  background: rgba(0,229,255,0.08);
+  color: #00E5FF;
+}
+
+.threat-intel-editorial-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.threat-intel-editorial-card {
+  border: 1px solid rgba(0,229,255,0.12);
+  border-radius: 18px;
+  padding: 18px;
+  background: linear-gradient(180deg, rgba(19,31,49,0.96) 0%, rgba(14,22,37,0.96) 100%);
+  display: grid;
+  gap: 8px;
+}
+
+.threat-intel-editorial-card strong {
+  color: #f8fbff;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.threat-intel-editorial-card p {
+  color: rgba(224,224,224,0.72);
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.search-group-list {
+  display: grid;
+  gap: 18px;
+}
+
+.search-group-block {
+  display: grid;
+  gap: 10px;
+}
+
 @media (max-width: 900px) {
   .scanner-hero-actions,
   .scanner-cta-row,
@@ -4214,5 +4310,10 @@ body {
 
   .portal-hero-title {
     max-width: none;
+  }
+
+  .contact-grid,
+  .threat-intel-editorial-row {
+    grid-template-columns: 1fr;
   }
 }

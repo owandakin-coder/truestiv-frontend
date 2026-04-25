@@ -3,6 +3,8 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Menu,
   Search,
+  Shield,
+  Eye,
   Globe2,
   MapPinned,
   Radar,
@@ -10,7 +12,6 @@ import {
   Activity,
   ShieldAlert,
   GitBranch,
-  Waves,
   X,
 } from 'lucide-react'
 
@@ -69,10 +70,11 @@ function PlatformLayout() {
       <nav className="platform-topbar">
         <div className="platform-topbar-brand">
           <div className="platform-topbar-brand-mark">
-            <Waves size={18} color="#5ba3f5" />
+            <Shield size={18} color="#00E5FF" />
+            <Eye size={12} color="#0A0F1A" className="platform-topbar-brand-eye" />
           </div>
           <div className="platform-topbar-brand-copy">
-            <div className="platform-topbar-brand-label">Trustive AI</div>
+            <div className="platform-topbar-brand-label">TRUSTIVE AI</div>
             <div className="platform-topbar-brand-title">{pageTitle}</div>
           </div>
         </div>
@@ -162,6 +164,20 @@ function PlatformLayout() {
       <main className="platform-main">
         <Outlet />
       </main>
+
+      <footer className="platform-footer">
+        <div className="platform-footer-inner">
+          <div className="platform-footer-brand">
+            <span className="platform-footer-name">TRUSTIVE AI</span>
+            <span className="platform-footer-copy">Threat scanning, history, and legal guidance in one cleaner workspace.</span>
+          </div>
+          <div className="platform-footer-links">
+            <NavLink to="/terms" className="platform-footer-link">Terms of Use</NavLink>
+            <NavLink to="/disclaimer" className="platform-footer-link">Disclaimer</NavLink>
+            <a href="mailto:contact@trustive.ai" className="platform-footer-link">Contact Us</a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

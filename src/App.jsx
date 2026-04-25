@@ -14,6 +14,8 @@ const LookupCenter = lazy(() => import('./pages/LookupCenter'))
 const SearchCenter = lazy(() => import('./pages/SearchCenter'))
 const CorrelationGraph = lazy(() => import('./pages/CorrelationGraph'))
 const CampaignClusters = lazy(() => import('./pages/CampaignClusters'))
+const TermsOfUse = lazy(() => import('./pages/TermsOfUse'))
+const Disclaimer = lazy(() => import('./pages/Disclaimer'))
 const Login = lazy(() => import('./pages/Login'))
 const Register = lazy(() => import('./pages/Register'))
 const Landing = lazy(() => import('./pages/Landing'))
@@ -89,6 +91,8 @@ function App() {
           <Route path="/threat-intel" element={<ThreatIntelHub />} />
           <Route path="/campaign-clusters" element={<CampaignClusters />} />
           <Route path="/search" element={<SearchCenter />} />
+          <Route path="/terms" element={<TermsOfUse />} />
+          <Route path="/disclaimer" element={<Disclaimer />} />
           <Route path="/ioc/:iocType/:indicator" element={<IOCDetails />} />
           <Route path="/correlation/:iocType/:indicator" element={<CorrelationGraph />} />
         </Route>

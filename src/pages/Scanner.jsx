@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Boxes, FileText, Globe, Hash, Link2, Radar, Search, Zap } from 'lucide-react'
+import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw, Search, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import ExpandableFeed from '../components/ExpandableFeed'
@@ -11,7 +11,6 @@ import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
   detectBrandImpersonation,
-  buildDomainLookupPath,
   buildIpLookupPath,
   buildIocPath,
   formatRelativeDate,
@@ -76,6 +75,20 @@ function currentValueForTab(tab, form) {
 
 function actionable(level) {
   return ['suspicious', 'threat'].includes(String(level || '').toLowerCase())
+}
+
+function resultExplanation(level) {
+  const value = String(level || '').toLowerCase()
+  if (value === 'threat') return 'This scan shows strong phishing indicators and should be treated as high risk.'
+  if (value === 'suspicious') return 'This scan contains warning signals that deserve manual review before you trust the destination.'
+  return 'No strong malicious indicators were detected in this scan, but context should still be reviewed when needed.'
+}
+
+function resultTitle(level) {
+  const value = String(level || '').toLowerCase()
+  if (value === 'threat') return 'PHISHING'
+  if (value === 'suspicious') return 'SUSPICIOUS'
+  return 'SAFE'
 }
 
 export default function Scanner({ embedded = false }) {
@@ -205,6 +218,15 @@ export default function Scanner({ embedded = false }) {
     setPublishState({ status: 'idle', message: '' })
   }
 
+  const resetCurrentForm = () => {
+    setForm((current) => ({
+      ...current,
+      [activeTab === 'url' ? 'url' : activeTab === 'ip' ? 'ip' : activeTab === 'hash' ? 'hash' : activeTab === 'file' ? 'filename' : 'bulk_input']: '',
+      ...(activeTab === 'file' ? { file_size: '', file_hash: '' } : {}),
+    }))
+    startNewScan()
+  }
+
   const singleDetailPath = result && activeTab !== 'bulk'
     ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
     : ''
@@ -236,15 +258,21 @@ export default function Scanner({ embedded = false }) {
         {!embedded ? (
           <PortalHero
             kicker="IOC Scanner"
-            title="Scan Anything. Instantly."
+            title="Scan Links and Threat Indicators"
             eyebrowItems={['URL', 'IP', 'Hash', 'File', 'Bulk IOC']}
-            copy="Fast threat detection with real-time intelligence."
+            copy="Keep scanning and history in one streamlined workspace."
             className="investigation-hero portal-hero-left fade-in"
             actions={(
-              <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
-                <Search size={18} />
-                {loading ? 'Scanning...' : 'Start Scan'}
-              </button>
+              <div className="scanner-hero-actions">
+                <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
+                  {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : <Search size={18} />}
+                  <span>Run Scanner</span>
+                </button>
+                <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta">
+                  <RotateCcw size={16} />
+                  <span>Scan Again</span>
+                </button>
+              </div>
             )}
           />
         ) : null}
@@ -326,10 +354,16 @@ export default function Scanner({ embedded = false }) {
 
                 {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
 
-                <button type="button" onClick={runScan} disabled={loading} className="console-cta">
-                  <Search size={18} />
-                  {loading ? 'Scanning...' : activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scan'}
-                </button>
+                <div className="scanner-cta-row">
+                  <button type="button" onClick={runScan} disabled={loading} className="console-cta">
+                    {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : <Search size={18} />}
+                    <span>{activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scanner'}</span>
+                  </button>
+                  <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta">
+                    <RotateCcw size={16} />
+                    <span>Scan Again</span>
+                  </button>
+                </div>
               </div>
             </section>
 
@@ -353,31 +387,23 @@ export default function Scanner({ embedded = false }) {
               ) : (
                 <ExpandableFeed
                   items={recentScans}
-                  initialCount={4}
-                  className="recent-rail"
+                  initialCount={6}
+                  className="scanner-history-grid"
                   renderItem={(entry) => (
-                    <div key={entry.id} className="recent-rail-item">
-                      <div className="recent-rail-top">
-                        <button type="button" onClick={() => loadRecentScan(entry)} style={{ border: 'none', background: 'transparent', cursor: 'pointer', textAlign: 'left', padding: 0, minWidth: 0, flex: 1 }}>
-                          <div className="recent-rail-main">
-                            <strong>{String(entry.scan_type || '').toUpperCase()}</strong>
-                            <span className="recent-rail-meta">{entry.indicator}</span>
-                          </div>
-                        </button>
-                        <span style={{ padding: '8px 10px', borderRadius: 999, fontSize: 12, fontWeight: 800, color: levelColor(entry.threat_level, palette), background: `${levelColor(entry.threat_level, palette)}12`, border: `1px solid ${levelColor(entry.threat_level, palette)}28` }}>
-                          {entry.threat_level}
-                        </span>
+                    <article key={entry.id} className={`scanner-history-card scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
+                      <div className="scanner-history-status" />
+                      <div className="scanner-history-top">
+                        <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
+                        <span className="scanner-history-badge">{entry.threat_level}</span>
                       </div>
-                      <div className="recent-rail-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                        <span className="recent-rail-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
-                        <div className="investigation-actions">
-                          {entry.scan_type === 'ip' ? <button type="button" onClick={() => navigate(buildIpLookupPath(entry.indicator))} className="scanner-inline-button">IP lookup</button> : null}
-                          {entry.scan_type === 'domain' ? <button type="button" onClick={() => navigate(buildDomainLookupPath(entry.indicator))} className="scanner-inline-button">Domain lookup</button> : null}
-                          <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button">IOC details</button>
-                        </div>
+                      <div className="scanner-history-url">{entry.indicator}</div>
+                      <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
+                      <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</div>
+                      <div className="scanner-history-actions">
+                        <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
+                        <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
                       </div>
-                    </div>
+                    </article>
                   )}
                 />
               )}
@@ -386,8 +412,9 @@ export default function Scanner({ embedded = false }) {
         ) : (
           <div style={{ maxWidth: embedded ? '100%' : activeTab === 'bulk' ? 1120 : 900, margin: embedded ? 0 : '0 auto', width: '100%' }}>
             <div style={{ marginBottom: 24 }}>
-              <button onClick={startNewScan} className="console-cta" style={{ marginBottom: 20 }}>
-                ← New Scan
+              <button type="button" onClick={startNewScan} className="console-cta" style={{ marginBottom: 20 }}>
+                <RotateCcw size={16} />
+                <span>Scan Again</span>
               </button>
             </div>
 
@@ -440,6 +467,15 @@ export default function Scanner({ embedded = false }) {
             ) : (
               <div className="split-dossier">
                 <ResultCard result={result} type={activeTab} theme={theme} />
+
+                <div className={`scanner-status-card scanner-status-${String(result.threat_level || 'safe').toLowerCase()}`}>
+                  <div className="scanner-status-bar" />
+                  <div className="scanner-status-body">
+                    <div className="scanner-status-label">Scan Status</div>
+                    <div className="scanner-status-title">{resultTitle(result.threat_level)}</div>
+                    <p className="scanner-status-copy">{resultExplanation(result.threat_level)}</p>
+                  </div>
+                </div>
 
                 {scannerBrandSignal ? (
                   <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>

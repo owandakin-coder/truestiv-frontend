@@ -13,17 +13,17 @@ function getPalette(theme) {
   const dark = theme !== 'light'
   return {
     dark,
-    panel: dark ? '#07101f' : 'rgba(255,255,255,0.95)',
-    panelStrong: dark ? '#08111f' : '#ffffff',
-    border: dark ? '1px solid #0e2040' : '1px solid rgba(15,23,42,0.08)',
-    text: dark ? '#e8f2ff' : '#0f172a',
-    muted: dark ? '#c8d8f0' : '#475569',
-    subtle: dark ? '#4a7ab5' : '#64748b',
-    orange: '#5ba3f5',
+    panel: dark ? '#101a2a' : 'rgba(255,255,255,0.97)',
+    panelStrong: dark ? '#131f31' : '#ffffff',
+    border: dark ? '1px solid rgba(0,229,255,0.14)' : '1px solid rgba(15,23,42,0.08)',
+    text: dark ? '#E0E0E0' : '#0f172a',
+    muted: dark ? 'rgba(224,224,224,0.82)' : '#475569',
+    subtle: dark ? 'rgba(0,229,255,0.64)' : '#64748b',
+    orange: '#f59e0b',
     green: '#22c55e',
     yellow: '#f59e0b',
-    red: '#f04040',
-    blue: '#5ba3f5',
+    red: '#ef4444',
+    blue: '#00E5FF',
   }
 }
 
@@ -32,8 +32,9 @@ function getLevelConfig(level, palette) {
     return {
       icon: <AlertTriangle size={26} />,
       color: palette.red,
-      label: 'Threat',
-      tint: 'rgba(255,92,92,0.12)',
+      label: 'Phishing',
+      tint: 'rgba(239,68,68,0.14)',
+      explainer: 'This destination is strongly associated with phishing or malicious behavior.',
     }
   }
   if (level === 'suspicious') {
@@ -41,14 +42,16 @@ function getLevelConfig(level, palette) {
       icon: <Eye size={26} />,
       color: palette.yellow,
       label: 'Suspicious',
-      tint: 'rgba(251,191,36,0.12)',
+      tint: 'rgba(245,158,11,0.14)',
+      explainer: 'Suspicious patterns were found and this result should be reviewed before trust.',
     }
   }
   return {
     icon: <CheckCircle2 size={26} />,
     color: palette.green,
     label: 'Safe',
-    tint: 'rgba(0,229,160,0.12)',
+    tint: 'rgba(34,197,94,0.14)',
+    explainer: 'No strong malicious signal was detected in this scan result.',
   }
 }
 
@@ -150,11 +153,20 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
       style={{
         background: palette.panel,
         border: palette.border,
-        borderRadius: 10,
-        padding: 18,
-        boxShadow: 'none',
+        borderRadius: 18,
+        padding: 20,
+        boxShadow: '0 16px 32px rgba(0,0,0,0.18)',
+        overflow: 'hidden',
       }}
     >
+      <div
+        style={{
+          height: 6,
+          borderRadius: 999,
+          background: level.color,
+          marginBottom: 18,
+        }}
+      />
       <div
         style={{
           display: 'flex',
@@ -162,10 +174,10 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
           justifyContent: 'space-between',
           gap: 16,
           marginBottom: 16,
-          padding: 14,
-          borderRadius: 8,
-          background: palette.panelStrong,
-          border: `1px solid ${level.color}33`,
+          padding: 16,
+          borderRadius: 14,
+          background: level.tint,
+          border: `1px solid ${level.color}55`,
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -187,9 +199,12 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
             <p style={{ color: palette.subtle, fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'JetBrains Mono, monospace' }}>
               {getTypeLabel(type)}
             </p>
-            <h3 style={{ color: palette.text, fontSize: 20, fontWeight: 500, fontFamily: 'JetBrains Mono, monospace' }}>
+            <h3 style={{ color: palette.text, fontSize: 24, fontWeight: 700, fontFamily: 'Poppins, Inter, sans-serif' }}>
               {level.label}
             </h3>
+            <p style={{ color: palette.muted, fontSize: 13, lineHeight: 1.55, marginTop: 6, maxWidth: 420 }}>
+              {level.explainer}
+            </p>
           </div>
         </div>
 
@@ -198,12 +213,12 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
             <span style={{ color: palette.subtle, fontSize: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: 1.5, textTransform: 'uppercase' }}>Risk Score</span>
             <strong style={{ color: level.color, fontFamily: 'JetBrains Mono, monospace' }}>{score}%</strong>
           </div>
-          <div style={{ height: 8, borderRadius: 2, background: palette.dark ? '#0a1828' : 'rgba(15,23,42,0.08)' }}>
+          <div style={{ height: 8, borderRadius: 999, background: palette.dark ? '#0b1523' : 'rgba(15,23,42,0.08)' }}>
             <div
               style={{
                 width: `${score}%`,
                 height: '100%',
-                borderRadius: 2,
+                borderRadius: 999,
                 background: level.color,
               }}
             />
@@ -226,9 +241,9 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
               Identifier
             </span>
           </div>
-          <div style={{ color: palette.text, fontSize: 12, lineHeight: 1.8, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace' }}>
-            {identifier}
-          </div>
+            <div style={{ color: palette.text, fontSize: 12, lineHeight: 1.8, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace' }}>
+              {identifier}
+            </div>
           {vtLink && (
             <a
               href={vtLink}
@@ -242,6 +257,7 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
                 color: palette.blue,
                 fontWeight: 700,
                 textDecoration: 'none',
+                fontFamily: 'Inter, sans-serif',
               }}
             >
               Open in VirusTotal <ExternalLink size={14} />

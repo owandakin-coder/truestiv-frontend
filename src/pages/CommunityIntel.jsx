@@ -58,7 +58,7 @@ export default function CommunityIntel() {
         kicker="Public Community Intelligence"
         title="Public Community Signals"
         copy="A public board of moderated suspicious and threat signals."
-        className="community-hero fade-in"
+        className="community-hero portal-hero-left fade-in"
         actions={(
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
             {live ? 'Live refresh on' : 'Live refresh off'}

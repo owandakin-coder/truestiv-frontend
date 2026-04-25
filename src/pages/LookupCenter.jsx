@@ -219,7 +219,7 @@ function LookupCenter() {
         kicker="Lookup Center"
         title="Lookup Center"
         copy="Move between IP, domain, and header enrichment from one desk."
-        className="lookup-hero fade-in"
+        className="lookup-hero portal-hero-left fade-in"
       />
 
       <section className="intel-section-card lookup-intake-panel fade-in-delay-1">

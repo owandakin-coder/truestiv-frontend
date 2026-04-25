@@ -189,9 +189,9 @@ export default function GeoThreatMap() {
     <div className="map-shell zone-propagation">
       <PortalHero
         kicker="Threat Geography"
-        title={<><span>Geo </span><span className="gradient-text">Threat Map</span></>}
+        title="Geo Threat Map"
         copy="Real-world threat locations from community indicators and recent scanned IP activity."
-        className="map-hero fade-in"
+        className="map-hero portal-hero-left fade-in"
         actions={
           <>
 

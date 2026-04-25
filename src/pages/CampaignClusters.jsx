@@ -75,7 +75,7 @@ export default function CampaignClusters() {
         kicker="Campaign / Cluster View"
         title="Campaign Clusters"
         copy="Recurring public signals grouped into active clusters."
-        className="campaign-hero fade-in"
+        className="campaign-hero portal-hero-left fade-in"
       />
 
       {error ? <div className="intel-empty-card">{error}</div> : null}

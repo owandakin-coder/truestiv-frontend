@@ -56,7 +56,7 @@ export default function ThreatIntelHub() {
         kicker="Public Threat Intelligence"
         title="Public Threat Intelligence"
         copy="Recurring indicators and public briefs in one surface."
-        className="threat-intel-hero fade-in"
+        className="threat-intel-hero portal-hero-left fade-in"
         actions={
           <>
             <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>

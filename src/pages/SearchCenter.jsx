@@ -28,6 +28,12 @@ function levelColor(level, palette) {
   return palette.blue
 }
 
+function kindLabel(kind) {
+  const value = String(kind || '').toLowerCase()
+  if (value === 'collection') return 'collection pipeline'
+  return value || 'result'
+}
+
 export default function SearchCenter() {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
@@ -99,7 +105,7 @@ export default function SearchCenter() {
       {!loading && activeQuery && !items.length ? (
         <IntelEmptyState
           title={`No actionable intelligence matched "${activeQuery}"`}
-          copy="Results are limited to suspicious and threat signals. Try an IP, phishing domain, or known hash."
+          copy="Results are limited to suspicious and threat signals from scans, collected intelligence, and related context."
           actionLabel="Open Threat Intel"
           actionTo="/threat-intel"
         />
@@ -121,11 +127,11 @@ export default function SearchCenter() {
                 <div className="intel-feed-row-main">
                   <div className="intel-indicator">{item.title}</div>
                   <div className="intel-feed-row-meta">
-                    {String(item.kind || 'result').toUpperCase()} | {formatRelativeDate(item.created_at)}
+                    {kindLabel(item.kind).toUpperCase()} | {formatRelativeDate(item.created_at)}
                   </div>
                   <p className="intel-reading-block" style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
                 </div>
-                <div className="intel-meta">{item.kind}</div>
+                <div className="intel-meta">{kindLabel(item.kind)}</div>
                 <div />
                 <div>
                   <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>

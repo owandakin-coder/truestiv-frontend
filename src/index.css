@@ -1366,6 +1366,27 @@ body {
   margin-top: 4px;
 }
 
+.lookup-signal-feed {
+  gap: 0;
+}
+
+.lookup-signal-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.lookup-signal-main,
+.lookup-signal-side {
+  min-width: 0;
+}
+
+.lookup-signal-side {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  text-align: right;
+}
+
 .intel-row-badge {
   display: inline-flex;
   justify-content: center;
@@ -2264,6 +2285,36 @@ body {
   white-space: nowrap;
 }
 
+.intel-section-card,
+.intel-feed-row,
+.intel-row-item,
+.flat-rail-row,
+.compact-rail-row,
+.campaign-cluster-item,
+.campaign-cluster-summary,
+.campaign-cluster-title,
+.campaign-dossier-body,
+.collection-source-row,
+.dossier-row,
+.dossier-sidepanel,
+.intel-mini-item,
+.intel-inline-link,
+.platform-badge {
+  min-width: 0;
+}
+
+.intel-indicator,
+.flat-rail-title,
+.compact-rail-title,
+.campaign-cluster-title,
+.collection-source-row strong,
+.intel-feed-row-meta,
+.flat-rail-meta,
+.compact-rail-meta {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* Zone-specific overrides */
 .zone-investigation .portal-hero { grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.75fr); }
 .zone-investigation .intel-hero-card { border-top-color: var(--portal-blue-strong); }
@@ -2780,6 +2831,7 @@ body {
   font-size: 12px;
   color: #c8d8f0;
   word-break: break-word;
+  overflow-wrap: anywhere;
   line-height: 1.6;
 }
 

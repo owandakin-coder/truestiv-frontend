@@ -102,14 +102,14 @@ function RecentSignalSection({ title, eyebrow, items, palette }) {
         <div className="intel-eyebrow">{eyebrow}</div>
         <h2 className="intel-section-title">{title}</h2>
       </div>
-      <div className="intel-row-feed">
+      <div className="intel-row-feed lookup-signal-feed">
         {items.map((item, index) => (
-          <div key={`${item.event_type}-${item.path || item.title}-${index}`} className="intel-row-item">
-            <div>
+          <div key={`${item.event_type}-${item.path || item.title}-${index}`} className="intel-row-item lookup-signal-row">
+            <div className="lookup-signal-main">
               <div className="intel-row-title">{item.title || 'Collected signal'}</div>
               <div className="intel-row-copy">{item.summary || 'Signal captured by Trustive intelligence.'}</div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div className="lookup-signal-side">
               <div className="intel-row-badge" style={{ color: levelColor(item.threat_level, palette) }}>
                 {normalizeThreatLevel(item.threat_level)}
               </div>

@@ -17,7 +17,7 @@ const investigationTabs = [
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
-    titleMain: 'Scanner',
+    titleMain: 'Cyber Threat Analysis & Scanning Platform',
     copy: 'Inspect suspicious links and obvious phishing patterns.',
   },
 ]

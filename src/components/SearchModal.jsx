@@ -5,12 +5,12 @@ import { useNavigate } from 'react-router-dom'
 const pages = [
   { label: 'Investigation Center', path: '/investigation-center/scanner', icon: <ScanLine size={16} />, desc: 'Scanner, message analysis, and bulk IOC triage', color: '#38bdf8' },
   { label: 'Message Analysis', path: '/investigation-center/analysis', icon: <Shield size={16} />, desc: 'Analyze suspicious emails, SMS, and WhatsApp messages', color: '#60a5fa' },
-  { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Public feeds, recurring indicators, and incident briefs', color: '#f97316' },
-  { label: 'Timeline', path: '/timeline', icon: <Activity size={16} />, desc: 'Unified feed of public intelligence events', color: '#22c55e' },
+  { label: 'Threat Intel', path: '/threat-intel', icon: <Newspaper size={16} />, desc: 'Feeds, recurring indicators, and incident briefs', color: '#f97316' },
+  { label: 'Timeline', path: '/timeline', icon: <Activity size={16} />, desc: 'Unified feed of intelligence events', color: '#22c55e' },
   { label: 'Threat Map', path: '/propagation', icon: <Map size={16} />, desc: 'Geographic threat propagation and markers', color: '#3b82f6' },
   { label: 'Lookup Center', path: '/lookup-center', icon: <Waypoints size={16} />, desc: 'IP, domain, and email header investigation', color: '#22d3ee' },
-  { label: 'Community', path: '/community', icon: <Globe size={16} />, desc: 'Public community intelligence feed', color: '#fbbf24' },
-  { label: 'Campaign Clusters', path: '/campaign-clusters', icon: <Newspaper size={16} />, desc: 'Grouped public campaigns and incident clusters', color: '#a78bfa' },
+  { label: 'Community', path: '/community', icon: <Globe size={16} />, desc: 'Community intelligence feed', color: '#fbbf24' },
+  { label: 'Campaign Clusters', path: '/campaign-clusters', icon: <Newspaper size={16} />, desc: 'Grouped campaigns and incident clusters', color: '#a78bfa' },
 ]
 
 export default function SearchModal({ open, onClose }) {

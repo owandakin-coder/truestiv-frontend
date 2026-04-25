@@ -55,9 +55,9 @@ export default function CommunityIntel() {
   return (
     <section className="intel-shell zone-community">
       <PortalHero
-        kicker="Public Community Intelligence"
-        title="Public Community Signals"
-        copy="A public board of moderated suspicious and threat signals."
+        kicker="Community Intelligence"
+        title="Community Signals"
+        copy="A moderated board of suspicious and threat signals."
         className="community-hero portal-hero-left fade-in"
         actions={(
           <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
@@ -95,10 +95,10 @@ export default function CommunityIntel() {
                 <div className="compact-rail-main">
                   <div className="compact-rail-title">{item.indicator}</div>
                   <div className="compact-rail-meta">
-                    {item.published_at ? new Date(item.published_at).toLocaleString() : 'Recently published'} | community-promoted indicator in the shared public feed.
+                    {item.published_at ? new Date(item.published_at).toLocaleString() : 'Recently published'} | community-promoted indicator in the shared feed.
                   </div>
                   <div className="compact-rail-copy">
-                    Public community signal surfaced as a moderated suspicious or threat indicator.
+                    Community signal surfaced as a moderated suspicious or threat indicator.
                   </div>
                   <div className="compact-rail-action">
                     <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>

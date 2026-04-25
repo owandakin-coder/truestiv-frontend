@@ -55,7 +55,7 @@ function tabDescription(tab) {
   if (tab === 'ip') return 'Check infrastructure reputation with enhanced enrichment.'
   if (tab === 'hash') return 'Pivot file hashes into VirusTotal detections and original reports.'
   if (tab === 'file') return 'Run quick metadata triage for suspicious file names and hashes.'
-  return 'Paste one IOC per line and run public enrichment in a single batch.'
+  return 'Paste one IOC per line and run enrichment in a single batch.'
 }
 
 function levelColor(level, palette) {
@@ -235,7 +235,7 @@ export default function Scanner({ embedded = false }) {
       <div style={{ position: 'relative', zIndex: 1 }}>
         {!embedded ? (
           <PortalHero
-            kicker="Public IOC Scanner"
+            kicker="IOC Scanner"
             title="Scan Anything. Instantly."
             eyebrowItems={['URL', 'IP', 'Hash', 'File', 'Bulk IOC']}
             copy="Fast threat detection with real-time intelligence."
@@ -253,7 +253,7 @@ export default function Scanner({ embedded = false }) {
           <div className={embedded ? 'investigation-workspace-flow' : 'investigation-centered-flow'}>
             <section className="console-surface fade-in scanner-console-centered">
               <div className="console-heading">
-                <h2>Run Public Scanner</h2>
+                <h2>Run Scanner</h2>
                 <p>{tabDescription(activeTab)}</p>
               </div>
 
@@ -368,7 +368,7 @@ export default function Scanner({ embedded = false }) {
                           {entry.threat_level}
                         </span>
                       </div>
-                      <div className="recent-rail-copy">{entry.summary || 'Public actionable scan retained in recent history.'}</div>
+                      <div className="recent-rail-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                         <span className="recent-rail-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</span>
                         <div className="investigation-actions">

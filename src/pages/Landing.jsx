@@ -129,7 +129,7 @@ export default function Landing() {
             }}
           >
             <span style={{ width: 8, height: 8, borderRadius: 999, background: '#38bdf8', boxShadow: '0 0 16px rgba(56,189,248,0.9)' }} />
-            Public Cyber Defense Workspace
+            Cyber Defense Workspace
           </div>
 
           <h1 style={{ fontSize: 'clamp(2.25rem, 4.5vw, 4.125rem)', lineHeight: 1, fontWeight: 900, marginBottom: 20 }}>

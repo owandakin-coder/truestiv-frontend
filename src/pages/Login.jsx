@@ -74,7 +74,7 @@ export default function Login() {
             </div>
             <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 14 }}>What changed</h2>
             <p style={{ color: 'rgba(191,219,254,0.72)', lineHeight: 1.8, marginBottom: 20 }}>
-              The product now opens directly into a public workspace model. The interface was redesigned around a deeper blue palette with cinematic lighting, tighter chrome, and analyst-first flows.
+              The product now opens directly into an open workspace model. The interface was redesigned around a deeper blue palette with cinematic lighting, tighter chrome, and analyst-first flows.
             </p>
           </div>
 

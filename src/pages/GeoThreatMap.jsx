@@ -383,7 +383,7 @@ export default function GeoThreatMap() {
               <div className="intel-empty-card" style={{ marginTop: 12 }}>
                 <Radar size={22} color={palette.blue} style={{ marginBottom: 10 }} />
                 <div style={{ color: palette.muted }}>
-                  No marker feed entries are available yet. Run more IP scans or wait for more public intelligence to be collected.
+                  No marker feed entries are available yet. Run more IP scans or wait for more intelligence to be collected.
                 </div>
               </div>
             ) : null}

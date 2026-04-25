@@ -453,7 +453,7 @@ export default function Analysis({ embedded = false }) {
 
       <div className="brief-panel">
         <div>
-          <div className="analysis-meta-label">Public Actions</div>
+          <div className="analysis-meta-label">Actions</div>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>

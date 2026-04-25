@@ -53,9 +53,9 @@ export default function ThreatIntelHub() {
   return (
     <section className="intel-shell zone-threat-intel">
       <PortalHero
-        kicker="Public Threat Intelligence"
-        title="Public Threat Intelligence"
-        copy="Recurring indicators and public briefs in one place."
+        kicker="Threat Intelligence"
+        title="Threat Intelligence"
+        copy="Recurring indicators and incident briefs in one place."
         className="threat-intel-hero portal-hero-left fade-in"
         actions={
           <>
@@ -112,7 +112,7 @@ export default function ThreatIntelHub() {
           <div className="intel-eyebrow"><Radar size={14} />Trending Indicators</div>
           <h2 className="intel-section-title">Trending indicators</h2>
         </div>
-        {!trending.length ? <IntelEmptyState title="Trending indicators are still warming up" copy="As public signals accumulate, recurring IPs, URLs, domains, and hashes will start clustering here automatically. Try the scanner or bulk IOC flow to seed more intelligence." actionLabel="Open Investigation Center" actionTo="/investigation-center/scanner" /> : (
+        {!trending.length ? <IntelEmptyState title="Trending indicators are still warming up" copy="As signals accumulate, recurring IPs, URLs, domains, and hashes will start clustering here automatically. Try the scanner or bulk IOC flow to seed more intelligence." actionLabel="Open Investigation Center" actionTo="/investigation-center/scanner" /> : (
           <ExpandableFeed
             items={trending}
             initialCount={5}
@@ -137,10 +137,10 @@ export default function ThreatIntelHub() {
 
       <section className="intel-section-card threat-intel-briefs-section fade-in-delay-2">
         <div className="intel-section-head">
-          <div className="intel-eyebrow"><GitBranch size={14} />Public Incident Briefs</div>
-          <h2 className="intel-section-title">Public incident briefs</h2>
+          <div className="intel-eyebrow"><GitBranch size={14} />Incident Briefs</div>
+          <h2 className="intel-section-title">Incident briefs</h2>
         </div>
-        {!briefs.length ? <IntelEmptyState title="No public incident briefs yet" copy="Briefs appear after recurring indicators, shared actor tags, and overlapping sources form a cluster worth surfacing as public context." actionLabel="Open Campaign View" actionTo="/campaign-clusters" /> : (
+        {!briefs.length ? <IntelEmptyState title="No incident briefs yet" copy="Briefs appear after recurring indicators, shared actor tags, and overlapping sources form a cluster worth surfacing as broader context." actionLabel="Open Campaign View" actionTo="/campaign-clusters" /> : (
           <ExpandableFeed
             items={briefs}
             initialCount={4}
@@ -176,7 +176,7 @@ export default function ThreatIntelHub() {
               <article key={item.id} className={`flat-rail-row ${threatLabel(item.threat_level)}`}>
                 <div className="flat-rail-main">
                   <div className="flat-rail-title">{item.indicator}</div>
-                  <div className="flat-rail-meta">Trustive AI public intelligence stream</div>
+                  <div className="flat-rail-meta">Trustive AI intelligence stream</div>
                 </div>
                 <div className="flat-rail-side">Risk {item.risk_score}</div>
                 <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>

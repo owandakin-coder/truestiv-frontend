@@ -17,7 +17,7 @@ const investigationTabs = [
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
-    titleMain: 'Public Scanner',
+    titleMain: 'Scanner',
     copy: 'Inspect suspicious links and obvious phishing patterns.',
   },
 ]
@@ -46,7 +46,7 @@ export default function InvestigationCenter() {
           <div className="investigation-hub-tags">
             <span className="intel-tag-chip">Scanner first</span>
             <span className="intel-tag-chip">Actionable history only</span>
-            <span className="intel-tag-chip">Public portal</span>
+            <span className="intel-tag-chip">Open access</span>
           </div>
         </div>
 

@@ -360,7 +360,7 @@ function LookupCenter() {
                   </div>
                   <div className="ip-lookup-action-body">
                     <strong>Open Correlation Graph</strong>
-                    <p>Trace how this IP connects across the public intel graph.</p>
+                    <p>Trace how this IP connects across the intel graph.</p>
                   </div>
                 </Link>
                 <Link to="/propagation" className="intel-action-card ip-lookup-action-card">

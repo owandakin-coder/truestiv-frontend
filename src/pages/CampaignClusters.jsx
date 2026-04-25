@@ -74,7 +74,7 @@ export default function CampaignClusters() {
       <PortalHero
         kicker="Campaign / Cluster View"
         title="Campaign Clusters"
-        copy="Recurring public signals grouped into clusters."
+        copy="Recurring signals grouped into clusters."
         className="campaign-hero portal-hero-left fade-in"
       />
 
@@ -83,7 +83,7 @@ export default function CampaignClusters() {
 
       {!loading && !clusters.length ? (
         <IntelEmptyState
-          title="No public campaign clusters yet"
+          title="No campaign clusters yet"
           copy="Clusters appear when recurring indicators and overlapping sources begin forming a shared story."
           actionLabel="Open Threat Intel"
           actionTo="/threat-intel"
@@ -99,7 +99,7 @@ export default function CampaignClusters() {
                   <GitBranch size={14} />
                   Active Clusters
                 </div>
-                <h2 className="intel-section-title">Recurring public activity</h2>
+                <h2 className="intel-section-title">Recurring activity</h2>
               </div>
 
               <ExpandableFeed
@@ -238,7 +238,7 @@ export default function CampaignClusters() {
                   />
                 </>
               ) : (
-                <div className="intel-empty-inline">Select a cluster from the left to inspect the public brief.</div>
+                <div className="intel-empty-inline">Select a cluster from the left to inspect the brief.</div>
               )}
             </section>
           </div>

@@ -222,7 +222,7 @@ export default function IOCDetails() {
           <Section
             title="Community visibility"
             eyebrow={<><Radar size={14} /> Community</>}
-            copy="Where this indicator has already been surfaced to the public-facing community feed."
+            copy="Where this indicator has already been surfaced to the community feed."
           >
             {!payload.community?.length ? (
               <div className="intel-empty-card">This indicator has not been published to the community feed yet.</div>

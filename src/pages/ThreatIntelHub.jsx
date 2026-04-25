@@ -142,6 +142,12 @@ export default function ThreatIntelHub() {
             <h2 className="intel-section-title">Collection pipeline</h2>
           </div>
 
+          {!summary.indicators && summary.latest_collection_at ? (
+            <div className="intel-empty-inline">
+              The collection pipeline has run, but no persisted indicators are visible yet. Fresh data should appear here after the next successful collector write.
+            </div>
+          ) : null}
+
           <div className="signal-strip">
             <article className="signal-strip-item">
               <div className="signal-strip-label">Raw items</div>

@@ -3,6 +3,7 @@ import { ScanSearch, ShieldAlert } from 'lucide-react'
 
 import Analysis from './Analysis'
 import Scanner from './Scanner'
+import PortalHero from '../components/PortalHero'
 
 const investigationTabs = [
   {
@@ -29,20 +30,12 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell zone-investigation">
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-          <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#38bdf8' }} />
-          <span style={{ fontSize: 12, letterSpacing: 2, fontWeight: 700, color: '#38bdf8' }}>
-            THREAT ANALYSIS HUB
-          </span>
-        </div>
-        <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, marginBottom: 8 }}>
-          {activeTab.titleMain}
-        </h1>
-        <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '1rem', maxWidth: 600 }}>
-          {activeTab.copy}
-        </p>
-      </div>
+      <PortalHero
+        kicker="Threat Analysis Hub"
+        title={activeTab.titleMain}
+        copy={activeTab.copy}
+        className="investigation-shell-hero portal-hero-left fade-in"
+      />
 
       <div
         className="investigation-tab-row"

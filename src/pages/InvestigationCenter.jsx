@@ -37,11 +37,11 @@ export default function InvestigationCenter() {
         className="investigation-shell-hero portal-hero-left fade-in"
       />
 
-      <section className="intel-section-card investigation-hub-panel fade-in-delay-1">
+      <section className="intel-section-card investigation-hub-panel investigation-workspace-shell fade-in-delay-1">
         <div className="investigation-hub-topline">
           <div className="investigation-hub-copy">
             <span className="analysis-meta-label">Workspace</span>
-            <p>Choose the fastest path: scan an IOC or analyze a message.</p>
+            <p>Choose the fastest path and work from one unified pane.</p>
           </div>
           <div className="investigation-hub-tags">
             <span className="intel-tag-chip">Scanner first</span>
@@ -67,11 +67,11 @@ export default function InvestigationCenter() {
             )
           })}
         </div>
-      </section>
 
-      <section className="fade-in-delay-2" style={{ position: 'relative', zIndex: 1 }}>
-        {activeTab.id === 'analysis' && <Analysis embedded />}
-        {activeTab.id === 'scanner' && <Scanner embedded />}
+        <div className="investigation-workspace-body fade-in-delay-2" style={{ position: 'relative', zIndex: 1 }}>
+          {activeTab.id === 'analysis' && <Analysis embedded />}
+          {activeTab.id === 'scanner' && <Scanner embedded />}
+        </div>
       </section>
     </section>
   )

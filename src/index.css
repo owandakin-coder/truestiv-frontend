@@ -3346,6 +3346,17 @@ body {
   flex-wrap: wrap;
 }
 
+.investigation-workspace-shell {
+  display: grid;
+  gap: 22px;
+  padding: 22px;
+}
+
+.investigation-workspace-body {
+  border-top: 1px solid rgba(45, 125, 224, 0.22);
+  padding-top: 22px;
+}
+
 .console-status {
   padding: 12px 14px;
   border-radius: 8px;
@@ -3393,6 +3404,12 @@ body {
 .investigation-centered-flow {
   width: min(100%, 860px);
   margin: 0 auto;
+  display: grid;
+  gap: 20px;
+}
+
+.investigation-workspace-flow {
+  width: 100%;
   display: grid;
   gap: 20px;
 }
@@ -3597,4 +3614,12 @@ body {
   .investigation-stat-grid,
   .map-summary-grid,
   .map-country-grid { grid-template-columns: 1fr; }
+
+  .investigation-workspace-shell {
+    padding: 18px;
+  }
+
+  .investigation-workspace-body {
+    padding-top: 18px;
+  }
 }

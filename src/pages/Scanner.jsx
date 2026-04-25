@@ -250,7 +250,7 @@ export default function Scanner({ embedded = false }) {
         ) : null}
 
         {!showResultOnly ? (
-          <div className="investigation-centered-flow">
+          <div className={embedded ? 'investigation-workspace-flow' : 'investigation-centered-flow'}>
             <section className="console-surface fade-in scanner-console-centered">
               <div className="console-heading">
                 <h2>Run Public Scanner</h2>
@@ -384,7 +384,7 @@ export default function Scanner({ embedded = false }) {
             </div>
           </div>
         ) : (
-          <div style={{ maxWidth: activeTab === 'bulk' ? 1120 : 900, margin: '0 auto', width: '100%' }}>
+          <div style={{ maxWidth: embedded ? '100%' : activeTab === 'bulk' ? 1120 : 900, margin: embedded ? 0 : '0 auto', width: '100%' }}>
             <div style={{ marginBottom: 24 }}>
               <button onClick={startNewScan} className="console-cta" style={{ marginBottom: 20 }}>
                 ← New Scan

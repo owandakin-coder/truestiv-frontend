@@ -484,7 +484,7 @@ export default function Analysis({ embedded = false }) {
         ) : null}
 
         {!showResultOnly ? (
-          <div className="investigation-centered-flow" style={{ alignItems: 'start' }}>
+          <div className={embedded ? 'investigation-workspace-flow' : 'investigation-centered-flow'} style={{ alignItems: 'start' }}>
             <div style={{ display: 'grid', gap: 24 }}>
               <div className="console-surface">
                 <div className="console-heading">
@@ -565,7 +565,7 @@ export default function Analysis({ embedded = false }) {
           </div>
         ) : (
           // Modern centered result view – no headings, only result card + New Analysis button
-          <div className="fade-in" style={{ maxWidth: 900, margin: '0 auto', padding: '20px' }}>
+          <div className="fade-in" style={{ maxWidth: embedded ? '100%' : 900, margin: embedded ? 0 : '0 auto', padding: embedded ? 0 : '20px' }}>
             <div style={{ marginBottom: 24, textAlign: 'center' }}>
               <button onClick={startNewAnalysis} className="console-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 ← New Analysis

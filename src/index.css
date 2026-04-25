@@ -2989,6 +2989,43 @@ body {
   align-items: start;
 }
 
+.threat-intel-category-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: -4px 0 18px;
+}
+
+.threat-intel-category-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(91, 163, 245, 0.18);
+  background: rgba(7, 16, 31, 0.88);
+  color: #9fc3ef;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.threat-intel-category-button:hover {
+  border-color: rgba(91, 163, 245, 0.36);
+  background: rgba(10, 22, 40, 0.96);
+  color: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.threat-intel-category-button.is-active {
+  border-color: rgba(191, 219, 254, 0.42);
+  background: linear-gradient(180deg, rgba(79,176,255,0.16) 0%, rgba(45,125,224,0.14) 100%);
+  color: #eff6ff;
+  box-shadow: inset 0 0 0 1px rgba(91,163,245,0.16), 0 8px 22px rgba(10, 30, 60, 0.18);
+}
+
 .collection-source-list {
   display: grid;
   gap: 8px;

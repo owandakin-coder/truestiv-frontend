@@ -21,6 +21,7 @@ export default function ThreatIntelHub() {
   const [collectionIndicators, setCollectionIndicators] = useState([])
   const [error, setError] = useState('')
   const [live, setLive] = useState(true)
+  const [activeSection, setActiveSection] = useState('overview')
 
   useEffect(() => {
     let active = true
@@ -58,6 +59,12 @@ export default function ThreatIntelHub() {
   const featuredBrief = briefs[0] || null
   const summary = collectionOverview?.summary || null
   const sourceBreakdown = collectionOverview?.source_breakdown || []
+  const sections = [
+    { id: 'overview', label: 'Overview' },
+    { id: 'trending', label: 'Trending' },
+    { id: 'briefs', label: 'Briefs' },
+    { id: 'latest', label: 'Latest' },
+  ]
   return (
     <section className="intel-shell zone-threat-intel">
       <PortalHero
@@ -77,7 +84,20 @@ export default function ThreatIntelHub() {
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
 
-      {featuredBrief ? (
+      <div className="threat-intel-category-nav fade-in-delay-1">
+        {sections.map((section) => (
+          <button
+            key={section.id}
+            type="button"
+            className={`threat-intel-category-button ${activeSection === section.id ? 'is-active' : ''}`}
+            onClick={() => setActiveSection(section.id)}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+
+      {activeSection === 'overview' && featuredBrief ? (
         <section className="featured-brief featured-brief-large fade-in-delay-1">
           <div className="featured-brief-summary">
             <div className="intel-eyebrow">Featured Incident Brief</div>
@@ -115,7 +135,7 @@ export default function ThreatIntelHub() {
         </section>
       ) : null}
 
-      {summary ? (
+      {activeSection === 'overview' && summary ? (
         <section className="intel-section-card threat-intel-collection-section fade-in-delay-1">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Database size={14} />Collection Pipeline</div>
@@ -198,6 +218,7 @@ export default function ThreatIntelHub() {
         </section>
       ) : null}
 
+      {activeSection === 'trending' ? (
       <section className="intel-section-card threat-intel-trending-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><Radar size={14} />Trending Indicators</div>
@@ -225,7 +246,9 @@ export default function ThreatIntelHub() {
           />
         )}
       </section>
+      ) : null}
 
+      {activeSection === 'briefs' ? (
       <section className="intel-section-card threat-intel-briefs-section fade-in-delay-2">
         <div className="intel-section-head">
           <div className="intel-eyebrow"><GitBranch size={14} />Incident Briefs</div>
@@ -252,8 +275,9 @@ export default function ThreatIntelHub() {
           />
         )}
       </section>
+      ) : null}
 
-      {!feed.length && !error ? <IntelEmptyState title="No published intelligence items yet" copy="The automated feed collector is active. Fresh indicators from OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community findings will appear here as soon as actionable signals land." actionLabel="View Timeline" actionTo="/timeline" /> : (
+      {activeSection === 'latest' ? (!feed.length && !error ? <IntelEmptyState title="No published intelligence items yet" copy="The automated feed collector is active. Fresh indicators from OTX, URLhaus, PhishTank, AbuseIPDB, and promoted community findings will appear here as soon as actionable signals land." actionLabel="View Timeline" actionTo="/timeline" /> : (
         <section className="intel-section-card threat-intel-latest-section fade-in-delay-3">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Radar size={14} />Latest Intelligence</div>
@@ -276,7 +300,7 @@ export default function ThreatIntelHub() {
             )}
           />
         </section>
-      )}
+      )) : null}
     </section>
   )
 }

@@ -5,6 +5,7 @@ import { GitBranch, Radar } from 'lucide-react'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
@@ -71,6 +72,12 @@ export default function CampaignClusters() {
   const selected = payload?.selected || null
   return (
     <section className="intel-shell zone-campaigns">
+      <Seo
+        title="Trustive AI | Campaign Clusters"
+        description="Explore grouped recurring signals, linked indicators, and incident-style briefs across Trustive AI campaign clusters."
+        path="/campaign-clusters"
+      />
+
       <PortalHero
         kicker="Campaign / Cluster View"
         title="Campaign Clusters"

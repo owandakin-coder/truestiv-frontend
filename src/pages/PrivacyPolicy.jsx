@@ -1,4 +1,5 @@
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const sections = [
   {
@@ -36,6 +37,12 @@ const sections = [
 export default function PrivacyPolicy() {
   return (
     <section className="intel-shell legal-shell">
+      <Seo
+        title="Trustive AI | Privacy Policy"
+        description="Review how Trustive AI processes submitted indicators, guest sessions, scan history, and related intelligence records."
+        path="/privacy"
+      />
+
       <PortalHero
         kicker="Legal"
         title="Privacy Policy"

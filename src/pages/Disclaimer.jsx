@@ -1,4 +1,5 @@
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const sections = [
   {
@@ -31,6 +32,12 @@ const sections = [
 export default function Disclaimer() {
   return (
     <section className="intel-shell legal-shell">
+      <Seo
+        title="Trustive AI | Disclaimer"
+        description="Review the Trustive AI disclaimer covering advisory threat results, external intelligence sources, and operational limitations."
+        path="/disclaimer"
+      />
+
       <PortalHero
         kicker="Legal"
         title="Disclaimer"

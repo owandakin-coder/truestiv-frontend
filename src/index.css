@@ -4167,6 +4167,24 @@ body {
   color: #8ff6ff;
 }
 
+.platform-skip-link {
+  position: absolute;
+  left: 20px;
+  top: -44px;
+  z-index: 40;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #00E5FF;
+  color: #07101c;
+  font-weight: 700;
+  text-decoration: none;
+  transition: top 0.18s ease;
+}
+
+.platform-skip-link:focus {
+  top: 14px;
+}
+
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
@@ -4213,6 +4231,13 @@ select:focus-visible {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
+}
+
+.trust-facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .contact-card {

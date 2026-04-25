@@ -5,6 +5,7 @@ import { Users } from 'lucide-react'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -54,6 +55,12 @@ export default function CommunityIntel() {
 
   return (
     <section className="intel-shell zone-community">
+      <Seo
+        title="Trustive AI | Community Signals"
+        description="Review moderated suspicious and threat indicators surfaced in the Trustive AI community intelligence feed."
+        path="/community"
+      />
+
       <PortalHero
         kicker="Community Intelligence"
         title="Community Signals"

@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 
@@ -187,6 +188,12 @@ export default function GeoThreatMap() {
 
   return (
     <div className="map-shell zone-propagation">
+      <Seo
+        title="Trustive AI | Geo Threat Map"
+        description="Track threat geography, marker feeds, and country drilldowns across Trustive AI intelligence signals."
+        path="/propagation"
+      />
+
       <PortalHero
         kicker="Threat Geography"
         title="Geo Threat Map"

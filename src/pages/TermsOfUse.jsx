@@ -1,4 +1,5 @@
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const sections = [
   {
@@ -36,6 +37,12 @@ const sections = [
 export default function TermsOfUse() {
   return (
     <section className="intel-shell legal-shell">
+      <Seo
+        title="Trustive AI | Terms of Use"
+        description="Read the Trustive AI terms of use covering lawful use, service limitations, and user responsibility."
+        path="/terms"
+      />
+
       <PortalHero
         kicker="Legal"
         title="Terms of Use"

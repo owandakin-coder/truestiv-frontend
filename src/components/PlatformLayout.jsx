@@ -67,7 +67,11 @@ function PlatformLayout() {
       <div className="hero-bg" />
       <div className="grid-dots" />
 
-      <nav className="platform-topbar">
+      <a href="#main-content" className="platform-skip-link">
+        Skip to content
+      </a>
+
+      <nav className="platform-topbar" aria-label="Primary navigation">
         <div className="platform-topbar-brand">
           <div className="platform-topbar-brand-mark">
             <Shield size={18} color="#00E5FF" />
@@ -112,6 +116,7 @@ function PlatformLayout() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search IOC, hash, domain..."
+              aria-label="Search indicators, hashes, or domains"
             />
             <button
               type="submit"
@@ -126,6 +131,7 @@ function PlatformLayout() {
 
       <div
         className={`platform-mobile-menu ${mobileMenuOpen ? 'is-open' : ''}`}
+        aria-label="Mobile navigation"
       >
         <form onSubmit={submitSearch} className="platform-mobile-search">
           <input
@@ -133,6 +139,7 @@ function PlatformLayout() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search IOC, hash, domain..."
+            aria-label="Search indicators, hashes, or domains"
           />
           <button
             type="submit"
@@ -161,11 +168,11 @@ function PlatformLayout() {
         </div>
       </div>
 
-      <main className="platform-main">
+      <main className="platform-main" id="main-content">
         <Outlet />
       </main>
 
-      <footer className="platform-footer">
+      <footer className="platform-footer" aria-label="Footer">
         <div className="platform-footer-inner">
           <div className="platform-footer-brand">
             <span className="platform-footer-name">TRUSTIVE AI</span>

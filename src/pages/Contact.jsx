@@ -1,4 +1,5 @@
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const contactItems = [
   {
@@ -21,11 +22,22 @@ const contactItems = [
 export default function Contact() {
   return (
     <section className="intel-shell legal-shell">
+      <Seo
+        title="Trustive AI | Contact"
+        description="Contact Trustive AI for platform feedback, privacy requests, product questions, and security-related observations."
+        path="/contact"
+      />
+
       <PortalHero
         kicker="Contact"
         title="Contact Trustive AI"
         copy="Reach out for product questions, platform feedback, or privacy and security requests."
         className="portal-hero-left portal-hero-single fade-in"
+        actions={(
+          <a className="intel-button primary" href="mailto:contact@trustive.ai?subject=Trustive%20AI%20Inquiry">
+            Email Trustive AI
+          </a>
+        )}
       />
 
       <section className="intel-section-card legal-card fade-in-delay-1">

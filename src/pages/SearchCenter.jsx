@@ -4,6 +4,7 @@ import { Radar, Search, ShieldAlert } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { formatRelativeDate } from '../utils/intelTools'
@@ -95,6 +96,12 @@ export default function SearchCenter() {
 
   return (
     <section className="intel-shell">
+      <Seo
+        title={activeQuery ? `Trustive AI | Search: ${activeQuery}` : 'Trustive AI | Global Search'}
+        description="Search scans, collected signals, community intelligence, and incident context across Trustive AI."
+        path={activeQuery ? `/search?q=${encodeURIComponent(activeQuery)}` : '/search'}
+      />
+
       <PortalHero
         kicker="Global Search"
         title="Global Search"

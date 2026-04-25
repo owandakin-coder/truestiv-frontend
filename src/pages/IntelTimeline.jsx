@@ -5,6 +5,7 @@ import { Activity, Clock3, Waves } from 'lucide-react'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
@@ -97,6 +98,12 @@ export default function IntelTimeline() {
   const spotlight = items[0] || null
   return (
     <section className="intel-shell zone-timeline">
+      <Seo
+        title="Trustive AI | Unified Intel Timeline"
+        description="Follow the unified timeline of suspicious and threat events across scans, community activity, and collected intelligence."
+        path="/timeline"
+      />
+
       <PortalHero
         kicker="Unified Intel Timeline"
         title="Unified Intel Timeline"

@@ -4,6 +4,7 @@ import { Globe2, ScanSearch, Waypoints } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
@@ -246,6 +247,12 @@ function LookupCenter() {
   const headerAnalysis = headerPayload?.analysis
   return (
     <section className="intel-shell zone-lookup">
+      <Seo
+        title={`Trustive AI | ${activeMode === 'domain' ? 'Domain Lookup' : activeMode === 'email-header' ? 'Email Header Analysis' : 'IP Lookup'}`}
+        description="Investigate IPs, domains, and email headers with enrichment, recent signals, and linked intelligence context."
+        path={indicator ? `/lookup-center/${activeMode}/${encodeURIComponent(indicator)}` : `/lookup-center/${activeMode}`}
+      />
+
       <PortalHero
         kicker="Lookup Center"
         title="Lookup Center"

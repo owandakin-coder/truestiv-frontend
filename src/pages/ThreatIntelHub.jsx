@@ -5,6 +5,7 @@ import { Database, GitBranch, Radar } from 'lucide-react'
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
 import { buildIocPath } from '../utils/intelTools'
 
@@ -93,6 +94,12 @@ export default function ThreatIntelHub() {
   ]
   return (
     <section className="intel-shell zone-threat-intel">
+      <Seo
+        title="Trustive AI | Threat Intelligence"
+        description="Monitor recurring indicators, incident briefs, collected signals, and the latest intelligence published by Trustive AI."
+        path="/threat-intel"
+      />
+
       <PortalHero
         kicker="Threat Intelligence"
         title="Threat Intelligence"

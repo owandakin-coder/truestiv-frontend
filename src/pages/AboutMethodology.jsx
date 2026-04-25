@@ -1,4 +1,5 @@
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const sections = [
   {
@@ -36,12 +37,36 @@ const sections = [
 export default function AboutMethodology() {
   return (
     <section className="intel-shell legal-shell">
+      <Seo
+        title="Trustive AI | About and Methodology"
+        description="Learn what Trustive AI does, how signals are scored, and what users should expect from the intelligence workflow."
+        path="/about"
+      />
+
       <PortalHero
         kicker="Trust and Methodology"
         title="About Trustive AI"
         copy="What the platform does, how signals are scored, and what users should expect from the intelligence workflow."
         className="portal-hero-left portal-hero-single fade-in"
       />
+
+      <section className="trust-facts-grid fade-in-delay-1">
+        <article className="contact-card">
+          <div className="signal-strip-label">Primary purpose</div>
+          <strong className="contact-value">Threat scanning and intelligence review</strong>
+          <p className="legal-section-copy">Built to move from suspicious input into context, history, and related signals quickly.</p>
+        </article>
+        <article className="contact-card">
+          <div className="signal-strip-label">Core sources</div>
+          <strong className="contact-value">Scanner, community, collection pipeline</strong>
+          <p className="legal-section-copy">Signals are merged from direct scans, promoted findings, and scheduled intelligence collection.</p>
+        </article>
+        <article className="contact-card">
+          <div className="signal-strip-label">User expectation</div>
+          <strong className="contact-value">Advisory intelligence, not final truth</strong>
+          <p className="legal-section-copy">Trustive AI supports triage and review, but sensitive decisions still need human validation.</p>
+        </article>
+      </section>
 
       <section className="intel-section-card legal-card fade-in-delay-1">
         <div className="legal-grid">

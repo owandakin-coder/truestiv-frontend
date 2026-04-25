@@ -4,6 +4,7 @@ import { ScanSearch, ShieldAlert } from 'lucide-react'
 import Analysis from './Analysis'
 import Scanner from './Scanner'
 import PortalHero from '../components/PortalHero'
+import Seo from '../components/Seo'
 
 const investigationTabs = [
   {
@@ -11,14 +12,14 @@ const investigationTabs = [
     label: 'Message Analysis',
     icon: ShieldAlert,
     titleMain: 'Message Analysis',
-    copy: 'Email, SMS, and chats in one unified workspace.',
+    copy: 'Review suspicious messages with verdicts, pivots, and actionable history.',
   },
   {
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
-    titleMain: 'Cyber Threat Analysis & Scanning Platform',
-    copy: 'Inspect suspicious links and obvious phishing patterns.',
+    titleMain: 'Threat Scanner',
+    copy: 'Scan suspicious links, IPs, hashes, files, and bulk IOC lists from one workspace.',
   },
 ]
 
@@ -30,6 +31,12 @@ export default function InvestigationCenter() {
 
   return (
     <section className="intel-shell zone-investigation">
+      <Seo
+        title={activeTab.id === 'analysis' ? 'Trustive AI | Message Analysis' : 'Trustive AI | Threat Scanner'}
+        description={activeTab.copy}
+        path={`/investigation-center/${activeTab.id}`}
+      />
+
       <PortalHero
         kicker="Threat Analysis Hub"
         title={activeTab.titleMain}
@@ -41,12 +48,12 @@ export default function InvestigationCenter() {
         <div className="investigation-hub-topline">
           <div className="investigation-hub-copy">
             <span className="analysis-meta-label">Workspace</span>
-            <p>Choose the fastest path and work from one unified pane.</p>
+            <p>Move straight into the right tool and keep results, pivots, and history in one place.</p>
           </div>
           <div className="investigation-hub-tags">
             <span className="intel-tag-chip">Scanner first</span>
             <span className="intel-tag-chip">Actionable history only</span>
-            <span className="intel-tag-chip">Open access</span>
+            <span className="intel-tag-chip">Fast pivots</span>
           </div>
         </div>
 

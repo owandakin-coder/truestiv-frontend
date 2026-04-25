@@ -132,57 +132,58 @@ export default function ThreatIntelHub() {
       </div>
 
       {activeSection === 'overview' ? (
-        <section className="threat-intel-editorial-row fade-in-delay-1">
+        <section className="threat-intel-editorial-row threat-intel-editorial-row-tight fade-in-delay-1">
           {overviewCards.map((card) => (
-            <article key={card.label} className="threat-intel-editorial-card">
+            <article key={card.label} className="threat-intel-editorial-card threat-intel-editorial-card-tight">
               <div className="signal-strip-label">{card.label}</div>
               <strong>{card.value}</strong>
-              <p>{card.copy}</p>
             </article>
           ))}
         </section>
       ) : null}
 
-      {activeSection === 'overview' && featuredBrief ? (
-        <section className="featured-brief featured-brief-large fade-in-delay-1">
-          <div className="featured-brief-summary">
-            <div className="intel-eyebrow">Featured Incident Brief</div>
-            <h2 className="intel-section-title" style={{ marginTop: 8 }}>{featuredBrief.title}</h2>
-            <p className="intel-reading-block" style={{ marginTop: 4 }}>{featuredBrief.summary}</p>
-            <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
-              {(featuredBrief.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
-              {(featuredBrief.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
-            </div>
-            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
-              <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
-              <Link className="intel-inline-link" to="/timeline">Open timeline context</Link>
-            </div>
-          </div>
-          <div className="featured-brief-side">
-            <div className="featured-brief-signal-grid">
-              <article className="editorial-card compact">
-                <div className="signal-strip-label">Signals</div>
-                <strong>{featuredBrief.signal_count}</strong>
-              </article>
-              <article className="editorial-card compact">
-                <div className="signal-strip-label">Countries</div>
-                <strong>{featuredBrief.countries?.length || 0}</strong>
-              </article>
-              <article className="editorial-card compact">
-                <div className="signal-strip-label">Actor tags</div>
-                <strong>{featuredBrief.actor_tags?.length || 0}</strong>
-              </article>
-              <article className="editorial-card compact">
-                <div className="signal-strip-label">Latest level</div>
-                <strong>{threatLabel(featuredBrief.latest_threat_level)}</strong>
-              </article>
-            </div>
-          </div>
-        </section>
-      ) : null}
+      {activeSection === 'overview' ? (
+        <div className="threat-intel-flagship-layout fade-in-delay-1">
+          {featuredBrief ? (
+            <section className="featured-brief featured-brief-large threat-intel-flagship-brief">
+              <div className="featured-brief-summary">
+                <div className="intel-eyebrow">Featured Incident Brief</div>
+                <h2 className="intel-section-title threat-intel-flagship-title" style={{ marginTop: 8 }}>{featuredBrief.title}</h2>
+                <p className="intel-reading-block threat-intel-flagship-copy" style={{ marginTop: 4 }}>{featuredBrief.summary}</p>
+                <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
+                  {(featuredBrief.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
+                  {(featuredBrief.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
+                </div>
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
+                  <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
+                  <Link className="intel-inline-link" to="/timeline">Open timeline context</Link>
+                </div>
+              </div>
+              <div className="featured-brief-side">
+                <div className="featured-brief-signal-grid">
+                  <article className="editorial-card compact">
+                    <div className="signal-strip-label">Signals</div>
+                    <strong>{featuredBrief.signal_count}</strong>
+                  </article>
+                  <article className="editorial-card compact">
+                    <div className="signal-strip-label">Countries</div>
+                    <strong>{featuredBrief.countries?.length || 0}</strong>
+                  </article>
+                  <article className="editorial-card compact">
+                    <div className="signal-strip-label">Actor tags</div>
+                    <strong>{featuredBrief.actor_tags?.length || 0}</strong>
+                  </article>
+                  <article className="editorial-card compact">
+                    <div className="signal-strip-label">Latest level</div>
+                    <strong>{threatLabel(featuredBrief.latest_threat_level)}</strong>
+                  </article>
+                </div>
+              </div>
+            </section>
+          ) : null}
 
-      {activeSection === 'overview' && summary ? (
-        <section className="intel-section-card threat-intel-collection-section fade-in-delay-1">
+          {summary ? (
+            <section className="intel-section-card threat-intel-collection-section threat-intel-collection-sidebar">
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Database size={14} />Collection Pipeline</div>
             <h2 className="intel-section-title">Collection pipeline</h2>
@@ -239,8 +240,7 @@ export default function ThreatIntelHub() {
                 </div>
               )}
             </div>
-
-            <div className="brief-panel">
+            <div className="brief-panel threat-intel-spotlight-panel">
               <div className="analysis-meta-label">Collector spotlight</div>
               {!collectionIndicators.length ? (
                 <p>No high-severity collected indicators yet.</p>
@@ -268,6 +268,8 @@ export default function ThreatIntelHub() {
             </div>
           </div>
         </section>
+          ) : null}
+        </div>
       ) : null}
 
       {activeSection === 'trending' ? (

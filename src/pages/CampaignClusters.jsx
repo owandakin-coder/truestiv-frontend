@@ -99,7 +99,7 @@ export default function CampaignClusters() {
 
       {!loading && clusters.length ? (
         <>
-          <div className="intel-two-column fade-in-delay-2">
+          <div className="intel-two-column campaign-flagship-layout fade-in-delay-2">
             <section className="intel-section-card campaign-browser-panel">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">
@@ -208,12 +208,16 @@ export default function CampaignClusters() {
                           <span key={indicator} className="intel-tag-chip">{indicator}</span>
                         ))}
                         {(selected.related_indicators || []).length > 6 ? (
-                          <span className="intel-tag-chip">+{selected.related_indicators.length - 6} more</span>
+                        <span className="intel-tag-chip">+{selected.related_indicators.length - 6} more</span>
                         ) : null}
                       </div>
                     </div>
                   </article>
 
+                  <div className="campaign-events-header">
+                    <div className="signal-strip-label">Cluster event rail</div>
+                    <strong>Latest linked activity</strong>
+                  </div>
                   <ExpandableFeed
                     items={selected.events || []}
                     initialCount={4}

@@ -98,7 +98,7 @@ function RecentSignalSection({ title, eyebrow, items, palette }) {
   if (!items?.length) return null
 
   return (
-    <section className="intel-section-card">
+    <section className="intel-section-card lookup-support-panel">
       <div className="intel-section-head">
         <div className="intel-eyebrow">{eyebrow}</div>
         <h2 className="intel-section-title">{title}</h2>
@@ -344,7 +344,7 @@ function LookupCenter() {
 
       {!loading && activeMode === 'ip' && ipLookup ? (
         <>
-          <div className="dossier-layout fade-in-delay-1">
+          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Infrastructure</div>
@@ -425,7 +425,7 @@ function LookupCenter() {
 
       {!loading && activeMode === 'domain' && domainLookup ? (
         <>
-          <div className="dossier-layout fade-in-delay-1">
+          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Domain dossier</div>
@@ -539,7 +539,7 @@ function LookupCenter() {
 
       {!loading && activeMode === 'email-header' && headerAnalysis ? (
         <>
-          <div className="dossier-layout fade-in-delay-1">
+          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
             <section className="intel-section-card">
               <div className="intel-section-head">
                 <div className="intel-eyebrow">Authentication</div>

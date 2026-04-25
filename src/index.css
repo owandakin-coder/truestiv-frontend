@@ -4542,3 +4542,147 @@ select:focus-visible {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Flagship hierarchy pass */
+.threat-intel-editorial-row-tight {
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.threat-intel-editorial-card-tight {
+  padding: 16px 18px;
+  min-height: 0;
+}
+
+.threat-intel-editorial-card-tight strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.threat-intel-flagship-layout {
+  display: grid;
+  gap: 18px;
+  align-items: start;
+}
+
+.threat-intel-flagship-brief {
+  min-height: 100%;
+}
+
+.threat-intel-flagship-title {
+  font-size: clamp(1.45rem, 2.4vw, 2.15rem);
+  line-height: 1.18;
+  max-width: 16ch;
+}
+
+.threat-intel-flagship-copy {
+  max-width: 62ch;
+  font-size: 14px;
+}
+
+.threat-intel-collection-sidebar {
+  background: #06111e;
+  border-top: 3px solid #22d3ee;
+}
+
+.threat-intel-collection-sidebar .signal-strip {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.threat-intel-spotlight-panel {
+  background: #071726;
+  border: 1px solid rgba(0,229,255,0.12);
+}
+
+.campaign-flagship-layout {
+  grid-template-columns: minmax(280px, 330px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.campaign-browser-panel {
+  position: sticky;
+  top: 96px;
+}
+
+.campaign-dossier-panel {
+  padding: 28px;
+  gap: 18px;
+}
+
+.campaign-dossier {
+  padding: 26px;
+  border-radius: 22px;
+}
+
+.campaign-events-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.campaign-events-header strong {
+  color: #f3f4f6;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 17px;
+}
+
+.campaign-cluster-events .flat-rail-row {
+  background: #05111d;
+  border-bottom-color: rgba(0,229,255,0.08);
+}
+
+.lookup-flagship-layout {
+  grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.78fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.lookup-flagship-layout > .intel-section-card:first-child {
+  padding: 28px;
+}
+
+.lookup-flagship-layout .dossier-sidepanel {
+  padding: 28px;
+  border-radius: 22px;
+  background: #071423;
+  border-top: 3px solid #22d3ee;
+}
+
+.lookup-support-panel {
+  background: #06111d;
+  border-left: 3px solid rgba(0,229,255,0.7);
+}
+
+.lookup-support-panel .lookup-signal-feed {
+  gap: 14px;
+}
+
+.lookup-support-panel .lookup-signal-result {
+  padding-block: 14px;
+  border-bottom: 1px solid rgba(0,229,255,0.08);
+}
+
+.lookup-support-panel .lookup-signal-result:last-child {
+  border-bottom: none;
+}
+
+@media (min-width: 1100px) {
+  .threat-intel-flagship-layout {
+    grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.85fr);
+  }
+}
+
+@media (max-width: 1099px) {
+  .campaign-flagship-layout,
+  .lookup-flagship-layout,
+  .threat-intel-flagship-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .campaign-browser-panel {
+    position: static;
+  }
+}

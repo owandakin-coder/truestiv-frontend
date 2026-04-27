@@ -3070,7 +3070,7 @@ body {
 .threat-intel-collection-grid {
   display: grid;
   grid-template-columns: minmax(260px, 0.72fr) minmax(0, 1.28fr);
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -3113,13 +3113,13 @@ body {
 
 .collection-source-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .collection-source-row {
   display: grid;
-  gap: 4px;
-  padding: 12px 13px;
+  gap: 3px;
+  padding: 10px 12px;
   border: 1px solid var(--portal-border);
   border-radius: 8px;
   background: #08111f;
@@ -4601,6 +4601,15 @@ select:focus-visible {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.threat-intel-collection-meta {
+  margin-top: 6px;
+  color: #c6d8ec;
+  font-size: 12px;
+  line-height: 1.55;
+  font-family: 'JetBrains Mono', monospace;
+  overflow-wrap: anywhere;
+}
+
 .threat-intel-spotlight-panel {
   background: #071726;
   border: 1px solid rgba(0,229,255,0.12);
@@ -4874,6 +4883,14 @@ select:focus-visible {
   min-height: 0;
 }
 
+.zone-threat-intel .threat-intel-collection-sidebar {
+  padding: 1.25rem;
+}
+
+.zone-threat-intel .threat-intel-collection-sidebar .brief-panel {
+  padding: 1rem 1rem 0.875rem;
+}
+
 .zone-threat-intel .threat-intel-category-button {
   min-width: 0;
   white-space: normal;
@@ -4899,6 +4916,22 @@ select:focus-visible {
 }
 
 .zone-threat-intel .signal-strip-copy {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.zone-threat-intel .collection-source-row strong {
+  font-size: 0.71875rem;
+}
+
+.zone-threat-intel .collection-source-row span {
+  font-size: 0.6875rem;
+  line-height: 1.45;
+}
+
+.zone-threat-intel .threat-intel-collection-section .flat-rail-copy {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;

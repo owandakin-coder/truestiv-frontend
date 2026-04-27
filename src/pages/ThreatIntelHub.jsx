@@ -187,6 +187,9 @@ export default function ThreatIntelHub() {
           <div className="intel-section-head">
             <div className="intel-eyebrow"><Database size={14} />Collection Pipeline</div>
             <h2 className="intel-section-title">Collection pipeline</h2>
+            <div className="threat-intel-collection-meta">
+              Latest run {summary.latest_collection_at ? new Date(summary.latest_collection_at).toLocaleString() : 'waiting'}
+            </div>
           </div>
 
           {!summary.indicators && summary.latest_collection_at ? (
@@ -216,11 +219,6 @@ export default function ThreatIntelHub() {
               <strong className="signal-strip-value">{summary.sources || 0}</strong>
               <div className="signal-strip-copy">Active collectors feeding the intelligence pipeline.</div>
             </article>
-            <article className="signal-strip-item">
-              <div className="signal-strip-label">Latest run</div>
-              <strong className="signal-strip-value">{summary.latest_collection_at ? new Date(summary.latest_collection_at).toLocaleString() : 'Waiting'}</strong>
-              <div className="signal-strip-copy">Most recent scheduled or manual collection window.</div>
-            </article>
           </div>
 
           <div className="threat-intel-collection-grid">
@@ -230,7 +228,7 @@ export default function ThreatIntelHub() {
                 <p>No collector output has been recorded yet.</p>
               ) : (
                 <div className="collection-source-list">
-                  {sourceBreakdown.slice(0, 6).map((item) => (
+                  {sourceBreakdown.slice(0, 4).map((item) => (
                     <div key={item.source} className="collection-source-row">
                       <strong>{item.source}</strong>
                       <span>{item.count} items</span>
@@ -247,7 +245,7 @@ export default function ThreatIntelHub() {
               ) : (
                 <ExpandableFeed
                   items={collectionIndicators}
-                  initialCount={4}
+                  initialCount={3}
                   className="flat-rail"
                   renderItem={(item) => (
                     <article key={`${item.indicator_type}-${item.indicator}`} className={`flat-rail-row ${threatLabel(item.threat_level)}`}>

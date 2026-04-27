@@ -2,6 +2,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; scrollbar-width: thin; scrollbar-color: #1e293b #030712; }
 
+html {
+  font-size: 100%;
+}
+
 html, body, #root {
   width: 100%;
   min-height: 100%;
@@ -4684,5 +4688,158 @@ select:focus-visible {
 
   .campaign-browser-panel {
     position: static;
+  }
+}
+
+/* Relative units + accessibility pass */
+:root {
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+}
+
+.card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+}
+
+.portal-hero {
+  gap: var(--space-6);
+}
+
+.portal-hero::after {
+  bottom: var(--space-6);
+  height: 0.125rem;
+}
+
+.portal-hero-kicker-row {
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+}
+
+.portal-hero-kicker-dot {
+  width: 0.5625rem;
+  height: 0.5625rem;
+}
+
+.portal-hero-kicker-label {
+  font-size: var(--text-xs);
+  letter-spacing: 0.1125rem;
+}
+
+.portal-hero-title {
+  margin-bottom: 0.875rem;
+}
+
+.portal-hero-meta-row {
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
+.portal-hero-meta-item {
+  font-size: var(--text-xs);
+  color: #d7e3f4;
+  padding: 0 0.5rem;
+}
+
+.portal-hero-meta-item::after {
+  right: -0.3125rem;
+}
+
+.portal-spotlight-card {
+  padding: 1.125rem 1.25rem;
+  border-radius: var(--radius-sm);
+  gap: var(--space-2);
+}
+
+.portal-spotlight-kicker,
+.intel-stat-label,
+.intel-meta-label,
+.signal-strip-label,
+.console-title {
+  font-size: 0.625rem;
+  letter-spacing: 0.125rem;
+  color: #82a8d4;
+}
+
+.portal-spotlight-card strong {
+  font-size: 0.9375rem;
+}
+
+.portal-spotlight-card p,
+.portal-hero-copy {
+  font-size: var(--text-sm);
+  color: #cfdeef;
+}
+
+.signal-strip-copy,
+.flat-rail-meta,
+.compact-rail-meta,
+.campaign-dossier-meta,
+.campaign-cluster-meta,
+.lookup-signal-meta {
+  color: #d7e3f1;
+}
+
+.flat-rail-meta,
+.compact-rail-meta {
+  font-size: 0.75rem;
+}
+
+.campaign-dossier-body,
+.intel-reading-block {
+  font-size: var(--text-sm);
+  line-height: 1.72;
+}
+
+.intel-section-card,
+.brief-panel,
+.campaign-dossier,
+.threat-intel-editorial-card,
+.contact-card {
+  padding: var(--space-6);
+}
+
+.flat-rail-row,
+.compact-rail-row,
+.campaign-cluster-item {
+  padding: 1.125rem 1.25rem 1.125rem 0;
+}
+
+.scanner-history-card,
+.lookup-signal-result,
+.map-feed-row,
+.intel-mini-item {
+  min-width: 0;
+}
+
+@media (max-width: 64rem) {
+  .portal-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-hero::after {
+    left: 0;
+    right: 0;
+    bottom: var(--space-4);
+  }
+
+  .portal-hero-rail {
+    order: 2;
+    align-content: start;
+  }
+
+  .portal-hero-main {
+    position: relative;
   }
 }

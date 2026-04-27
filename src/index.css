@@ -4843,3 +4843,50 @@ select:focus-visible {
     position: relative;
   }
 }
+
+/* Threat Intel overflow hardening */
+.flat-rail-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.signal-strip-value {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.zone-threat-intel .signal-strip-item {
+  padding: 0.75rem 0.875rem;
+}
+
+.zone-threat-intel .threat-intel-category-button {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.35;
+}
+
+.zone-threat-intel .intel-inline-link,
+.zone-threat-intel .platform-badge,
+.zone-threat-intel .flat-rail-side {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.zone-threat-intel .threat-intel-briefs-section .flat-rail-row,
+.zone-threat-intel .threat-intel-latest-section .flat-rail-row,
+.zone-threat-intel .threat-intel-collection-section .flat-rail-row {
+  grid-template-columns: 4px minmax(0, 1fr) auto;
+}
+
+@media (max-width: 68.75rem) {
+  .zone-threat-intel .signal-strip,
+  .zone-threat-intel .threat-intel-collection-sidebar .signal-strip {
+    grid-template-columns: 1fr;
+  }
+}

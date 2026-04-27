@@ -258,9 +258,11 @@ export default function ThreatIntelHub() {
                         </div>
                         <div className="flat-rail-copy">{item.summary}</div>
                       </div>
-                      <div className="flat-rail-side">Risk {item.risk_score}</div>
-                      <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>
-                      <div><Link className="intel-inline-link" to={buildIocPath(item.indicator_type, item.indicator)}>IOC details</Link></div>
+                      <div className="flat-rail-actions">
+                        <span className="flat-rail-side">Risk {item.risk_score}</span>
+                        <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
+                        <Link className="intel-inline-link" to={buildIocPath(item.indicator_type, item.indicator)}>IOC details</Link>
+                      </div>
                     </article>
                   )}
                 />
@@ -322,8 +324,10 @@ export default function ThreatIntelHub() {
                   </div>
                   <div className="flat-rail-copy">{item.summary}</div>
                 </div>
-                <div><span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span></div>
-                <div><Link className="intel-inline-link" to={item.details_path || '/campaign-clusters'}>Open cluster brief</Link></div>
+                <div className="flat-rail-actions">
+                  <span className={`platform-badge ${threatLabel(item.latest_threat_level)}`}>{threatLabel(item.latest_threat_level)}</span>
+                  <Link className="intel-inline-link" to={item.details_path || '/campaign-clusters'}>Open cluster brief</Link>
+                </div>
               </article>
             )}
           />
@@ -347,9 +351,11 @@ export default function ThreatIntelHub() {
                   <div className="flat-rail-title">{item.indicator}</div>
                   <div className="flat-rail-meta">Trustive AI intelligence stream</div>
                 </div>
-                <div className="flat-rail-side">Risk {item.risk_score}</div>
-                <div><span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span></div>
-                <div><Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>IOC details</Link></div>
+                <div className="flat-rail-actions">
+                  <span className="flat-rail-side">Risk {item.risk_score}</span>
+                  <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
+                  <Link className="intel-inline-link" to={buildIocPath(item.threat_type, item.indicator)}>IOC details</Link>
+                </div>
               </article>
             )}
           />

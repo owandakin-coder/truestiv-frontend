@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Database, GitBranch, Radar } from 'lucide-react'
+import { GitBranch, Radar } from 'lucide-react'
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
@@ -14,19 +14,14 @@ function threatLabel(level) {
   return value || 'unknown'
 }
 
-function firstLabel(values, fallback = 'Waiting') {
-  return values?.[0] || fallback
-}
-
 export default function ThreatIntelHub() {
   const [feed, setFeed] = useState([])
   const [trending, setTrending] = useState([])
   const [briefs, setBriefs] = useState([])
   const [collectionOverview, setCollectionOverview] = useState(null)
-  const [collectionIndicators, setCollectionIndicators] = useState([])
   const [error, setError] = useState('')
   const [live, setLive] = useState(true)
-  const [activeSection, setActiveSection] = useState('overview')
+  const [activeSection, setActiveSection] = useState('trending')
 
   useEffect(() => {
     let active = true
@@ -36,16 +31,14 @@ export default function ThreatIntelHub() {
         apiRequest('/api/intelligence/trending-indicators?time_range=30d&limit=10'),
         apiRequest('/api/intelligence/public-incident-briefs?limit=6'),
         apiRequest('/api/intelligence/collection/overview'),
-        apiRequest('/api/intelligence/collection/indicators?limit=8&threat_level=threat'),
       ])
-        .then(([feedPayload, trendingPayload, briefsPayload, collectionPayload, indicatorsPayload]) => {
+        .then(([feedPayload, trendingPayload, briefsPayload, collectionPayload]) => {
           if (!active) return
           setError('')
           setFeed(feedPayload || [])
           setTrending(trendingPayload.items || [])
           setBriefs(briefsPayload.items || [])
           setCollectionOverview(collectionPayload || null)
-          setCollectionIndicators(indicatorsPayload.items || [])
         })
         .catch((err) => {
           if (active) setError(err.message)
@@ -63,31 +56,30 @@ export default function ThreatIntelHub() {
 
   const featuredBrief = briefs[0] || null
   const summary = collectionOverview?.summary || null
-  const sourceBreakdown = collectionOverview?.source_breakdown || []
-  const overviewCards = [
+  const workspaceCards = [
     {
-      label: 'What matters now',
-      value: featuredBrief?.title || 'Waiting for cluster activity',
-      copy: featuredBrief?.summary || 'The strongest recurring brief will appear here first.',
-    },
-    {
-      label: 'Fastest recurring signal',
-      value: trending[0]?.indicator || 'No recurring indicator yet',
+      label: 'Top recurring signal',
+      value: trending[0]?.indicator || 'Waiting for recurring activity',
       copy: trending[0] ? `${trending[0].sightings} sightings across ${trending[0].sources?.length || 0} sources.` : 'Recurring indicators will surface here once the feed warms up.',
+      action: '/timeline',
+      actionLabel: 'Open timeline',
     },
     {
-      label: 'Top country',
-      value: firstLabel(featuredBrief?.countries, firstLabel(trending[0]?.countries, 'Global')),
-      copy: 'Country emphasis is derived from clustered signals and recurring activity.',
+      label: 'Lead brief',
+      value: featuredBrief?.title || 'No active brief yet',
+      copy: featuredBrief?.summary || 'Incident briefs will appear here when collected signals cluster together.',
+      action: featuredBrief?.details_path || '/campaign-clusters',
+      actionLabel: 'Open brief',
     },
     {
-      label: 'Collector health',
+      label: 'Collector status',
       value: summary?.latest_collection_at ? 'Collecting' : 'Waiting',
       copy: summary?.latest_collection_at ? `Latest run ${new Date(summary.latest_collection_at).toLocaleString()}.` : 'The collection pipeline has not produced a visible run yet.',
+      action: '/search',
+      actionLabel: 'Search indicators',
     },
   ]
   const sections = [
-    { id: 'overview', label: 'Overview', count: featuredBrief ? 1 : 0 },
     { id: 'trending', label: 'Trending', count: trending.length },
     { id: 'briefs', label: 'Briefs', count: briefs.length },
     { id: 'latest', label: 'Latest', count: feed.length },
@@ -131,146 +123,16 @@ export default function ThreatIntelHub() {
         ))}
       </div>
 
-      {activeSection === 'overview' ? (
-        <section className="threat-intel-editorial-row threat-intel-editorial-row-tight fade-in-delay-1">
-          {overviewCards.map((card) => (
-            <article key={card.label} className="threat-intel-editorial-card threat-intel-editorial-card-tight">
-              <div className="signal-strip-label">{card.label}</div>
-              <strong>{card.value}</strong>
-            </article>
-          ))}
-        </section>
-      ) : null}
-
-      {activeSection === 'overview' ? (
-        <div className="threat-intel-flagship-layout fade-in-delay-1">
-          {featuredBrief ? (
-            <section className="featured-brief featured-brief-large threat-intel-flagship-brief">
-              <div className="featured-brief-summary">
-                <div className="intel-eyebrow">Featured Incident Brief</div>
-                <h2 className="intel-section-title threat-intel-flagship-title" style={{ marginTop: 8 }}>{featuredBrief.title}</h2>
-                <p className="intel-reading-block threat-intel-flagship-copy" style={{ marginTop: 4 }}>{featuredBrief.summary}</p>
-                <div className="intel-tag-wrap" style={{ marginTop: 10 }}>
-                  {(featuredBrief.actor_tags || []).map((tag) => <span key={tag} className="intel-tag-chip">{tag}</span>)}
-                  {(featuredBrief.countries || []).map((country) => <span key={country} className="intel-tag-chip">{country}</span>)}
-                </div>
-                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 12 }}>
-                  <Link className="intel-inline-link" to={featuredBrief.details_path || '/campaign-clusters'}>Open full brief</Link>
-                  <Link className="intel-inline-link" to="/timeline">Open timeline context</Link>
-                </div>
-              </div>
-              <div className="featured-brief-side">
-                <div className="featured-brief-signal-grid">
-                  <article className="editorial-card compact">
-                    <div className="signal-strip-label">Signals</div>
-                    <strong>{featuredBrief.signal_count}</strong>
-                  </article>
-                  <article className="editorial-card compact">
-                    <div className="signal-strip-label">Countries</div>
-                    <strong>{featuredBrief.countries?.length || 0}</strong>
-                  </article>
-                  <article className="editorial-card compact">
-                    <div className="signal-strip-label">Actor tags</div>
-                    <strong>{featuredBrief.actor_tags?.length || 0}</strong>
-                  </article>
-                  <article className="editorial-card compact">
-                    <div className="signal-strip-label">Latest level</div>
-                    <strong>{threatLabel(featuredBrief.latest_threat_level)}</strong>
-                  </article>
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          {summary ? (
-            <section className="intel-section-card threat-intel-collection-section threat-intel-collection-sidebar">
-          <div className="intel-section-head">
-            <div className="intel-eyebrow"><Database size={14} />Collection Pipeline</div>
-            <h2 className="intel-section-title">Collection pipeline</h2>
-            <div className="threat-intel-collection-meta">
-              Latest run {summary.latest_collection_at ? new Date(summary.latest_collection_at).toLocaleString() : 'waiting'}
-            </div>
-          </div>
-
-          {!summary.indicators && summary.latest_collection_at ? (
-            <div className="intel-empty-inline">
-              The collection pipeline has run, but no persisted indicators are visible yet. Fresh data should appear here after the next successful collector write.
-            </div>
-          ) : null}
-
-          <div className="signal-strip">
-            <article className="signal-strip-item">
-              <div className="signal-strip-label">Raw items</div>
-              <strong className="signal-strip-value">{summary.raw_items || 0}</strong>
-              <div className="signal-strip-copy">Feed items stored before normalization.</div>
-            </article>
-            <article className="signal-strip-item">
-              <div className="signal-strip-label">Indicators</div>
-              <strong className="signal-strip-value">{summary.indicators || 0}</strong>
-              <div className="signal-strip-copy">Normalized indicators tracked across sources.</div>
-            </article>
-            <article className="signal-strip-item">
-              <div className="signal-strip-label">Actionable</div>
-              <strong className="signal-strip-value">{summary.actionable_indicators || 0}</strong>
-              <div className="signal-strip-copy">Indicators currently marked suspicious or threat.</div>
-            </article>
-            <article className="signal-strip-item">
-              <div className="signal-strip-label">Sources</div>
-              <strong className="signal-strip-value">{summary.sources || 0}</strong>
-              <div className="signal-strip-copy">Active collectors feeding the intelligence pipeline.</div>
-            </article>
-          </div>
-
-          <div className="threat-intel-collection-grid">
-            <div className="brief-panel">
-              <div className="analysis-meta-label">Source activity</div>
-              {!sourceBreakdown.length ? (
-                <p>No collector output has been recorded yet.</p>
-              ) : (
-                <div className="collection-source-list">
-                  {sourceBreakdown.slice(0, 4).map((item) => (
-                    <div key={item.source} className="collection-source-row">
-                      <strong>{item.source}</strong>
-                      <span>{item.count} items</span>
-                      <span>confidence {Math.round((item.confidence_score || 0) * 100)}%</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="brief-panel threat-intel-spotlight-panel">
-              <div className="analysis-meta-label">Collector spotlight</div>
-              {!collectionIndicators.length ? (
-                <p>No high-severity collected indicators yet.</p>
-              ) : (
-                <ExpandableFeed
-                  items={collectionIndicators}
-                  initialCount={3}
-                  className="flat-rail"
-                  renderItem={(item) => (
-                    <article key={`${item.indicator_type}-${item.indicator}`} className={`flat-rail-row ${threatLabel(item.threat_level)}`}>
-                      <div className="flat-rail-main">
-                        <div className="flat-rail-title">{item.indicator}</div>
-                        <div className="flat-rail-meta">
-                          {item.indicator_type} | {item.source_count} sources | {item.sightings} sightings
-                        </div>
-                        <div className="flat-rail-copy">{item.summary}</div>
-                      </div>
-                      <div className="flat-rail-actions">
-                        <span className="flat-rail-side">Risk {item.risk_score}</span>
-                        <span className={`platform-badge ${threatLabel(item.threat_level)}`}>{threatLabel(item.threat_level)}</span>
-                        <Link className="intel-inline-link" to={buildIocPath(item.indicator_type, item.indicator)}>IOC details</Link>
-                      </div>
-                    </article>
-                  )}
-                />
-              )}
-            </div>
-          </div>
-        </section>
-          ) : null}
-        </div>
-      ) : null}
+      <section className="threat-intel-workspace-strip fade-in-delay-1">
+        {workspaceCards.map((card) => (
+          <article key={card.label} className="threat-intel-workspace-card">
+            <div className="signal-strip-label">{card.label}</div>
+            <strong className="threat-intel-workspace-value">{card.value}</strong>
+            <p className="threat-intel-workspace-copy">{card.copy}</p>
+            <Link className="intel-inline-link" to={card.action}>{card.actionLabel}</Link>
+          </article>
+        ))}
+      </section>
 
       {activeSection === 'trending' ? (
       <section className="intel-section-card threat-intel-trending-section fade-in-delay-2">

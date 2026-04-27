@@ -3081,6 +3081,43 @@ body {
   margin: -4px 0 18px;
 }
 
+.threat-intel-workspace-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 8px;
+}
+
+.threat-intel-workspace-card {
+  display: grid;
+  gap: 10px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(91, 163, 245, 0.14);
+  background: linear-gradient(180deg, rgba(7, 16, 31, 0.96) 0%, rgba(9, 18, 33, 0.94) 100%);
+}
+
+.threat-intel-workspace-value {
+  color: #eff6ff;
+  font-size: 18px;
+  line-height: 1.35;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.threat-intel-workspace-copy {
+  color: #cfe0f1;
+  font-size: 13px;
+  line-height: 1.65;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
 .threat-intel-category-button {
   display: inline-flex;
   align-items: center;
@@ -3694,6 +3731,7 @@ body {
   .dossier-layout,
   .featured-brief,
   .featured-brief-signal-grid,
+  .threat-intel-workspace-strip,
   .threat-intel-collection-grid,
   .cluster-summary-strip,
   .flat-rail-row {

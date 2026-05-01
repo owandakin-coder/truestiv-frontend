@@ -84,13 +84,6 @@ function resultExplanation(level) {
   return 'No strong malicious indicators were detected in this scan, but context should still be reviewed when needed.'
 }
 
-function resultTitle(level) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return 'PHISHING'
-  if (value === 'suspicious') return 'SUSPICIOUS'
-  return 'SAFE'
-}
-
 function scannerExamplesFor(tab) {
   if (tab === 'url') {
     return [{ label: 'http://example-phish.com', value: 'http://example-phish.com' }]
@@ -543,15 +536,6 @@ export default function Scanner({ embedded = false }) {
               <div className="split-dossier">
                 <ResultCard result={result} type={activeTab} theme={theme} />
 
-                <div className={`scanner-status-card scanner-status-${String(result.threat_level || 'safe').toLowerCase()}`}>
-                  <div className="scanner-status-bar" />
-                  <div className="scanner-status-body">
-                    <div className="scanner-status-label">Scan Status</div>
-                    <div className="scanner-status-title">{resultTitle(result.threat_level)}</div>
-                    <p className="scanner-status-copy">{resultExplanation(result.threat_level)}</p>
-                  </div>
-                </div>
-
                 {scannerBrandSignal ? (
                   <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
                     <strong>
@@ -567,13 +551,17 @@ export default function Scanner({ embedded = false }) {
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
                       <Radar size={16} color={palette.blue} />
-                      <span className="analysis-meta-label">Workflow</span>
+                      <span className="analysis-meta-label">Next Actions</span>
                     </div>
                     <div className="investigation-actions">
-                      {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="scanner-inline-button">Open IP lookup</button> : null}
-                      {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="scanner-inline-button">Open IOC details</button> : null}
+                      {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="report-action-button report-action-button-primary">Open IP lookup</button> : null}
+                      {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="report-action-button">Open IOC details</button> : null}
                     </div>
                   </div>
+
+                  <p className="scanner-status-copy" style={{ marginTop: 10 }}>
+                    {resultExplanation(result.threat_level)}
+                  </p>
 
                   {publishState.message ? (
                     <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette) }}>

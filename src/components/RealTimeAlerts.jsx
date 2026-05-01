@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from 'react'
-import { AlertTriangle, Shield, CheckCircle, X, Bell } from 'lucide-react'
+import { useEffect } from 'react'
+import { X } from 'lucide-react'
 import toast, { Toaster } from 'react-hot-toast'
 
 const mockAlerts = [
@@ -10,19 +10,19 @@ const mockAlerts = [
   { type: 'warning', title: 'IP Flagged', message: '185.220.101.42 blocked', color: '#fbbf24' },
 ]
 
+const icons = {
+  threat: 'Threat',
+  warning: 'Warning',
+  safe: 'Safe',
+}
+
 export function useRealTimeAlerts() {
   useEffect(() => {
     let index = 0
     const interval = setInterval(() => {
       if (Math.random() > 0.6) {
         const alert = mockAlerts[index % mockAlerts.length]
-        index++
-
-        const icons = {
-          threat: '🚨',
-          warning: '⚠️',
-          safe: '✅'
-        }
+        index += 1
 
         toast.custom((t) => (
           <div style={{
@@ -32,9 +32,11 @@ export function useRealTimeAlerts() {
             border: `1px solid ${alert.color}30`,
             boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${alert.color}15`,
             animation: t.visible ? 'fadeInUp 0.3s ease' : 'fadeOut 0.2s ease',
-            backdropFilter: 'blur(20px)'
+            backdropFilter: 'blur(20px)',
           }}>
-            <div style={{ fontSize: 20, flexShrink: 0 }}>{icons[alert.type]}</div>
+            <div style={{ fontSize: 11, flexShrink: 0, color: alert.color, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 800 }}>
+              {icons[alert.type]}
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', marginBottom: 3 }}>{alert.title}</div>
               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>{alert.message}</div>
@@ -59,7 +61,7 @@ export function AlertsToaster() {
     <Toaster
       position="bottom-right"
       toastOptions={{
-        style: { background: 'transparent', boxShadow: 'none', padding: 0 }
+        style: { background: 'transparent', boxShadow: 'none', padding: 0 },
       }}
     />
   )

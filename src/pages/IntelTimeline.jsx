@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Activity, Clock3, Waves } from 'lucide-react'
 
@@ -53,7 +53,7 @@ export default function IntelTimeline() {
     time_range: '30d',
   })
 
-  const loadTimeline = () => {
+  const loadTimeline = useCallback(() => {
     let active = true
     setLoading(true)
     setError('')
@@ -81,11 +81,11 @@ export default function IntelTimeline() {
     return () => {
       active = false
     }
-  }
+  }, [filters])
 
   useEffect(() => {
     return loadTimeline()
-  }, [filters])
+  }, [loadTimeline])
 
   useEffect(() => {
     if (!live) return undefined
@@ -93,9 +93,7 @@ export default function IntelTimeline() {
       loadTimeline()
     }, 30000)
     return () => clearInterval(interval)
-  }, [live, filters])
-
-  const spotlight = items[0] || null
+  }, [live, loadTimeline])
   return (
     <section className="intel-shell zone-timeline">
       <Seo
@@ -109,7 +107,11 @@ export default function IntelTimeline() {
         title="Unified Intel Timeline"
         copy="The shortest path from a new event to its IOC context."
         className="timeline-hero portal-hero-left fade-in"
-
+        actions={(
+          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+            {live ? 'Live refresh on' : 'Live refresh off'}
+          </button>
+        )}
       />
 
 
@@ -171,12 +173,15 @@ export default function IntelTimeline() {
       {!loading && items.length ? (
         <section className="intel-section-card timeline-feed-panel fade-in-delay-3">
           <div className="intel-section-head">
-            <div className="intel-eyebrow">
-              <Waves size={14} />
-              Live Feed
-            </div>
-            <h2 className="intel-section-title">Newest intelligence and scan activity</h2>
+          <div className="intel-eyebrow">
+            <Waves size={14} />
+            Live Feed
           </div>
+          <h2 className="intel-section-title">Newest intelligence and scan activity</h2>
+          <p className="intel-section-copy">
+            {stats.total || items.length} events in view, {stats.high_attention || 0} high-attention signals, {stats.sources?.length || 0} contributing sources.
+          </p>
+        </div>
 
           <ExpandableFeed
             items={items}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Users } from 'lucide-react'
 
@@ -21,8 +21,9 @@ export default function CommunityIntel() {
   const [loading, setLoading] = useState(true)
   const [live, setLive] = useState(true)
 
-  const loadFeed = () => {
+  const loadFeed = useCallback(() => {
     let mounted = true
+    setError('')
     apiRequest('/api/community/threats')
       .then((payload) => {
         if (mounted) setItems(payload || [])
@@ -37,13 +38,13 @@ export default function CommunityIntel() {
     return () => {
       mounted = false
     }
-  }
+  }, [])
 
   useEffect(() => {
     setLoading(true)
     const cleanup = loadFeed()
     return cleanup
-  }, [])
+  }, [loadFeed])
 
   useEffect(() => {
     if (!live) return undefined
@@ -51,7 +52,7 @@ export default function CommunityIntel() {
       loadFeed()
     }, 30000)
     return () => clearInterval(interval)
-  }, [live])
+  }, [live, loadFeed])
 
   return (
     <section className="intel-shell zone-community">

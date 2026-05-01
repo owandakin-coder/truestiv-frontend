@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { CircleMarker, MapContainer, Popup, TileLayer } from 'react-leaflet'
 import { Globe2, MapPin, Radar } from 'lucide-react'
@@ -90,7 +90,7 @@ export default function GeoThreatMap() {
     time_range: '30d',
   })
 
-  const loadMap = () => {
+  const loadMap = useCallback(() => {
     let active = true
     setLoading(true)
     setError('')
@@ -112,11 +112,11 @@ export default function GeoThreatMap() {
     return () => {
       active = false
     }
-  }
+  }, [filters])
 
   useEffect(() => {
     return loadMap()
-  }, [filters])
+  }, [loadMap])
 
   useEffect(() => {
     let active = true
@@ -147,7 +147,7 @@ export default function GeoThreatMap() {
       loadMap()
     }, 30000)
     return () => clearInterval(interval)
-  }, [live, filters])
+  }, [live, loadMap])
 
   const playbackMarkers = useMemo(() => {
     if (playbackIndex < 0 || !playbackPoints.length) return markers
@@ -201,7 +201,9 @@ export default function GeoThreatMap() {
         className="map-hero portal-hero-left fade-in"
         actions={
           <>
-
+            <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
+              {live ? 'Live refresh on' : 'Live refresh off'}
+            </button>
           </>
         }
       />

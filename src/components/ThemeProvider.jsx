@@ -1,6 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
 const ThemeContext = createContext()
+const accentMap = {
+  blue: { main: '#2563eb', secondary: '#0ea5e9' },
+  cyan: { main: '#06b6d4', secondary: '#38bdf8' },
+  navy: { main: '#1d4ed8', secondary: '#1e3a8a' },
+  emerald: { main: '#059669', secondary: '#0ea5e9' },
+}
 
 export function useTheme() {
   return useContext(ThemeContext)
@@ -9,13 +15,6 @@ export function useTheme() {
 export default function ThemeProvider({ children }) {
   const theme = 'dark'
   const [accent, setAccent] = useState(localStorage.getItem('accent') || 'blue')
-
-  const accentMap = {
-    blue: { main: '#2563eb', secondary: '#0ea5e9' },
-    cyan: { main: '#06b6d4', secondary: '#38bdf8' },
-    navy: { main: '#1d4ed8', secondary: '#1e3a8a' },
-    emerald: { main: '#059669', secondary: '#0ea5e9' },
-  }
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)

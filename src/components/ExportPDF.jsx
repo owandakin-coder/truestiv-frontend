@@ -22,7 +22,7 @@ export default function ExportPDF({ data, title = 'Trustive AI Report' }) {
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(24)
       doc.setFont('helvetica', 'bold')
-      doc.text('Trustive AI', 20, 28)
+      doc.text(title, 20, 28)
 
       doc.setFontSize(12)
       doc.setFont('helvetica', 'normal')

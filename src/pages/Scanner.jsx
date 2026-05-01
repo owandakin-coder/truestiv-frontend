@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw, Search, Zap } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -128,7 +128,7 @@ export default function Scanner({ embedded = false }) {
 
   const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
 
-  const loadHistory = async (scanType = 'all') => {
+  const loadHistory = useCallback(async (scanType = 'all') => {
     setHistoryLoading(true)
     try {
       const response = await client.get('/api/intelligence/scan-history', {
@@ -140,7 +140,7 @@ export default function Scanner({ embedded = false }) {
     } finally {
       setHistoryLoading(false)
     }
-  }
+  }, [client])
 
   useEffect(() => {
     setResult(null)
@@ -148,7 +148,7 @@ export default function Scanner({ embedded = false }) {
     setPublishState({ status: 'idle', message: '' })
     setShowResultOnly(false)
     loadHistory(activeTab)
-  }, [activeTab])
+  }, [activeTab, loadHistory])
 
   const publishThreat = async (indicator, threatType, payload) => {
     if (!indicator || !threatType || !payload) return { duplicate: false }
@@ -306,12 +306,12 @@ export default function Scanner({ embedded = false }) {
               </div>
 
               <div className="console-tab-grid">
-                {tabs.map(({ id, label, icon: Icon }) => {
-                  const active = activeTab === id
+                {tabs.map((tab) => {
+                  const active = activeTab === tab.id
                   return (
-                    <button key={id} type="button" onClick={() => setActiveTab(id)} className={`console-tab ${active ? 'is-active' : ''}`}>
-                      <Icon size={16} color={active ? palette.blue : palette.subtle} />
-                      {label}
+                    <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`console-tab ${active ? 'is-active' : ''}`}>
+                      <tab.icon size={16} color={active ? palette.blue : palette.subtle} />
+                      {tab.label}
                     </button>
                   )
                 })}

@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Zap } from 'lucide-react'
 
+const messages = [
+  'Initializing security engine...',
+  'Loading threat database...',
+  'Connecting to AI service...',
+  'Verifying authentication...',
+  'Ready!',
+]
+
 export default function LoadingScreen({ onDone }) {
   const [progress, setProgress] = useState(0)
   const [text, setText] = useState('Initializing security engine...')
-
-  const messages = [
-    'Initializing security engine...',
-    'Loading threat database...',
-    'Connecting to AI service...',
-    'Verifying authentication...',
-    'Ready!',
-  ]
 
   useEffect(() => {
     let p = 0
@@ -26,7 +26,7 @@ export default function LoadingScreen({ onDone }) {
       setText(messages[Math.min(Math.floor(p / 22), messages.length - 1)])
     }, 180)
     return () => clearInterval(interval)
-  }, [])
+  }, [onDone])
 
   return (
     <div style={{

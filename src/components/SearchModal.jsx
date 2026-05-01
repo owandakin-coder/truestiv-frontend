@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search, Shield, ScanLine, Globe, Map, ArrowRight, X, Activity, Newspaper, Waypoints } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -16,30 +16,40 @@ const pages = [
 export default function SearchModal({ open, onClose }) {
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(0)
-  const inputRef = useRef()
+  const inputRef = useRef(null)
   const navigate = useNavigate()
+
+  const filtered = useMemo(
+    () =>
+      pages.filter((page) =>
+        page.label.toLowerCase().includes(query.toLowerCase()) ||
+        page.desc.toLowerCase().includes(query.toLowerCase())
+      ),
+    [query]
+  )
+
+  const go = useCallback((path) => {
+    if (path) {
+      navigate(path)
+      onClose()
+    }
+  }, [navigate, onClose])
 
   useEffect(() => {
     if (open) { setQuery(''); setSelected(0); setTimeout(() => inputRef.current?.focus(), 100) }
   }, [open])
 
   useEffect(() => {
+    if (!open) return undefined
     const handler = (e) => {
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowDown') setSelected(s => Math.min(s + 1, filtered.length - 1))
-      if (e.key === 'ArrowUp') setSelected(s => Math.max(s - 1, 0))
-      if (e.key === 'Enter') { go(filtered[selected]?.path); }
+      if (e.key === 'ArrowDown') setSelected((s) => Math.min(s + 1, Math.max(filtered.length - 1, 0)))
+      if (e.key === 'ArrowUp') setSelected((s) => Math.max(s - 1, 0))
+      if (e.key === 'Enter') go(filtered[selected]?.path)
     }
-    if (open) window.addEventListener('keydown', handler)
+    window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [open, selected, query])
-
-  const filtered = pages.filter(p =>
-    p.label.toLowerCase().includes(query.toLowerCase()) ||
-    p.desc.toLowerCase().includes(query.toLowerCase())
-  )
-
-  const go = (path) => { if (path) { navigate(path); onClose() } }
+  }, [filtered, go, onClose, open, selected])
 
   if (!open) return null
 

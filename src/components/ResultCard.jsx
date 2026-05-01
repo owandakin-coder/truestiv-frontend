@@ -144,6 +144,10 @@ function formatSignalLabel(signal) {
   }
 }
 
+function DetailValue({ children }) {
+  return <div className="result-report-value-block">{children}</div>
+}
+
 export default function ResultCard({ result, type, theme = 'dark' }) {
   if (!result) return null
 
@@ -156,6 +160,40 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
   const summaryRows = buildSummaryRows(result, type, sourceCount)
   const geoRows = type === 'ip' ? buildGeoRows(result.geo || {}) : []
   const signalLabels = buildSignalLabels(result)
+  const detailRows = [
+    [
+      'Entity',
+      <DetailValue>
+        <div className="result-report-identifier result-report-identifier-inline">{identifier}</div>
+        {vtLink ? (
+          <a href={vtLink} target="_blank" rel="noreferrer" className="result-report-link">
+            Open source context <ExternalLink size={14} />
+          </a>
+        ) : null}
+      </DetailValue>,
+    ],
+    ...summaryRows.map(([label, value]) => [label, <DetailValue>{value}</DetailValue>]),
+    ...geoRows.map(([label, value]) => [label, <DetailValue>{value}</DetailValue>]),
+  ]
+
+  if (signalLabels.length) {
+    detailRows.push([
+      'Threat labels and intelligence hints',
+      <DetailValue>
+        <div className="result-report-chip-grid result-report-chip-grid-compact">
+          {signalLabels.map((signal, index) => {
+            const formatted = formatSignalLabel(signal)
+            return (
+              <div key={`${signal}-${index}`} className="result-report-chip" title={formatted.hint}>
+                <strong>{formatted.title}</strong>
+                {formatted.value ? <span>{formatted.value}</span> : null}
+              </div>
+            )
+          })}
+        </div>
+      </DetailValue>,
+    ])
+  }
 
   return (
     <article className="result-report-card fade-in">
@@ -209,69 +247,17 @@ export default function ResultCard({ result, type, theme = 'dark' }) {
         </aside>
       </header>
 
-      <div className="result-report-grid">
-        <section className="result-report-panel">
-          <div className="result-report-panel-label">Entity</div>
-          <div className="result-report-identifier">{identifier}</div>
-          {vtLink ? (
-            <a
-              href={vtLink}
-              target="_blank"
-              rel="noreferrer"
-              className="result-report-link"
-            >
-              Open source context <ExternalLink size={14} />
-            </a>
-          ) : null}
-        </section>
-
-        <section className="result-report-panel">
-          <div className="result-report-panel-label">Scan summary</div>
-          <div className="result-report-table">
-            {summaryRows.map(([label, value]) => (
-              <div key={label} className="result-report-row">
-                <div className="result-report-key">{label}</div>
-                <div className="result-report-value">{value}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-
-      {(signalLabels.length || geoRows.length) ? (
-        <div className="result-report-grid result-report-grid-secondary">
-          {signalLabels.length ? (
-            <section className="result-report-panel">
-              <div className="result-report-panel-label">Threat labels and intelligence hints</div>
-              <div className="result-report-chip-grid">
-                {signalLabels.map((signal, index) => {
-                  const formatted = formatSignalLabel(signal)
-                  return (
-                    <div key={`${signal}-${index}`} className="result-report-chip" title={formatted.hint}>
-                      <strong>{formatted.title}</strong>
-                      {formatted.value ? <span>{formatted.value}</span> : null}
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
-          ) : null}
-
-          {geoRows.length ? (
-            <section className="result-report-panel">
-              <div className="result-report-panel-label">Geolocation and network</div>
-              <div className="result-report-table">
-                {geoRows.map(([label, value]) => (
-                  <div key={label} className="result-report-row">
-                    <div className="result-report-key">{label}</div>
-                    <div className="result-report-value">{value}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
+      <section className="result-report-table-surface">
+        <div className="result-report-panel-label">Technical details</div>
+        <div className="result-report-table result-report-table-surface-grid">
+          {detailRows.map(([label, value]) => (
+            <div key={label} className="result-report-row result-report-row-surface">
+              <div className="result-report-key">{label}</div>
+              <div className="result-report-value">{value}</div>
+            </div>
+          ))}
         </div>
-      ) : null}
+      </section>
     </article>
   )
 }

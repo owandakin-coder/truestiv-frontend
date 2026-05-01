@@ -43,12 +43,12 @@ function isActionable(level) {
 function toneFor(level) {
   const value = String(level || '').toLowerCase()
   if (value.includes('threat') || value.includes('dangerous') || value.includes('critical')) {
-    return { color: '#ff9770', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)', icon: AlertTriangle }
+    return { color: '#ef4444', bg: 'rgba(248,113,113,0.12)', border: 'rgba(248,113,113,0.3)', icon: AlertTriangle, label: 'Phishing' }
   }
   if (value.includes('safe') || value.includes('benign')) {
-    return { color: '#86efac', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)', icon: CheckCircle2 }
+    return { color: '#22c55e', bg: 'rgba(74,222,128,0.12)', border: 'rgba(74,222,128,0.3)', icon: CheckCircle2, label: 'Safe' }
   }
-  return { color: '#fdba74', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)', icon: ShieldAlert }
+  return { color: '#f59e0b', bg: 'rgba(251,146,60,0.12)', border: 'rgba(251,146,60,0.3)', icon: ShieldAlert, label: 'Suspicious' }
 }
 
 function normalizeAnalysis(payload) {
@@ -75,6 +75,24 @@ function primaryIndicator(channel, form, iocs) {
   if (form.sender) return { indicator: form.sender, threatType: channel === 'email' ? 'email' : 'phone' }
   if (form.phone) return { indicator: form.phone, threatType: 'phone' }
   return { indicator: '', threatType: channel === 'email' ? 'email' : 'phone' }
+}
+
+function channelMeta(channel, form) {
+  if (channel === 'email') {
+    return {
+      label: 'Email Analysis',
+      heading: form.subject || 'No subject provided',
+      source: form.sender || 'No sender provided',
+      sourceLabel: 'Sender',
+    }
+  }
+
+  return {
+    label: channel === 'sms' ? 'SMS Analysis' : 'WhatsApp Analysis',
+    heading: form.phone || 'No phone number provided',
+    source: form.phone || 'No phone number provided',
+    sourceLabel: 'Number',
+  }
 }
 
 function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
@@ -275,118 +293,82 @@ export default function Analysis({ embedded = false }) {
   // Reusable result content component (used in both modes)
   const ResultContent = () => (
     <div className="split-dossier">
-      <article
-        className="fade-in"
-        style={{
-          background: dark ? '#07101f' : '#fff',
-          border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
-          borderRadius: 10,
-          padding: 18,
-        }}
-      >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 16,
-            marginBottom: 16,
-            padding: 14,
-            borderRadius: 8,
-            background: dark ? '#08111f' : '#fff',
-            border: `1px solid ${tone.color}33`,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 8,
-                display: 'grid',
-                placeItems: 'center',
-                color: tone.color,
-                background: dark ? '#08111f' : '#fff',
-                border: `1px solid ${tone.color}33`,
-              }}
-            >
-              <ToneIcon size={26} />
-            </div>
-            <div>
-              <p style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2, fontFamily: 'JetBrains Mono, monospace' }}>
-                Message Analysis
-              </p>
-              <h3 style={{ color: textColor, fontSize: 20, fontWeight: 500, fontFamily: 'JetBrains Mono, monospace' }}>
-                {result.threatLevel}
-              </h3>
-            </div>
-          </div>
-
-          <div style={{ minWidth: 140 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 10, fontFamily: 'JetBrains Mono, monospace', letterSpacing: 1.5, textTransform: 'uppercase' }}>Risk Score</span>
-              <strong style={{ color: tone.color, fontFamily: 'JetBrains Mono, monospace' }}>{Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%</strong>
-            </div>
-            <div style={{ height: 8, borderRadius: 2, background: dark ? '#0a1828' : 'rgba(15,23,42,0.08)' }}>
-              <div
-                style={{
-                  width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`,
-                  height: '100%',
-                  borderRadius: 2,
-                  background: tone.color,
-                }}
-              />
-            </div>
-          </div>
+      <article className="result-report-card fade-in">
+        <div className="result-report-progress-track" aria-hidden="true">
+          <div
+            className="result-report-progress-fill"
+            style={{ width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`, background: tone.color }}
+          />
         </div>
 
-        <div className="scanner-result-grid">
-          <section
-            style={{
-              background: dark ? '#08111f' : '#fff',
-              border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
-              borderRadius: 8,
-              padding: 16,
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Mail size={16} color="#5ba3f5" />
-              <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
-                Message Context
-              </span>
+        <header className="result-report-header">
+          <div className="result-report-summary">
+            <div className="result-report-kicker">
+              <Mail size={16} color={tone.color} />
+              <span>{channelMeta(channel, form).label}</span>
             </div>
-            <div style={{ color: textColor, fontSize: 12, lineHeight: 1.8, wordBreak: 'break-word', fontFamily: 'JetBrains Mono, monospace', display: 'grid', gap: 8 }}>
-              <div>{channel.toUpperCase()}</div>
-              {channel === 'email' && form.sender ? <div>{form.sender}</div> : null}
-              {channel === 'email' && form.subject ? <div>{form.subject}</div> : null}
-              {channel !== 'email' && form.phone ? <div>{form.phone}</div> : null}
-              {result.related_threats_count > 0 ? (
-                <div style={{ marginTop: 6, display: 'inline-flex', alignItems: 'center', gap: 8, padding: '10px 12px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#bae6fd', fontWeight: 700, width: 'fit-content' }}>
-                  <ExternalLink size={14} />
-                  Related threats: {result.related_threats_count}
+
+            <div className="result-report-status-line">
+              <div className="result-report-status-icon" style={{ color: tone.color, borderColor: `${tone.color}55` }}>
+                <ToneIcon size={26} />
+              </div>
+              <div className="result-report-status-copy">
+                <span className="result-report-status-badge" style={{ color: tone.color, borderColor: `${tone.color}55`, background: `${tone.color}14` }}>
+                  {tone.label}
+                </span>
+                <h3 className="result-report-title">{channelMeta(channel, form).heading}</h3>
+                <p className="result-report-description">{result.summary || emptyResultText}</p>
+              </div>
+            </div>
+          </div>
+
+          <aside className="result-report-score-card">
+            <div className="result-report-score-topline">
+              <span>Risk Score</span>
+              <strong style={{ color: tone.color }}>{Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%</strong>
+            </div>
+            <div className="result-report-score-bar">
+              <div
+                className="result-report-score-bar-fill"
+                style={{ width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`, background: tone.color }}
+              />
+            </div>
+            <p className="result-report-score-copy">
+              {result.related_threats_count > 0
+                ? `${result.related_threats_count} related threat matches were found in the wider intelligence graph.`
+                : 'Verdict reflects the strongest phishing and impersonation signals found in the submitted message.'}
+            </p>
+          </aside>
+        </header>
+
+        <div className="result-report-grid">
+          <section className="result-report-panel">
+            <div className="result-report-panel-label">Message context</div>
+            <div className="result-report-table">
+              <div className="result-report-row">
+                <div className="result-report-key">Channel</div>
+                <div className="result-report-value">{channel.toUpperCase()}</div>
+              </div>
+              <div className="result-report-row">
+                <div className="result-report-key">{channelMeta(channel, form).sourceLabel}</div>
+                <div className="result-report-value">{channelMeta(channel, form).source}</div>
+              </div>
+              {channel === 'email' ? (
+                <div className="result-report-row">
+                  <div className="result-report-key">Subject</div>
+                  <div className="result-report-value">{form.subject || 'No subject provided'}</div>
                 </div>
               ) : null}
             </div>
           </section>
 
-          <section
-            style={{
-              background: dark ? '#08111f' : '#fff',
-              border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
-              borderRadius: 8,
-              padding: 16,
-              display: 'grid',
-              gap: 12,
-            }}
-          >
-            <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
-              Result Breakdown
-            </span>
-            <div className="intel-result-table">
+          <section className="result-report-panel">
+            <div className="result-report-panel-label">Result breakdown</div>
+            <div className="result-report-table">
               {analysisRows.map(([label, value]) => (
-                <div key={label} className="intel-result-row">
-                  <div className="intel-result-key">{label}</div>
-                  <div className="intel-result-value">{value}</div>
+                <div key={label} className="result-report-row">
+                  <div className="result-report-key">{label}</div>
+                  <div className="result-report-value">{value}</div>
                 </div>
               ))}
             </div>
@@ -394,41 +376,12 @@ export default function Analysis({ embedded = false }) {
         </div>
 
         {Array.isArray(result.indicators) && result.indicators.length > 0 ? (
-          <section
-            style={{
-              marginTop: 18,
-              background: dark ? '#08111f' : '#fff',
-              border: dark ? '1px solid #0e2040' : `1px solid ${borderColor}`,
-              borderRadius: 8,
-              padding: 16,
-            }}
-          >
-            <span style={{ color: dark ? '#4a7ab5' : '#64748b', fontSize: 9, fontWeight: 500, textTransform: 'uppercase', letterSpacing: 2 }}>
-              Indicators
-            </span>
-            <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
+          <section className="result-report-panel" style={{ marginTop: '1rem' }}>
+            <div className="result-report-panel-label">Indicators and extracted cues</div>
+            <div className="result-report-chip-grid">
               {result.indicators.map((indicator, index) => (
-                <div
-                  key={`${indicator}-${index}`}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 10,
-                    color: mutedColor,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      marginTop: 8,
-                      borderRadius: '50%',
-                      background: tone.color,
-                      flexShrink: 0,
-                    }}
-                  />
-                  <span>{indicator}</span>
+                <div key={`${indicator}-${index}`} className="result-report-chip" title="Signal extracted from the analyzed message content.">
+                  <strong>{indicator}</strong>
                 </div>
               ))}
             </div>
@@ -453,10 +406,10 @@ export default function Analysis({ embedded = false }) {
 
       <div className="brief-panel">
         <div>
-          <div className="analysis-meta-label">Actions</div>
+          <div className="analysis-meta-label">Next Actions</div>
         </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} style={{ border: 'none', borderRadius: 999, padding: '12px 18px', background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', color: '#fff', fontWeight: 800, cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
+          <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} className="report-action-button report-action-button-primary" style={{ cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
             {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
           </button>
         </div>

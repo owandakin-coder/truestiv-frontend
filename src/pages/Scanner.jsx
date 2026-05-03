@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw, Search, Zap } from 'lucide-react'
+import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import ExpandableFeed from '../components/ExpandableFeed'
@@ -263,7 +263,7 @@ export default function Scanner({ embedded = false }) {
   ]
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="scanner-page-minimal" style={{ position: 'relative' }}>
       {!embedded ? <div className="hero-bg" /> : null}
       {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
 
@@ -433,11 +433,11 @@ export default function Scanner({ embedded = false }) {
               </div>
             </section>
 
-            <div className="feed-surface investigation-feed-centered" style={{ padding: 16 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-                <Zap size={16} color={palette.blue} />
-                <span className="analysis-meta-label">Recent Scans</span>
-              </div>
+              <div className="feed-surface investigation-feed-centered scanner-history-panel" style={{ padding: 16 }}>
+                <div className="scanner-section-head">
+                  <span className="analysis-meta-label">Recent Scans</span>
+                  <h3 className="scanner-section-title">Recent Scans</h3>
+                </div>
 
               {historyLoading ? (
                 <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history...</p>
@@ -452,6 +452,12 @@ export default function Scanner({ embedded = false }) {
                 />
               ) : (
                 <div className="scanner-history-scroll">
+                  <div className="scanner-history-table-head">
+                    <span>URL</span>
+                    <span>Type</span>
+                    <span>Date</span>
+                    <span>Status</span>
+                  </div>
                   <ExpandableFeed
                     items={recentScans}
                     initialCount={6}
@@ -461,6 +467,10 @@ export default function Scanner({ embedded = false }) {
                         <div className="scanner-history-cell scanner-history-cell-indicator">
                           <strong className="scanner-history-url">{entry.indicator}</strong>
                           <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
+                          <div className="scanner-history-actions">
+                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
+                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
+                          </div>
                         </div>
                         <div className="scanner-history-cell">
                           <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
@@ -470,12 +480,6 @@ export default function Scanner({ embedded = false }) {
                         </div>
                         <div className="scanner-history-cell">
                           <span className="scanner-history-badge">{entry.threat_level}</span>
-                        </div>
-                        <div className="scanner-history-cell">
-                          <div className="scanner-history-actions">
-                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
-                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
-                          </div>
                         </div>
                       </article>
                     )}

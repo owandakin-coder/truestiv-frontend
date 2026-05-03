@@ -4996,10 +4996,10 @@ select:focus-visible {
   min-width: 980px;
 }
 
-.soc-table-five .soc-table-head,
-.soc-table-five .soc-table-row {
+.soc-table-four .soc-table-head,
+.soc-table-four .soc-table-row {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) minmax(150px, 0.8fr) minmax(0, 1.35fr) minmax(0, 1.15fr) minmax(210px, 1fr);
+  grid-template-columns: minmax(0, 2.1fr) minmax(150px, 0.8fr) minmax(0, 1.35fr) minmax(0, 1.15fr);
   gap: 1rem;
   align-items: center;
 }
@@ -5020,6 +5020,10 @@ select:focus-visible {
 
 .soc-table-row:nth-child(even) {
   background: rgba(255,255,255,0.02);
+}
+
+.soc-table-row:first-of-type {
+  border-top: 1px solid rgba(255,255,255,0.04);
 }
 
 .soc-table-cell {
@@ -5054,8 +5058,7 @@ select:focus-visible {
   overflow-wrap: anywhere;
 }
 
-.soc-copy-button,
-.soc-action-button {
+.soc-copy-button {
   border: 1px solid rgba(0,229,255,0.14);
   background: rgba(8,15,26,0.58);
   color: #d9faff;
@@ -5065,25 +5068,13 @@ select:focus-visible {
   font-size: 0.75rem;
   cursor: pointer;
   transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+  white-space: nowrap;
 }
 
-.soc-copy-button:hover,
-.soc-action-button:hover {
+.soc-copy-button:hover {
   border-color: rgba(0,229,255,0.34);
   background: rgba(17,31,49,0.9);
   transform: translateY(-1px);
-}
-
-.soc-action-button-primary {
-  background: rgba(0,229,255,0.14);
-  color: #00E5FF;
-  border-color: rgba(0,229,255,0.28);
-}
-
-.soc-action-row {
-  display: flex;
-  gap: 0.625rem;
-  flex-wrap: wrap;
 }
 
 .soc-risk-stack {
@@ -5123,6 +5114,36 @@ select:focus-visible {
   border-radius: 999px;
 }
 
+.scanner-result-stack {
+  width: min(100%, 940px);
+  margin: 0 auto;
+  display: grid;
+  gap: 16px;
+}
+
+.scanner-result-support {
+  background: linear-gradient(180deg, rgba(15,24,39,0.94) 0%, rgba(11,18,30,0.96) 100%);
+  border: 1px solid rgba(0,229,255,0.08);
+  border-radius: 1rem;
+  padding: 1rem 1.125rem;
+}
+
+.scanner-result-support strong {
+  color: #f8fbff;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.scanner-result-support .scanner-status-copy {
+  margin-top: 0.25rem;
+  max-width: none;
+}
+
+.scanner-result-support .console-status {
+  margin-top: 0.875rem;
+}
+
 @media (max-width: 900px) {
   .scanner-history-row {
     grid-template-columns: 1fr;
@@ -5133,6 +5154,10 @@ select:focus-visible {
 @media (max-width: 64rem) {
   .soc-table {
     min-width: 760px;
+  }
+
+  .scanner-result-stack {
+    width: 100%;
   }
 }
 

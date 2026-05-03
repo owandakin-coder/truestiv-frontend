@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { DatabaseZap, Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
-import { buildIpLookupPath, buildIocPath, formatRelativeDate } from '../utils/intelTools'
+import { buildIpLookupPath, formatRelativeDate } from '../utils/intelTools'
 
 function paletteFor(theme) {
   const dark = theme !== 'light'
@@ -65,48 +65,18 @@ function riskPercent(value) {
 }
 
 function SignalTable({ title, rows, fallbackType, palette, onCopy }) {
-  const navigate = useNavigate()
-
-  const openCheck = (row) => {
-    const rowType = inferIndicatorType(row, fallbackType)
-    const indicator = row?.indicator || row?.ip || ''
-    if (!indicator) return
-    if (rowType === 'ip') {
-      navigate(buildIpLookupPath(indicator))
-      return
-    }
-    navigate(buildIocPath(rowType, indicator))
-  }
-
-  const openEnrichment = (row) => {
-    if (row?.lookup_path) {
-      navigate(row.lookup_path)
-      return
-    }
-    const rowType = inferIndicatorType(row, fallbackType)
-    const indicator = row?.indicator || row?.ip || ''
-    if (rowType === 'ip' && indicator) {
-      navigate(buildIpLookupPath(indicator))
-      return
-    }
-    if (indicator) {
-      navigate(buildIocPath(rowType, indicator))
-    }
-  }
-
   return (
     <div className="soc-table-surface">
       <div className="soc-table-title-row">
         <strong className="soc-table-title">{title}</strong>
       </div>
       <div className="soc-table-scroll">
-        <div className="soc-table soc-table-five">
+        <div className="soc-table soc-table-four">
           <div className="soc-table-head">
             <span>Indicator</span>
             <span>Risk</span>
             <span>Sector &amp; Category</span>
             <span>Source &amp; Date</span>
-            <span>Actions</span>
           </div>
           {rows.map((row) => {
             const indicator = row.indicator || row.ip || ''
@@ -150,13 +120,6 @@ function SignalTable({ title, rows, fallbackType, palette, onCopy }) {
                 <div className="soc-table-cell">
                   <div className="soc-table-primary">{source}</div>
                   <div className="soc-table-secondary">{freshness}</div>
-                </div>
-                <div className="soc-table-cell">
-                  <div className="soc-action-row">
-                    <button type="button" className="soc-action-button soc-action-button-primary" onClick={() => openCheck(row)}>Check</button>
-                    <button type="button" className="soc-action-button" onClick={() => onCopy(indicator)}>Block</button>
-                    <button type="button" className="soc-action-button" onClick={() => openEnrichment(row)}>Enrich</button>
-                  </div>
                 </div>
               </div>
             )

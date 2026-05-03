@@ -540,11 +540,11 @@ export default function Scanner({ embedded = false }) {
                 </div>
               </div>
             ) : (
-              <div className="split-dossier">
+              <div className="scanner-result-stack">
                 <ResultCard result={result} type={activeTab} theme={theme} />
 
                 {scannerBrandSignal ? (
-                  <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
+                  <div className="brief-panel scanner-result-support" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
                     <strong>
                       Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
                     </strong>
@@ -554,7 +554,7 @@ export default function Scanner({ embedded = false }) {
                   </div>
                 ) : null}
 
-                <div className="brief-panel">
+                <div className="brief-panel scanner-result-support">
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
                       <Radar size={16} color={palette.blue} />

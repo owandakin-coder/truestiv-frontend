@@ -186,13 +186,16 @@ export default function Analysis({ embedded = false }) {
   const analysisRows = useMemo(() => {
     if (!result) return []
     return [
+      ['Message channel', channel.toUpperCase()],
+      [channelMeta(channel, form).sourceLabel, channelMeta(channel, form).source],
+      ...(channel === 'email' ? [['Subject', form.subject || 'No subject provided']] : []),
       ['Threat level', String(result.threatLevel || 'unknown').toUpperCase()],
       ['Confidence', `${Math.round(result.confidence || 0)}%`],
       ['Risk score', `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`],
       ['Recommendation', result.recommendation || 'Review manually'],
       ['Summary', result.summary || emptyResultText],
     ]
-  }, [result])
+  }, [channel, form, result])
   const brandSignals = useMemo(() => {
     const candidates = [...(derivedIocs.domains || []), ...(derivedIocs.urls || [])]
     const unique = Array.from(new Set(candidates.map((item) => String(item || '').trim()).filter(Boolean)))
@@ -341,52 +344,17 @@ export default function Analysis({ embedded = false }) {
           </aside>
         </header>
 
-        <div className="result-report-grid">
-          <section className="result-report-panel">
-            <div className="result-report-panel-label">Message context</div>
-            <div className="result-report-table">
-              <div className="result-report-row">
-                <div className="result-report-key">Channel</div>
-                <div className="result-report-value">{channel.toUpperCase()}</div>
+        <section className="result-report-table-surface result-report-table-surface-grid">
+          <div className="result-report-panel-label">Message analysis report</div>
+          <div className="result-report-table">
+            {analysisRows.map(([label, value]) => (
+              <div key={label} className="result-report-row result-report-row-surface">
+                <div className="result-report-key">{label}</div>
+                <div className="result-report-value">{value}</div>
               </div>
-              <div className="result-report-row">
-                <div className="result-report-key">{channelMeta(channel, form).sourceLabel}</div>
-                <div className="result-report-value">{channelMeta(channel, form).source}</div>
-              </div>
-              {channel === 'email' ? (
-                <div className="result-report-row">
-                  <div className="result-report-key">Subject</div>
-                  <div className="result-report-value">{form.subject || 'No subject provided'}</div>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          <section className="result-report-panel">
-            <div className="result-report-panel-label">Result breakdown</div>
-            <div className="result-report-table">
-              {analysisRows.map(([label, value]) => (
-                <div key={label} className="result-report-row">
-                  <div className="result-report-key">{label}</div>
-                  <div className="result-report-value">{value}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-        </div>
-
-        {Array.isArray(result.indicators) && result.indicators.length > 0 ? (
-          <section className="result-report-panel" style={{ marginTop: '1rem' }}>
-            <div className="result-report-panel-label">Indicators and extracted cues</div>
-            <div className="result-report-chip-grid">
-              {result.indicators.map((indicator, index) => (
-                <div key={`${indicator}-${index}`} className="result-report-chip" title="Signal extracted from the analyzed message content.">
-                  <strong>{indicator}</strong>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
+            ))}
+          </div>
+        </section>
       </article>
 
       {brandSignals.length ? (

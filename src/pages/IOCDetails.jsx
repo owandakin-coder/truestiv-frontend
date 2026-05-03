@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { DatabaseZap, Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
 import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
-import { buildIpLookupPath, formatRelativeDate } from '../utils/intelTools'
+import { buildIpLookupPath, buildIocPath, formatRelativeDate } from '../utils/intelTools'
 
 function paletteFor(theme) {
   const dark = theme !== 'light'
@@ -42,10 +42,136 @@ function Section({ title, eyebrow, copy, children }) {
   )
 }
 
+function truncateIndicator(value = '') {
+  const normalized = String(value || '')
+  if (normalized.length <= 48) return normalized
+  return `${normalized.slice(0, 24)}...${normalized.slice(-12)}`
+}
+
+function inferIndicatorType(item, fallbackType) {
+  const candidate = item?.indicator_type || item?.threat_type || item?.scan_type || item?.channel || fallbackType || 'indicator'
+  return ['ip', 'url', 'hash', 'file', 'domain', 'email', 'phone', 'cve'].includes(String(candidate).toLowerCase())
+    ? String(candidate).toLowerCase()
+    : fallbackType || 'indicator'
+}
+
+function inferSource(item, fallback) {
+  if (Array.isArray(item?.sources) && item.sources.length) return item.sources.join(', ')
+  return item?.source || fallback || 'Trustive AI'
+}
+
+function riskPercent(value) {
+  return Math.max(0, Math.min(100, Number(value || 0)))
+}
+
+function SignalTable({ title, rows, fallbackType, palette, onCopy }) {
+  const navigate = useNavigate()
+
+  const openCheck = (row) => {
+    const rowType = inferIndicatorType(row, fallbackType)
+    const indicator = row?.indicator || row?.ip || ''
+    if (!indicator) return
+    if (rowType === 'ip') {
+      navigate(buildIpLookupPath(indicator))
+      return
+    }
+    navigate(buildIocPath(rowType, indicator))
+  }
+
+  const openEnrichment = (row) => {
+    if (row?.lookup_path) {
+      navigate(row.lookup_path)
+      return
+    }
+    const rowType = inferIndicatorType(row, fallbackType)
+    const indicator = row?.indicator || row?.ip || ''
+    if (rowType === 'ip' && indicator) {
+      navigate(buildIpLookupPath(indicator))
+      return
+    }
+    if (indicator) {
+      navigate(buildIocPath(rowType, indicator))
+    }
+  }
+
+  return (
+    <div className="soc-table-surface">
+      <div className="soc-table-title-row">
+        <strong className="soc-table-title">{title}</strong>
+      </div>
+      <div className="soc-table-scroll">
+        <div className="soc-table soc-table-five">
+          <div className="soc-table-head">
+            <span>Indicator</span>
+            <span>Risk</span>
+            <span>Sector &amp; Category</span>
+            <span>Source &amp; Date</span>
+            <span>Actions</span>
+          </div>
+          {rows.map((row) => {
+            const indicator = row.indicator || row.ip || ''
+            const rowType = inferIndicatorType(row, fallbackType)
+            const source = inferSource(row, 'Trustive AI')
+            const freshness = formatRelativeDate(
+              row.last_seen_at || row.published_at || row.created_at || row.first_seen_at
+            )
+            const risk = riskPercent(row.risk_score)
+            const level = String(row.threat_level || 'unknown').toLowerCase()
+            const accent = levelColor(level, palette)
+            const locationHint = [row.country, row.city, row.region].filter(Boolean).join(' / ')
+            const categoryHint = row.summary || row.subject || row.sender || row.source || 'Recorded indicator context.'
+
+            return (
+              <div key={row.id || `${rowType}-${indicator}-${freshness}`} className="soc-table-row">
+                <div className="soc-table-cell">
+                  <div className="soc-indicator-stack">
+                    <strong className="soc-indicator-value" title={indicator}>{truncateIndicator(indicator)}</strong>
+                    <button type="button" className="soc-copy-button" onClick={() => onCopy(indicator)}>
+                      Copy
+                    </button>
+                  </div>
+                  {locationHint ? <div className="soc-indicator-meta">{locationHint}</div> : null}
+                </div>
+                <div className="soc-table-cell">
+                  <div className="soc-risk-stack">
+                    <div className="soc-risk-topline">
+                      <strong>{risk}%</strong>
+                      <span style={{ color: accent }}>{level}</span>
+                    </div>
+                    <div className="soc-risk-bar">
+                      <div className="soc-risk-bar-fill" style={{ width: `${risk}%`, background: accent }} />
+                    </div>
+                  </div>
+                </div>
+                <div className="soc-table-cell">
+                  <div className="soc-table-primary">{String(rowType || 'indicator').toUpperCase()}</div>
+                  <div className="soc-table-secondary">{categoryHint}</div>
+                </div>
+                <div className="soc-table-cell">
+                  <div className="soc-table-primary">{source}</div>
+                  <div className="soc-table-secondary">{freshness}</div>
+                </div>
+                <div className="soc-table-cell">
+                  <div className="soc-action-row">
+                    <button type="button" className="soc-action-button soc-action-button-primary" onClick={() => openCheck(row)}>Check</button>
+                    <button type="button" className="soc-action-button" onClick={() => onCopy(indicator)}>Block</button>
+                    <button type="button" className="soc-action-button" onClick={() => openEnrichment(row)}>Enrich</button>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function IOCDetails() {
   const { theme } = useTheme()
   const palette = useMemo(() => paletteFor(theme), [theme])
   const { iocType = '', indicator = '' } = useParams()
+  const [copiedIndicator, setCopiedIndicator] = useState('')
 
   const [payload, setPayload] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -75,6 +201,19 @@ export default function IOCDetails() {
   const ioc = payload?.ioc || null
   const accent = levelColor(ioc?.latest_threat_level, palette)
 
+  const copyIndicator = async (value) => {
+    if (!value) return
+    try {
+      await navigator.clipboard.writeText(String(value))
+      setCopiedIndicator(String(value))
+      window.setTimeout(() => {
+        setCopiedIndicator((current) => (current === String(value) ? '' : current))
+      }, 1800)
+    } catch {
+      setCopiedIndicator('')
+    }
+  }
+
   return (
     <section className="intel-shell">
       <div className="intel-hero-card fade-in">
@@ -92,6 +231,7 @@ export default function IOCDetails() {
 
       {error ? <div className="intel-empty-card">{error}</div> : null}
       {loading ? <div className="intel-empty-card">Loading indicator context...</div> : null}
+      {copiedIndicator ? <div className="console-status" style={{ color: palette.green }}>Copied {truncateIndicator(copiedIndicator)} to clipboard.</div> : null}
 
       {!loading && ioc ? (
         <>
@@ -196,26 +336,7 @@ export default function IOCDetails() {
             {!payload.scan_history?.length ? (
               <div className="intel-empty-card">No server-side scan history is available for this indicator yet.</div>
             ) : (
-              <div className="intel-feed-list">
-                {payload.scan_history.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.indicator}</div>
-                      <div className="intel-feed-row-meta">
-                        {formatRelativeDate(item.created_at)} | source {String(item.source || 'scanner').toUpperCase()}
-                      </div>
-                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                    </div>
-                    <div className="intel-meta">{item.scan_type}</div>
-                    <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <SignalTable title="Server-side scan history" rows={payload.scan_history} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
             )}
           </Section>
 
@@ -227,26 +348,7 @@ export default function IOCDetails() {
             {!payload.collected_signals?.length ? (
               <div className="intel-empty-card">No collected pipeline signals are attached to this indicator yet.</div>
             ) : (
-              <div className="intel-feed-list">
-                {payload.collected_signals.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.indicator}</div>
-                      <div className="intel-feed-row-meta">
-                        {formatRelativeDate(item.last_seen_at || item.first_seen_at)} | {(item.sources || []).join(', ') || 'collector'}
-                      </div>
-                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                    </div>
-                    <div className="intel-meta">{item.indicator_type}</div>
-                    <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <SignalTable title="Collection pipeline" rows={payload.collected_signals} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
             )}
           </Section>
 
@@ -258,24 +360,7 @@ export default function IOCDetails() {
             {!payload.community?.length ? (
               <div className="intel-empty-card">This indicator has not been published to the community feed yet.</div>
             ) : (
-              <div className="intel-feed-list">
-                {payload.community.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.indicator}</div>
-                      <div className="intel-feed-row-meta">{formatRelativeDate(item.published_at)}</div>
-                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                    </div>
-                    <div className="intel-meta">{item.threat_type}</div>
-                    <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <SignalTable title="Community" rows={payload.community} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
             )}
           </Section>
 
@@ -287,26 +372,7 @@ export default function IOCDetails() {
             {!payload.analyses?.length ? (
               <div className="intel-empty-card">No analysis matches were found for this indicator.</div>
             ) : (
-              <div className="intel-feed-list">
-                {payload.analyses.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.subject || item.sender || 'Analysis match'}</div>
-                      <div className="intel-feed-row-meta">
-                        {String(item.channel || 'analysis').toUpperCase()} | {formatRelativeDate(item.created_at)}
-                      </div>
-                      <p style={{ marginTop: 10, color: palette.muted, lineHeight: 1.7 }}>{item.summary}</p>
-                    </div>
-                    <div className="intel-meta">{item.channel}</div>
-                    <div />
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <SignalTable title="Message analysis" rows={payload.analyses} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
             )}
           </Section>
 
@@ -316,25 +382,7 @@ export default function IOCDetails() {
               eyebrow={<><Globe2 size={14} /> Threat map</>}
               copy="Recent IP observations that can feed the geographic threat map."
             >
-              <div className="intel-feed-list">
-                {payload.observations.map((item) => (
-                  <article key={item.id} className="intel-feed-row intel-feed-row-wide">
-                    <div className="intel-feed-row-main">
-                      <div className="intel-indicator">{item.ip}</div>
-                      <div className="intel-feed-row-meta">
-                        {formatRelativeDate(item.created_at)} | {item.city || 'Unknown city'} {item.country ? `, ${item.country}` : ''}
-                      </div>
-                    </div>
-                    <div className="intel-meta">{item.source}</div>
-                    <div className="intel-feed-row-risk">Risk {item.risk_score || 0}</div>
-                    <div>
-                      <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                        {item.threat_level}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+              <SignalTable title="Threat map" rows={payload.observations.map((item) => ({ ...item, indicator: item.ip, indicator_type: 'ip' }))} fallbackType="ip" palette={palette} onCopy={copyIndicator} />
             </Section>
           ) : null}
 

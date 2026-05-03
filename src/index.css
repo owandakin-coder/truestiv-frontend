@@ -4897,6 +4897,245 @@ select:focus-visible {
   min-height: 100%;
 }
 
+/* IOC tables + footer + investigation table refinement */
+.platform-shell {
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-main {
+  flex: 1 0 auto;
+}
+
+.platform-footer {
+  flex-shrink: 0;
+}
+
+.scanner-history-table-surface {
+  display: grid;
+  gap: 0;
+  border: 1px solid rgba(0,229,255,0.1);
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(19,31,49,0.96) 0%, rgba(14,22,37,0.96) 100%);
+}
+
+.scanner-history-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.4fr) minmax(90px, 0.7fr) minmax(160px, 0.9fr) minmax(130px, 0.7fr) minmax(170px, 0.95fr);
+  gap: 16px;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: relative;
+}
+
+.scanner-history-row:last-child {
+  border-bottom: none;
+}
+
+.scanner-history-row::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: #00E5FF;
+}
+
+.scanner-history-threat::before {
+  background: #ef4444;
+}
+
+.scanner-history-suspicious::before {
+  background: #f59e0b;
+}
+
+.scanner-history-safe::before {
+  background: #22c55e;
+}
+
+.scanner-history-cell {
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.scanner-history-cell-indicator {
+  padding-left: 8px;
+}
+
+.soc-table-surface {
+  display: grid;
+  gap: 0.875rem;
+  border: 1px solid rgba(0,229,255,0.1);
+  border-radius: 1.125rem;
+  background: linear-gradient(180deg, rgba(19,31,49,0.92) 0%, rgba(14,22,37,0.96) 100%);
+  padding: 1rem;
+}
+
+.soc-table-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.soc-table-title {
+  color: #f8fbff;
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.soc-table-scroll {
+  overflow-x: auto;
+}
+
+.soc-table {
+  display: grid;
+  min-width: 980px;
+}
+
+.soc-table-five .soc-table-head,
+.soc-table-five .soc-table-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(150px, 0.8fr) minmax(0, 1.35fr) minmax(0, 1.15fr) minmax(210px, 1fr);
+  gap: 1rem;
+  align-items: center;
+}
+
+.soc-table-head {
+  padding: 0 0.75rem 0.5rem;
+  color: rgba(224,224,224,0.52);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.625rem;
+  letter-spacing: 0.12rem;
+  text-transform: uppercase;
+}
+
+.soc-table-row {
+  padding: 0.95rem 0.75rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.soc-table-row:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+
+.soc-table-cell {
+  min-width: 0;
+}
+
+.soc-indicator-stack {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.soc-indicator-value,
+.soc-table-primary {
+  color: #f8fbff;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.soc-indicator-value {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.soc-indicator-meta,
+.soc-table-secondary {
+  margin-top: 0.25rem;
+  color: rgba(224,224,224,0.68);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.soc-copy-button,
+.soc-action-button {
+  border: 1px solid rgba(0,229,255,0.14);
+  background: rgba(8,15,26,0.58);
+  color: #d9faff;
+  border-radius: 0.75rem;
+  padding: 0.55rem 0.85rem;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease;
+}
+
+.soc-copy-button:hover,
+.soc-action-button:hover {
+  border-color: rgba(0,229,255,0.34);
+  background: rgba(17,31,49,0.9);
+  transform: translateY(-1px);
+}
+
+.soc-action-button-primary {
+  background: rgba(0,229,255,0.14);
+  color: #00E5FF;
+  border-color: rgba(0,229,255,0.28);
+}
+
+.soc-action-row {
+  display: flex;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}
+
+.soc-risk-stack {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.soc-risk-topline {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.soc-risk-topline strong {
+  color: #f8fbff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+}
+
+.soc-risk-topline span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.soc-risk-bar {
+  height: 0.625rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  overflow: hidden;
+}
+
+.soc-risk-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+@media (max-width: 900px) {
+  .scanner-history-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 64rem) {
+  .soc-table {
+    min-width: 760px;
+  }
+}
+
 .threat-intel-flagship-title {
   font-size: clamp(1.45rem, 2.4vw, 2.15rem);
   line-height: 1.18;

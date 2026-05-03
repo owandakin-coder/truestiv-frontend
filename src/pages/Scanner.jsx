@@ -455,20 +455,27 @@ export default function Scanner({ embedded = false }) {
                   <ExpandableFeed
                     items={recentScans}
                     initialCount={6}
-                    className="scanner-history-grid"
+                    className="scanner-history-table-surface"
                     renderItem={(entry) => (
-                      <article key={entry.id} className={`scanner-history-card scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
-                        <div className="scanner-history-status" />
-                        <div className="scanner-history-top">
+                      <article key={entry.id} className={`scanner-history-row scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
+                        <div className="scanner-history-cell scanner-history-cell-indicator">
+                          <strong className="scanner-history-url">{entry.indicator}</strong>
+                          <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
+                        </div>
+                        <div className="scanner-history-cell">
                           <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
+                        </div>
+                        <div className="scanner-history-cell">
+                          <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</div>
+                        </div>
+                        <div className="scanner-history-cell">
                           <span className="scanner-history-badge">{entry.threat_level}</span>
                         </div>
-                        <div className="scanner-history-url">{entry.indicator}</div>
-                        <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
-                        <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}{entry.country ? ` | ${entry.country}` : ''}</div>
-                        <div className="scanner-history-actions">
-                          <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
-                          <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
+                        <div className="scanner-history-cell">
+                          <div className="scanner-history-actions">
+                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
+                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
+                          </div>
                         </div>
                       </article>
                     )}

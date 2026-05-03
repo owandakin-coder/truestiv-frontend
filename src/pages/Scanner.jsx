@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw, Search } from 'lucide-react'
+import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 import ExpandableFeed from '../components/ExpandableFeed'
@@ -271,18 +271,17 @@ export default function Scanner({ embedded = false }) {
         {!embedded ? (
           <PortalHero
             kicker="IOC Scanner"
-            title="Scan Links and Threat Indicators"
-            eyebrowItems={['URL', 'IP', 'Hash', 'File', 'Bulk IOC']}
-            copy="Keep scanning and history in one streamlined workspace."
+            title="Scanner"
+            eyebrowItems={['URL', 'IP', 'HASH', 'File', 'Bulk IOC']}
+            copy="Scan links and threat indicators in one streamlined workspace."
             className="investigation-hero portal-hero-left fade-in"
             actions={(
               <div className="scanner-hero-actions">
                 <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
-                  {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : <Search size={18} />}
+                  {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
                   <span>Run Scanner</span>
                 </button>
                 <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta">
-                  <RotateCcw size={16} />
                   <span>Scan Again</span>
                 </button>
               </div>
@@ -303,7 +302,6 @@ export default function Scanner({ embedded = false }) {
                   const active = activeTab === tab.id
                   return (
                     <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`console-tab ${active ? 'is-active' : ''}`}>
-                      <tab.icon size={16} color={active ? palette.blue : palette.subtle} />
                       {tab.label}
                     </button>
                   )
@@ -422,11 +420,10 @@ export default function Scanner({ embedded = false }) {
 
                 <div className="scanner-cta-row">
                   <button type="button" onClick={runScan} disabled={loading} className="console-cta">
-                    {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : <Search size={18} />}
+                    {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
                     <span>{activeTab === 'bulk' ? 'Run Bulk Scan' : 'Run Scanner'}</span>
                   </button>
                   <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta">
-                    <RotateCcw size={16} />
                     <span>Scan Again</span>
                   </button>
                 </div>
@@ -457,6 +454,7 @@ export default function Scanner({ embedded = false }) {
                     <span>Type</span>
                     <span>Date</span>
                     <span>Status</span>
+                    <span>Actions</span>
                   </div>
                   <ExpandableFeed
                     items={recentScans}
@@ -467,10 +465,6 @@ export default function Scanner({ embedded = false }) {
                         <div className="scanner-history-cell scanner-history-cell-indicator">
                           <strong className="scanner-history-url">{entry.indicator}</strong>
                           <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
-                          <div className="scanner-history-actions">
-                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
-                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
-                          </div>
                         </div>
                         <div className="scanner-history-cell">
                           <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
@@ -480,6 +474,12 @@ export default function Scanner({ embedded = false }) {
                         </div>
                         <div className="scanner-history-cell">
                           <span className="scanner-history-badge">{entry.threat_level}</span>
+                        </div>
+                        <div className="scanner-history-cell">
+                          <div className="scanner-history-actions">
+                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
+                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
+                          </div>
                         </div>
                       </article>
                     )}

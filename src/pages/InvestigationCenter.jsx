@@ -9,7 +9,7 @@ import Seo from '../components/Seo'
 const investigationTabs = [
   {
     id: 'analysis',
-    label: 'Message Analysis',
+    label: 'Analysis',
     icon: ShieldAlert,
     titleMain: 'Message Analysis',
     copy: 'Review suspicious messages with verdicts, pivots, and actionable history.',
@@ -38,10 +38,10 @@ export default function InvestigationCenter() {
       />
 
       <PortalHero
-        kicker="Threat Analysis Hub"
-        title={activeTab.titleMain}
-        copy={activeTab.copy}
-        className="investigation-shell-hero fade-in"
+        kicker="THREAT ANALYSIS HUB"
+        title={<>Analyze threats.<br />Get clarity.</>}
+        copy="Investigate indicators across multiple intelligence sources and get real-time verdicts."
+        className="investigation-shell-hero investigation-center-hero fade-in"
       />
 
       <section className="intel-section-card investigation-hub-panel investigation-workspace-shell fade-in-delay-1">

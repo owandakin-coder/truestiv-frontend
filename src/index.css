@@ -5868,39 +5868,41 @@ select:focus-visible {
   }
 }
 /* ================================================================
-   TRUSTIVE — INVESTIGATION CENTER v3
-   Precise override: eliminates nested boxes, applies terminal style
-   Append to end of index.css
+   TRUSTIVE — INVESTIGATION CENTER v4
+   Clean override: open layout, no nested boxes, breathing room
+   Replace the v3 block (lines ~5870–6533) in index.css with this
    ================================================================ */
 
 /* ── Tokens ──────────────────────────────────────────────── */
 .zone-investigation {
-  --i-bg:       #080f1e;
-  --i-surface:  #0a1628;
-  --i-raised:   #0d1e36;
-  --i-border:   rgba(255,255,255,0.07);
-  --i-blue:     #3b82f6;
-  --i-blue-dim: rgba(59,130,246,0.1);
-  --i-text:     rgba(255,255,255,0.88);
-  --i-muted:    rgba(255,255,255,0.38);
-  --i-label:    rgba(255,255,255,0.22);
-  --i-mono:     'JetBrains Mono', monospace;
-  --i-r:        4px;
+  --i-bg:        #080f1e;
+  --i-surface:   #0a1628;
+  --i-raised:    #0c1830;
+  --i-border:    rgba(255,255,255,0.06);
+  --i-border-mid:rgba(255,255,255,0.09);
+  --i-blue:      #3b82f6;
+  --i-blue-dim:  rgba(59,130,246,0.08);
+  --i-text:      rgba(255,255,255,0.88);
+  --i-muted:     rgba(255,255,255,0.38);
+  --i-label:     rgba(255,255,255,0.20);
+  --i-mono:      'JetBrains Mono', monospace;
+  --i-r:         4px;
+  --i-r-lg:      8px;
 }
 
 /* ================================================================
-   1. SHELL — remove outer padding gap excess
+   1. SHELL
    ================================================================ */
 .zone-investigation.intel-shell {
   gap: 0 !important;
-  padding-bottom: 48px !important;
+  padding-bottom: 64px !important;
 }
 
 /* ================================================================
-   2. PORTAL HERO — flatten, remove box feel
+   2. PORTAL HERO — fully flat, no card
    ================================================================ */
 .zone-investigation .investigation-shell-hero.portal-hero {
-  padding: 32px 0 24px !important;
+  padding: 40px 0 28px !important;
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
@@ -5912,57 +5914,64 @@ select:focus-visible {
   width: 6px !important;
   height: 6px !important;
   background: var(--i-blue) !important;
-  box-shadow: 0 0 8px rgba(59,130,246,0.65) !important;
+  box-shadow: 0 0 10px rgba(59,130,246,0.7) !important;
 }
 
 .zone-investigation .portal-hero-kicker-label {
   font-family: var(--i-mono) !important;
   font-size: 9px !important;
-  letter-spacing: 0.22em !important;
+  letter-spacing: 0.24em !important;
   color: var(--i-blue) !important;
   font-weight: 600 !important;
 }
 
 .zone-investigation .portal-hero-title {
   font-family: var(--i-mono) !important;
-  font-size: clamp(1.5rem, 2.6vw, 2rem) !important;
+  font-size: clamp(1.6rem, 2.8vw, 2.2rem) !important;
   font-weight: 700 !important;
   letter-spacing: -0.03em !important;
   color: rgba(255,255,255,0.92) !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 10px !important;
 }
 
 .zone-investigation .portal-hero-copy {
   font-family: var(--i-mono) !important;
   font-size: 11px !important;
   color: var(--i-muted) !important;
-  line-height: 1.55 !important;
+  line-height: 1.6 !important;
 }
 
-/* bottom divider line — keep but dim */
+/* Bottom rule — very subtle */
 .zone-investigation .investigation-shell-hero.portal-hero::after {
-  background: linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.06) 20%, rgba(59,130,246,0.45) 50%, rgba(59,130,246,0.06) 80%, transparent 100%) !important;
-  box-shadow: 0 0 14px rgba(59,130,246,0.15) !important;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(59,130,246,0.04) 20%,
+    rgba(59,130,246,0.3) 50%,
+    rgba(59,130,246,0.04) 80%,
+    transparent 100%
+  ) !important;
+  box-shadow: none !important;
   bottom: 0 !important;
 }
 
 /* ================================================================
-   3. WORKSPACE SHELL — remove nested card feel
+   3. WORKSPACE SHELL — transparent, no card
    ================================================================ */
 .zone-investigation .investigation-hub-panel.investigation-workspace-shell {
   background: transparent !important;
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  padding: 24px 0 0 !important;
-  gap: 16px !important;
+  padding: 20px 0 0 !important;
+  gap: 20px !important;
 }
 
 /* ================================================================
-   4. TOPLINE ROW
+   4. TOPLINE ROW — lighter divider
    ================================================================ */
 .zone-investigation .investigation-hub-topline {
-  padding-bottom: 14px !important;
+  padding-bottom: 16px !important;
   border-bottom: 1px solid var(--i-border) !important;
   align-items: center !important;
 }
@@ -5970,7 +5979,7 @@ select:focus-visible {
 .zone-investigation .analysis-meta-label {
   font-family: var(--i-mono) !important;
   font-size: 8px !important;
-  letter-spacing: 0.18em !important;
+  letter-spacing: 0.2em !important;
   text-transform: uppercase !important;
   color: var(--i-label) !important;
   font-weight: 500 !important;
@@ -5980,10 +5989,10 @@ select:focus-visible {
   font-family: var(--i-mono) !important;
   font-size: 10px !important;
   color: var(--i-muted) !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
 }
 
-/* ── Tags ────────────────────────────────────────────────── */
+/* ── Tags — ghost only, no fill ─────────────────────────── */
 .zone-investigation .intel-tag-chip {
   font-family: var(--i-mono) !important;
   font-size: 8px !important;
@@ -5991,27 +6000,27 @@ select:focus-visible {
   text-transform: uppercase !important;
   padding: 3px 8px !important;
   border-radius: var(--i-r) !important;
-  background: rgba(255,255,255,0.03) !important;
+  background: transparent !important;
   border: 1px solid var(--i-border) !important;
   color: var(--i-label) !important;
 }
 
 /* ================================================================
-   5. MODE SWITCHER (Message Analysis / Scanner)
+   5. MODE SWITCHER — minimal pill, no heavy background
    ================================================================ */
 .zone-investigation .investigation-tab-row.investigation-tab-row-framed {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   gap: 2px !important;
   margin-top: 0 !important;
-  padding: 3px !important;
-  background: rgba(0,0,0,0.3) !important;
+  padding: 2px !important;
+  background: rgba(0,0,0,0.2) !important;
   border: 1px solid var(--i-border) !important;
   border-radius: var(--i-r) !important;
 }
 
 .zone-investigation .investigation-lane-button {
-  padding: 9px 14px !important;
+  padding: 8px 14px !important;
   border-radius: 3px !important;
   border: 1px solid transparent !important;
   background: transparent !important;
@@ -6026,41 +6035,41 @@ select:focus-visible {
 }
 
 .zone-investigation .investigation-lane-button:hover {
-  color: rgba(255,255,255,0.62) !important;
-  background: rgba(255,255,255,0.04) !important;
+  color: rgba(255,255,255,0.58) !important;
+  background: rgba(255,255,255,0.03) !important;
   border-color: transparent !important;
   transform: none !important;
 }
 
 .zone-investigation .investigation-lane-button.is-active {
-  background: rgba(59,130,246,0.12) !important;
-  border-color: rgba(59,130,246,0.28) !important;
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.22) !important;
   color: #93c5fd !important;
   box-shadow: none !important;
 }
 
 /* ================================================================
-   6. WORKSPACE BODY DIVIDER
+   6. WORKSPACE BODY — no border, just space
    ================================================================ */
 .zone-investigation .investigation-workspace-body {
-  border-top: 1px solid var(--i-border) !important;
-  padding-top: 20px !important;
+  border-top: none !important;
+  padding-top: 16px !important;
 }
 
 /* ================================================================
-   7. CONSOLE SURFACE (Run Scanner panel)
+   7. CONSOLE SURFACE — subtle, single border
    ================================================================ */
 .zone-investigation .console-surface,
 .zone-investigation .scanner-console-centered {
-  background: var(--i-raised) !important;
+  background: rgba(255,255,255,0.02) !important;
   border: 1px solid var(--i-border) !important;
-  border-radius: var(--i-r) !important;
-  padding: 18px !important;
+  border-radius: var(--i-r-lg) !important;
+  padding: 20px !important;
   box-shadow: none !important;
 }
 
 .zone-investigation .console-heading {
-  margin-bottom: 14px !important;
+  margin-bottom: 16px !important;
   padding-bottom: 12px !important;
   border-bottom: 1px solid var(--i-border) !important;
 }
@@ -6070,7 +6079,7 @@ select:focus-visible {
   font-size: 9px !important;
   font-weight: 700 !important;
   color: var(--i-label) !important;
-  letter-spacing: 0.18em !important;
+  letter-spacing: 0.2em !important;
   text-transform: uppercase !important;
 }
 
@@ -6078,22 +6087,22 @@ select:focus-visible {
   font-family: var(--i-mono) !important;
   font-size: 11px !important;
   color: var(--i-muted) !important;
-  line-height: 1.5 !important;
+  line-height: 1.55 !important;
   margin-top: 4px !important;
 }
 
 /* ================================================================
-   8. IOC TYPE TABS (URL / IP / HASH / FILE / BULK)
+   8. IOC TYPE TABS
    ================================================================ */
 .zone-investigation .console-tab-grid {
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
   gap: 2px !important;
-  padding: 3px !important;
-  background: rgba(0,0,0,0.3) !important;
+  padding: 2px !important;
+  background: rgba(0,0,0,0.25) !important;
   border: 1px solid var(--i-border) !important;
   border-radius: var(--i-r) !important;
-  margin-bottom: 14px !important;
+  margin-bottom: 16px !important;
 }
 
 .zone-investigation .console-tab {
@@ -6112,14 +6121,14 @@ select:focus-visible {
 }
 
 .zone-investigation .console-tab:hover {
-  color: rgba(255,255,255,0.6) !important;
-  background: rgba(255,255,255,0.04) !important;
+  color: rgba(255,255,255,0.55) !important;
+  background: rgba(255,255,255,0.03) !important;
   transform: none !important;
 }
 
 .zone-investigation .console-tab.is-active {
-  background: rgba(59,130,246,0.12) !important;
-  border-color: rgba(59,130,246,0.28) !important;
+  background: rgba(59,130,246,0.1) !important;
+  border-color: rgba(59,130,246,0.22) !important;
   color: #93c5fd !important;
   box-shadow: none !important;
 }
@@ -6130,7 +6139,7 @@ select:focus-visible {
 .zone-investigation .console-input-group > span {
   font-family: var(--i-mono) !important;
   font-size: 8px !important;
-  letter-spacing: 0.16em !important;
+  letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   color: var(--i-label) !important;
   font-weight: 500 !important;
@@ -6145,19 +6154,20 @@ select:focus-visible {
   font-family: var(--i-mono) !important;
   font-size: 12px !important;
   padding: 10px 12px !important;
-  transition: border-color 0.12s, box-shadow 0.12s !important;
+  transition: border-color 0.14s !important;
+  box-shadow: none !important;
 }
 
 .zone-investigation .analysis-input:focus,
 .zone-investigation .analysis-textarea:focus {
   outline: none !important;
-  border-color: rgba(59,130,246,0.4) !important;
-  box-shadow: 0 0 0 2px rgba(59,130,246,0.07) !important;
+  border-color: rgba(59,130,246,0.36) !important;
+  box-shadow: none !important;
 }
 
 .zone-investigation .analysis-input::placeholder,
 .zone-investigation .analysis-textarea::placeholder {
-  color: rgba(255,255,255,0.15) !important;
+  color: rgba(255,255,255,0.14) !important;
 }
 
 /* ================================================================
@@ -6173,7 +6183,7 @@ select:focus-visible {
 
 .zone-investigation .scanner-helper-chip {
   border: 1px solid var(--i-border) !important;
-  background: rgba(255,255,255,0.03) !important;
+  background: transparent !important;
   color: var(--i-muted) !important;
   border-radius: var(--i-r) !important;
   padding: 3px 9px !important;
@@ -6183,9 +6193,9 @@ select:focus-visible {
 }
 
 .zone-investigation .scanner-helper-chip:hover {
-  border-color: rgba(59,130,246,0.3) !important;
+  border-color: rgba(59,130,246,0.28) !important;
   color: #93c5fd !important;
-  background: rgba(59,130,246,0.06) !important;
+  background: transparent !important;
   transform: none !important;
 }
 
@@ -6194,7 +6204,7 @@ select:focus-visible {
    ================================================================ */
 .zone-investigation .console-cta {
   background: rgba(59,130,246,0.1) !important;
-  border: 1px solid rgba(59,130,246,0.28) !important;
+  border: 1px solid rgba(59,130,246,0.26) !important;
   border-radius: var(--i-r) !important;
   color: #93c5fd !important;
   font-family: var(--i-mono) !important;
@@ -6202,27 +6212,27 @@ select:focus-visible {
   font-weight: 700 !important;
   letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  padding: 10px 18px !important;
+  padding: 10px 20px !important;
   box-shadow: none !important;
   transition: background 0.12s, border-color 0.12s !important;
 }
 
 .zone-investigation .console-cta:hover:not(:disabled) {
-  background: rgba(59,130,246,0.18) !important;
-  border-color: rgba(59,130,246,0.5) !important;
+  background: rgba(59,130,246,0.16) !important;
+  border-color: rgba(59,130,246,0.45) !important;
   color: #bfdbfe !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
 .zone-investigation .console-cta:disabled {
-  opacity: 0.3 !important;
+  opacity: 0.28 !important;
   cursor: not-allowed !important;
   transform: none !important;
 }
 
 .zone-investigation .scanner-secondary-cta {
-  background: rgba(255,255,255,0.03) !important;
+  background: transparent !important;
   border: 1px solid var(--i-border) !important;
   border-radius: var(--i-r) !important;
   color: var(--i-muted) !important;
@@ -6237,20 +6247,21 @@ select:focus-visible {
 }
 
 .zone-investigation .scanner-secondary-cta:hover {
-  border-color: rgba(255,255,255,0.14) !important;
-  color: rgba(255,255,255,0.65) !important;
-  background: rgba(255,255,255,0.05) !important;
+  border-color: var(--i-border-mid) !important;
+  color: rgba(255,255,255,0.6) !important;
+  background: transparent !important;
   transform: none !important;
 }
 
 /* ================================================================
-   12. FEED SURFACE (Recent Scans)
+   12. FEED SURFACE (Recent Scans) — flat, no card
    ================================================================ */
 .zone-investigation .feed-surface {
-  background: var(--i-raised) !important;
-  border: 1px solid var(--i-border) !important;
-  border-radius: var(--i-r) !important;
-  padding: 16px !important;
+  background: transparent !important;
+  border: none !important;
+  border-top: 1px solid var(--i-border) !important;
+  border-radius: 0 !important;
+  padding: 16px 0 !important;
   box-shadow: none !important;
 }
 
@@ -6261,7 +6272,7 @@ select:focus-visible {
   display: grid !important;
   grid-template-columns: minmax(0,2fr) 60px 100px 90px 110px !important;
   gap: 10px !important;
-  padding: 6px 0 8px !important;
+  padding: 6px 0 10px !important;
   border-bottom: 1px solid var(--i-border) !important;
   font-family: var(--i-mono) !important;
   font-size: 8px !important;
@@ -6331,26 +6342,26 @@ select:focus-visible {
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   border: 1px solid var(--i-border) !important;
-  background: rgba(255,255,255,0.04) !important;
+  background: transparent !important;
   color: var(--i-muted) !important;
 }
 
 .zone-investigation .scanner-history-threat .scanner-history-badge {
   color: #f87171 !important;
-  border-color: rgba(248,113,113,0.28) !important;
-  background: rgba(248,113,113,0.07) !important;
+  border-color: rgba(248,113,113,0.24) !important;
+  background: transparent !important;
 }
 
 .zone-investigation .scanner-history-suspicious .scanner-history-badge {
   color: #fbbf24 !important;
-  border-color: rgba(251,191,36,0.28) !important;
-  background: rgba(251,191,36,0.07) !important;
+  border-color: rgba(251,191,36,0.24) !important;
+  background: transparent !important;
 }
 
 .zone-investigation .scanner-history-safe .scanner-history-badge {
   color: #4ade80 !important;
-  border-color: rgba(74,222,128,0.28) !important;
-  background: rgba(74,222,128,0.07) !important;
+  border-color: rgba(74,222,128,0.24) !important;
+  background: transparent !important;
 }
 
 /* ── Row action buttons ──────────────────────────────────── */
@@ -6363,49 +6374,50 @@ select:focus-visible {
   letter-spacing: 0.1em !important;
   text-transform: uppercase !important;
   border: 1px solid var(--i-border) !important;
-  background: rgba(255,255,255,0.02) !important;
+  background: transparent !important;
   color: var(--i-muted) !important;
   box-shadow: none !important;
   transition: border-color 0.1s, color 0.1s !important;
 }
 
 .zone-investigation .scanner-inline-button:hover {
-  border-color: rgba(255,255,255,0.14) !important;
-  color: rgba(255,255,255,0.65) !important;
-  background: rgba(255,255,255,0.04) !important;
+  border-color: var(--i-border-mid) !important;
+  color: rgba(255,255,255,0.6) !important;
+  background: transparent !important;
   transform: none !important;
 }
 
 .zone-investigation .scanner-inline-button-primary {
-  border-color: rgba(59,130,246,0.25) !important;
+  border-color: rgba(59,130,246,0.22) !important;
   color: #93c5fd !important;
-  background: rgba(59,130,246,0.07) !important;
+  background: transparent !important;
 }
 
 .zone-investigation .scanner-inline-button-primary:hover {
-  border-color: rgba(59,130,246,0.45) !important;
+  border-color: rgba(59,130,246,0.4) !important;
   color: #bfdbfe !important;
-  background: rgba(59,130,246,0.12) !important;
+  background: transparent !important;
 }
 
 /* ================================================================
-   14. STATUS + BRIEF PANELS
+   14. STATUS + BRIEF PANELS — no card
    ================================================================ */
 .zone-investigation .console-status {
-  background: rgba(255,255,255,0.02) !important;
-  border: 1px solid var(--i-border) !important;
-  border-radius: var(--i-r) !important;
+  background: transparent !important;
+  border: none !important;
+  border-top: 1px solid var(--i-border) !important;
+  border-radius: 0 !important;
   font-family: var(--i-mono) !important;
   font-size: 11px !important;
   color: var(--i-muted) !important;
-  padding: 10px 12px !important;
+  padding: 10px 0 !important;
 }
 
 .zone-investigation .brief-panel {
-  background: var(--i-raised) !important;
-  border: 1px solid var(--i-border) !important;
-  border-radius: var(--i-r) !important;
-  padding: 14px 16px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
   box-shadow: none !important;
 }
 
@@ -6430,7 +6442,7 @@ select:focus-visible {
 .zone-investigation .report-action-button {
   padding: 6px 12px !important;
   border-radius: var(--i-r) !important;
-  background: rgba(255,255,255,0.03) !important;
+  background: transparent !important;
   border: 1px solid var(--i-border) !important;
   color: var(--i-muted) !important;
   font-family: var(--i-mono) !important;
@@ -6443,20 +6455,20 @@ select:focus-visible {
 }
 
 .zone-investigation .report-action-button:hover {
-  border-color: rgba(255,255,255,0.15) !important;
-  color: rgba(255,255,255,0.65) !important;
-  background: rgba(255,255,255,0.05) !important;
+  border-color: var(--i-border-mid) !important;
+  color: rgba(255,255,255,0.6) !important;
+  background: transparent !important;
 }
 
 .zone-investigation .report-action-button-primary {
-  background: rgba(59,130,246,0.08) !important;
-  border-color: rgba(59,130,246,0.25) !important;
+  background: transparent !important;
+  border-color: rgba(59,130,246,0.22) !important;
   color: #93c5fd !important;
 }
 
 .zone-investigation .report-action-button-primary:hover {
-  background: rgba(59,130,246,0.15) !important;
-  border-color: rgba(59,130,246,0.45) !important;
+  background: transparent !important;
+  border-color: rgba(59,130,246,0.42) !important;
   color: #bfdbfe !important;
 }
 
@@ -6464,7 +6476,7 @@ select:focus-visible {
    16. SPINNER
    ================================================================ */
 .zone-investigation .analysis-spinner {
-  border: 1.5px solid rgba(255,255,255,0.1) !important;
+  border: 1.5px solid rgba(255,255,255,0.08) !important;
   border-top-color: #93c5fd !important;
 }
 
@@ -6481,7 +6493,7 @@ select:focus-visible {
    18. EMPTY STATE
    ================================================================ */
 .zone-investigation .intel-empty-state-icon {
-  background: var(--i-raised) !important;
+  background: transparent !important;
   border: 1px solid var(--i-border) !important;
   border-radius: var(--i-r) !important;
 }
@@ -6499,7 +6511,7 @@ select:focus-visible {
 }
 
 .zone-investigation .intel-empty-state-chip {
-  background: var(--i-raised) !important;
+  background: transparent !important;
   border: 1px solid var(--i-border) !important;
   border-radius: var(--i-r) !important;
   font-family: var(--i-mono) !important;
@@ -6510,9 +6522,9 @@ select:focus-visible {
 }
 
 .zone-investigation .intel-empty-state-chip:hover {
-  border-color: rgba(59,130,246,0.3) !important;
+  border-color: rgba(59,130,246,0.28) !important;
   color: #93c5fd !important;
-  background: rgba(59,130,246,0.06) !important;
+  background: transparent !important;
 }
 
 /* ================================================================

@@ -18,7 +18,7 @@ const investigationTabs = [
     id: 'scanner',
     label: 'Scanner',
     icon: ScanSearch,
-    titleMain: 'Threat Scanner',
+    titleMain: 'Scanner',
     copy: 'Scan suspicious links, IPs, hashes, files, and bulk IOC lists from one workspace.',
   },
 ]
@@ -41,22 +41,10 @@ export default function InvestigationCenter() {
         kicker="Threat Analysis Hub"
         title={activeTab.titleMain}
         copy={activeTab.copy}
-        className="investigation-shell-hero portal-hero-left fade-in"
+        className="investigation-shell-hero fade-in"
       />
 
       <section className="intel-section-card investigation-hub-panel investigation-workspace-shell fade-in-delay-1">
-        <div className="investigation-hub-topline">
-          <div className="investigation-hub-copy">
-            <span className="analysis-meta-label">Workspace</span>
-            <p>Move straight into the right tool and keep results, pivots, and history in one place.</p>
-          </div>
-          <div className="investigation-hub-tags">
-            <span className="intel-tag-chip">Scanner first</span>
-            <span className="intel-tag-chip">Actionable history only</span>
-            <span className="intel-tag-chip">Fast pivots</span>
-          </div>
-        </div>
-
         <div className="investigation-tab-row investigation-tab-row-framed">
           {investigationTabs.map((tab) => {
             const Icon = tab.icon
@@ -68,7 +56,7 @@ export default function InvestigationCenter() {
                 onClick={() => navigate(`/investigation-center/${tab.id}`)}
                 className={`investigation-lane-button ${active ? 'is-active' : ''}`}
               >
-                <Icon size={16} />
+                <Icon size={14} />
                 <span>{tab.label}</span>
               </button>
             )

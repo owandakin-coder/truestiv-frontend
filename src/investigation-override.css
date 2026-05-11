@@ -681,6 +681,274 @@
 /* ── NotFound page ── */
 .not-found-root { background: #060a14; }
 
+/* ═══════════════════════════════════════════════════════════════
+   CAMPAIGN CLUSTERS (cc-*)
+═══════════════════════════════════════════════════════════════ */
+.cc-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 860px) { .cc-layout { grid-template-columns: 1fr; } }
+
+/* Sidebar */
+.cc-sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255,255,255,.06);
+  padding-right: 20px;
+}
+@media (max-width: 860px) { .cc-sidebar { border-right: none; padding-right: 0; border-bottom: 1px solid rgba(255,255,255,.06); padding-bottom: 20px; } }
+
+.cc-sidebar-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+
+.cc-cluster-row {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+  padding: 12px 10px 12px 12px;
+  cursor: pointer;
+  transition: background .13s;
+  border-left: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.cc-cluster-row:hover { background: rgba(59,130,246,.04); border-left-color: rgba(59,130,246,.3); }
+.cc-cluster-row.is-active {
+  background: rgba(59,130,246,.07);
+  border-left-color: #3b82f6;
+}
+.cc-cluster-row-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cc-cluster-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cc-cluster-row.is-active .cc-cluster-label { color: #93c5fd; }
+.cc-cluster-badge {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cc-cluster-summary {
+  font-size: 11.5px;
+  color: rgba(148,163,184,.5);
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cc-cluster-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(148,163,184,.32);
+}
+
+/* Dossier panel */
+.cc-dossier {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 200px;
+}
+.cc-dossier-kicker {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: -8px;
+}
+.cc-dossier-title {
+  font-family: 'Poppins', 'Inter', sans-serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 800;
+  color: #e2e8f0;
+  margin: 0;
+  letter-spacing: -.02em;
+  line-height: 1.15;
+}
+.cc-stats-row {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255,255,255,.05);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.cc-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cc-stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px;
+  font-weight: 700;
+  color: #e2e8f0;
+  line-height: 1;
+}
+.cc-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(148,163,184,.38);
+}
+.cc-dossier-body {
+  font-size: 13.5px;
+  color: rgba(226,232,240,.65);
+  line-height: 1.7;
+  margin: 0;
+  max-width: 70ch;
+}
+.cc-tag-group { display: flex; flex-direction: column; gap: 8px; }
+.cc-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   GEO THREAT MAP (geo-*)
+═══════════════════════════════════════════════════════════════ */
+.geo-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) { .geo-layout { grid-template-columns: 1fr; } }
+
+/* Map panel */
+.geo-map-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.geo-map-canvas {
+  width: 100%;
+  height: 440px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.07);
+  background: #060a14;
+}
+.geo-map-canvas .map-leaflet {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+}
+/* Leaflet dark-mode overrides */
+.geo-map-canvas .leaflet-tile-pane { filter: brightness(.8) saturate(.6) hue-rotate(185deg); }
+.geo-map-canvas .leaflet-control-attribution { background: rgba(6,10,20,.8) !important; color: rgba(148,163,184,.4) !important; font-size: 10px; }
+.geo-map-canvas .leaflet-popup-content-wrapper { background: rgba(10,16,30,.98); border: 1px solid rgba(255,255,255,.12); border-radius: 10px; color: #e2e8f0; }
+.geo-map-canvas .leaflet-popup-tip { background: rgba(10,16,30,.98); }
+
+.geo-playback {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.geo-playback-slider {
+  flex: 1;
+  min-width: 120px;
+  accent-color: #3b82f6;
+}
+
+/* Feed panel */
+.geo-feed-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.geo-feed-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.geo-feed-row:last-child { border-bottom: none; }
+.geo-feed-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+.geo-feed-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.geo-feed-indicator {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #e2e8f0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.geo-feed-meta {
+  font-size: 11px;
+  color: rgba(148,163,184,.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.geo-feed-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.geo-feed-badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 3px;
+}
+
 /* ─────────────────────────────────────────────────────────────
    ANIMATIONS
 ───────────────────────────────────────────────────────────── */

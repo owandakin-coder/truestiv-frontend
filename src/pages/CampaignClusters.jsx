@@ -1,42 +1,52 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { GitBranch, Radar } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { FileText, Globe, GitBranch, Hash, Radio } from 'lucide-react'
 
-import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import PortalHero from '../components/PortalHero'
 import Seo from '../components/Seo'
-import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    text: dark ? '#eff6ff' : '#0f172a',
-    muted: dark ? 'rgba(191,219,254,0.72)' : '#475569',
-    subtle: dark ? 'rgba(191,219,254,0.5)' : '#64748b',
-    blue: '#38bdf8',
-    cyan: '#22d3ee',
-    green: '#22c55e',
-    yellow: '#fbbf24',
-    red: '#fb7185',
-  }
+function levelColor(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return '#ef4444'
+  if (v === 'suspicious') return '#f59e0b'
+  if (v === 'safe') return '#22c55e'
+  return '#60a5fa'
 }
-
-function levelColor(level, palette) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return palette.red
-  if (value === 'suspicious') return palette.yellow
-  return palette.green
+function levelLabel(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return 'THREAT'
+  if (v === 'suspicious') return 'SUSPICIOUS'
+  if (v === 'safe') return 'SAFE'
+  return 'UNKNOWN'
+}
+function rowIcon(type) {
+  const t = String(type || '').toLowerCase()
+  if (t === 'ip')   return Radio
+  if (t === 'hash') return Hash
+  if (t === 'file') return FileText
+  return Globe
+}
+function timeAgo(val) {
+  if (!val) return '—'
+  try {
+    const diff = Date.now() - new Date(val).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 1)  return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
+  } catch { return '—' }
 }
 
 export default function CampaignClusters() {
-  const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [payload, setPayload] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [payload,  setPayload]  = useState(null)
+  const [loading,  setLoading]  = useState(true)
+  const [error,    setError]    = useState('')
+  const [expanded, setExpanded] = useState(false)
 
   const selectedClusterId = searchParams.get('cluster') || ''
 
@@ -44,10 +54,8 @@ export default function CampaignClusters() {
     let active = true
     setLoading(true)
     setError('')
-
     const params = new URLSearchParams({ limit: '14' })
     if (selectedClusterId) params.set('cluster', selectedClusterId)
-
     apiRequest(`/api/intelligence/campaign-clusters?${params.toString()}`)
       .then((response) => {
         if (!active) return
@@ -56,205 +64,230 @@ export default function CampaignClusters() {
           setSearchParams({ cluster: response.selected.id }, { replace: true })
         }
       })
-      .catch((requestError) => {
-        if (active) setError(requestError.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
+      .catch((err) => { if (active) setError(err.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [selectedClusterId, setSearchParams])
 
   const clusters = payload?.items || []
   const selected = payload?.selected || null
+  const events   = selected?.events || []
+  const INITIAL  = 5
+  const visibleEvents = expanded ? events : events.slice(0, INITIAL)
+
   return (
-    <section className="intel-shell zone-campaigns">
+    <div className="aip-root">
       <Seo
         title="Trustive AI | Campaign Clusters"
         description="Explore grouped recurring signals, linked indicators, and incident-style briefs across Trustive AI campaign clusters."
         path="/campaign-clusters"
       />
+      <div className="grid-dots aip-bg-dots" />
+      <div className="aip-inner">
 
-      <PortalHero
-        kicker="Campaign / Cluster View"
-        title="Campaign Clusters"
-        copy="Recurring signals grouped into clusters."
-        className="campaign-hero portal-hero-left fade-in"
-      />
+        {/* Hero */}
+        <header className="aip-hero fade-in">
+          <div className="aip-kicker">
+            <span className="aip-kicker-dot" />
+            <span className="aip-kicker-text">CAMPAIGN CLUSTER VIEW</span>
+          </div>
+          <h1 className="aip-title">Campaign Clusters.</h1>
+          <p className="aip-copy">
+            Recurring signals grouped into clusters — shared actors, overlapping sources, common geography.
+          </p>
+        </header>
 
-      {error ? <div className="intel-empty-card">{error}</div> : null}
-      {loading ? <div className="intel-empty-card">Loading campaign clusters...</div> : null}
+        {error   ? <p className="aip-error fade-in" style={{ borderColor: 'rgba(240,64,64,.28)', color: '#fca5a5' }}>{error}</p> : null}
+        {loading ? <p className="aip-loading">Loading campaign clusters…</p> : null}
 
-      {!loading && !clusters.length ? (
-        <IntelEmptyState
-          title="No campaign clusters yet"
-          copy="Clusters appear when recurring indicators and overlapping sources begin forming a shared story."
-          actionLabel="Open Threat Intel"
-          actionTo="/threat-intel"
-        />
-      ) : null}
+        {!loading && !clusters.length ? (
+          <IntelEmptyState
+            title="No campaign clusters yet"
+            copy="Clusters appear when recurring indicators and overlapping sources begin forming a shared story."
+            actionLabel="Open Threat Intel"
+            actionTo="/threat-intel"
+          />
+        ) : null}
 
-      {!loading && clusters.length ? (
-        <>
-          <div className="intel-two-column campaign-flagship-layout fade-in-delay-2">
-            <section className="intel-section-card campaign-browser-panel">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">
-                  <GitBranch size={14} />
-                  Active Clusters
-                </div>
-                <h2 className="intel-section-title">Recurring activity</h2>
+        {!loading && clusters.length ? (
+          <div className="cc-layout fade-in-delay-1">
+
+            {/* Sidebar: cluster list */}
+            <aside className="cc-sidebar">
+              <div className="cc-sidebar-hd">
+                <span className="aip-activity-label">ACTIVE CLUSTERS</span>
+                <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 10, color: 'rgba(148,163,184,.35)' }}>
+                  {clusters.length}
+                </span>
               </div>
+              {clusters.map((cluster) => {
+                const active = cluster.id === selectedClusterId
+                const color  = levelColor(cluster.latest_threat_level)
+                return (
+                  <button
+                    key={cluster.id}
+                    type="button"
+                    className={`cc-cluster-row${active ? ' is-active' : ''}`}
+                    onClick={() => setSearchParams({ cluster: cluster.id })}
+                  >
+                    <div className="cc-cluster-row-top">
+                      <span className="cc-cluster-label">{cluster.label}</span>
+                      <span className="cc-cluster-badge" style={{ color, borderColor: `${color}33`, background: `${color}10` }}>
+                        {levelLabel(cluster.latest_threat_level)}
+                      </span>
+                    </div>
+                    <p className="cc-cluster-summary">{cluster.summary}</p>
+                    <div className="cc-cluster-meta">
+                      {cluster.signal_count} signals · {cluster.sources.length} sources · {cluster.countries?.slice(0, 2).join(', ') || 'global'}
+                    </div>
+                  </button>
+                )
+              })}
+            </aside>
 
-              <ExpandableFeed
-                items={clusters}
-                initialCount={5}
-                className="intel-mini-list campaign-cluster-list"
-                renderItem={(cluster) => {
-                  const active = cluster.id === selected?.id
-                  return (
-                    <button
-                      key={cluster.id}
-                      type="button"
-                      onClick={() => setSearchParams({ cluster: cluster.id })}
-                      className={`intel-mini-item campaign-cluster-item ${active ? 'is-active' : ''}`}
-                      style={{
-                        textAlign: 'left',
-                        background: active ? '#08111f' : '#07101f',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <div className="campaign-cluster-stack">
-                        <div className="campaign-cluster-topline">
-                          <div className="campaign-cluster-title">{cluster.label}</div>
-                          <span
-                            className="platform-badge"
-                            style={{
-                              color: levelColor(cluster.latest_threat_level, palette),
-                              borderColor: `${levelColor(cluster.latest_threat_level, palette)}33`,
-                              background: `${levelColor(cluster.latest_threat_level, palette)}12`,
-                            }}
-                          >
-                            {cluster.latest_threat_level}
-                          </span>
-                        </div>
-                        <div className="campaign-cluster-summary">{cluster.summary}</div>
-                        <div className="campaign-cluster-meta">
-                          {cluster.signal_count} signals | {cluster.sources.length} sources | {cluster.countries?.slice(0, 2).join(', ') || 'global'}
-                        </div>
-                      </div>
-                    </button>
-                  )
-                }}
-              />
-            </section>
-
-            <section className="intel-section-card campaign-dossier-panel">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">
-                  <Radar size={14} />
-                  Cluster Brief
-                </div>
-                <h2 className="intel-section-title">{selected?.label || 'No cluster selected'}</h2>
-              </div>
-
+            {/* Dossier: selected cluster */}
+            <div className="cc-dossier">
               {selected ? (
                 <>
-                  <article className="campaign-dossier" style={{ ['--severity-color']: levelColor(selected.latest_threat_level, palette) }}>
-                    <div className="campaign-dossier-header">
-                      <div className="campaign-dossier-meta">
-                        <span>{selected.latest_threat_level}</span>
-                        <span>risk {selected.max_risk_score}</span>
-                        <span>latest seen {selected.latest_seen || 'unknown'}</span>
+                  {/* Title */}
+                  <div className="cc-dossier-kicker">
+                    <GitBranch size={13} style={{ color: '#3b82f6' }} />
+                    <span className="aip-activity-label">CLUSTER BRIEF</span>
+                  </div>
+                  <h2 className="cc-dossier-title">{selected.label}</h2>
+
+                  {/* Stats row */}
+                  <div className="cc-stats-row">
+                    {[
+                      ['Signals',   selected.signal_count],
+                      ['Sources',   selected.sources?.length || 0],
+                      ['Countries', selected.countries?.length || 0],
+                      ['Tags',      selected.actor_tags?.length || 0],
+                      ['Risk',      selected.max_risk_score],
+                    ].map(([label, val]) => (
+                      <div key={label} className="cc-stat">
+                        <strong className="cc-stat-val">{val}</strong>
+                        <span className="cc-stat-label">{label}</span>
                       </div>
-                      <div className="cluster-summary-strip">
-                        <article className="cluster-stat-chip">
-                          <div className="signal-strip-label">Signals</div>
-                          <strong>{selected.signal_count}</strong>
-                        </article>
-                        <article className="cluster-stat-chip">
-                          <div className="signal-strip-label">Sources</div>
-                          <strong>{selected.sources?.length || 0}</strong>
-                        </article>
-                        <article className="cluster-stat-chip">
-                          <div className="signal-strip-label">Countries</div>
-                          <strong>{selected.countries?.length || 0}</strong>
-                        </article>
-                        <article className="cluster-stat-chip">
-                          <div className="signal-strip-label">Tags</div>
-                          <strong>{selected.actor_tags?.length || 0}</strong>
-                        </article>
-                      </div>
-                    </div>
-                    <div className="campaign-dossier-body">{selected.summary}</div>
-                    <div className="intel-tag-wrap">
-                      {(selected.actor_tags || []).slice(0, 4).map((tag) => (
-                        <span key={tag} className="intel-tag-chip">{tag}</span>
-                      ))}
-                      {(selected.countries || []).slice(0, 4).map((country) => (
-                        <span key={country} className="intel-tag-chip">{country}</span>
-                      ))}
-                      {(selected.sources || []).slice(0, 4).map((source) => (
-                        <span key={source} className="intel-tag-chip">{source}</span>
-                      ))}
-                    </div>
-                    <div>
-                      <div className="intel-meta-label" style={{ marginBottom: 10 }}>Related Indicators</div>
-                      <div className="intel-tag-wrap">
-                        {(selected.related_indicators || []).slice(0, 6).map((indicator) => (
-                          <span key={indicator} className="intel-tag-chip">{indicator}</span>
+                    ))}
+                  </div>
+
+                  {/* Verdict badge */}
+                  <div style={{ marginBottom: 14 }}>
+                    <span
+                      className="cc-cluster-badge"
+                      style={{
+                        color: levelColor(selected.latest_threat_level),
+                        borderColor: `${levelColor(selected.latest_threat_level)}33`,
+                        background: `${levelColor(selected.latest_threat_level)}10`,
+                        fontSize: 11, padding: '4px 14px',
+                      }}
+                    >
+                      {levelLabel(selected.latest_threat_level)}
+                    </span>
+                    <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(148,163,184,.4)', marginLeft: 12 }}>
+                      latest seen {selected.latest_seen || 'unknown'}
+                    </span>
+                  </div>
+
+                  {/* Summary */}
+                  <p className="cc-dossier-body">{selected.summary}</p>
+
+                  {/* Tags */}
+                  {[
+                    { label: 'ACTOR TAGS',  items: selected.actor_tags || [] },
+                    { label: 'COUNTRIES',   items: selected.countries  || [] },
+                    { label: 'SOURCES',     items: selected.sources    || [] },
+                  ].map(({ label, items }) => items.length ? (
+                    <div key={label} className="cc-tag-group">
+                      <div className="aip-activity-label" style={{ marginBottom: 8 }}>{label}</div>
+                      <div className="cc-tags">
+                        {items.slice(0, 6).map((t) => (
+                          <span key={t} className="lc-tag">{t}</span>
                         ))}
-                        {(selected.related_indicators || []).length > 6 ? (
-                        <span className="intel-tag-chip">+{selected.related_indicators.length - 6} more</span>
+                      </div>
+                    </div>
+                  ) : null)}
+
+                  {/* Related indicators */}
+                  {(selected.related_indicators || []).length ? (
+                    <div className="cc-tag-group">
+                      <div className="aip-activity-label" style={{ marginBottom: 8 }}>RELATED INDICATORS</div>
+                      <div className="cc-tags">
+                        {selected.related_indicators.slice(0, 8).map((ind) => (
+                          <span key={ind} className="lc-tag" style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 11 }}>{ind}</span>
+                        ))}
+                        {selected.related_indicators.length > 8 ? (
+                          <span className="lc-tag">+{selected.related_indicators.length - 8} more</span>
                         ) : null}
                       </div>
                     </div>
-                  </article>
+                  ) : null}
 
-                  <div className="campaign-events-header">
-                    <div className="signal-strip-label">Cluster event rail</div>
-                    <strong>Latest linked activity</strong>
-                  </div>
-                  <ExpandableFeed
-                    items={selected.events || []}
-                    initialCount={4}
-                    className="flat-rail campaign-cluster-events"
-                    renderItem={(event) => (
-                      <article key={event.id} className={`flat-rail-row ${String(event.threat_level || selected.latest_threat_level || 'info').toLowerCase()}`}>
-                        <div className="flat-rail-main">
-                          <div className="flat-rail-title">{event.title}</div>
-                          <div className="flat-rail-meta">{event.source} | {event.ioc_type} | risk {event.risk_score} | {event.created_at || 'Unknown'}</div>
-                          <span className="flat-rail-copy">{event.summary}</span>
+                  {/* Events table */}
+                  {events.length ? (
+                    <div className="aip-activity" style={{ marginTop: 28 }}>
+                      <div className="aip-activity-hd">
+                        <span className="aip-activity-label">CLUSTER EVENTS</span>
+                        <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 10, color: 'rgba(148,163,184,.4)' }}>
+                          {events.length}
+                        </span>
+                      </div>
+                      <div className="aip-thead">
+                        <span>INDICATOR</span><span>TYPE</span><span>LEVEL</span><span>RISK</span><span>TIME</span><span />
+                      </div>
+                      <div className="aip-tbody">
+                        {visibleEvents.map((event) => {
+                          const color = levelColor(event.threat_level || selected.latest_threat_level)
+                          const label = levelLabel(event.threat_level || selected.latest_threat_level)
+                          const Icon  = rowIcon(event.ioc_type)
+                          return (
+                            <div
+                              key={event.id}
+                              className="aip-trow"
+                              role="button"
+                              tabIndex={0}
+                              onClick={() => event.details_path && navigate(event.details_path)}
+                              onKeyDown={(e) => e.key === 'Enter' && event.details_path && navigate(event.details_path)}
+                              style={{ cursor: event.details_path ? 'pointer' : 'default' }}
+                            >
+                              <div className="aip-td-indicator">
+                                <Icon size={14} className="aip-trow-icon" />
+                                <span className="aip-trow-text">{event.title || event.indicator || '—'}</span>
+                              </div>
+                              <div className="aip-td aip-td-type">{String(event.ioc_type || '—').toUpperCase()}</div>
+                              <div className="aip-td aip-td-verdict">
+                                <span className="aip-verdict-dot" style={{ background: color }} />
+                                <span className="aip-verdict-label" style={{ color }}>{label}</span>
+                              </div>
+                              <div className="aip-td aip-td-source" style={{ color: '#60a5fa' }}>{event.risk_score ?? '—'}</div>
+                              <div className="aip-td aip-td-time">{timeAgo(event.created_at)}</div>
+                              <div className="aip-td aip-td-arrow">›</div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                      {events.length > INITIAL ? (
+                        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16 }}>
+                          <button type="button" className="aip-viewall" onClick={() => setExpanded((v) => !v)}>
+                            {expanded ? 'Show less' : `Show ${events.length - INITIAL} more`}
+                          </button>
                         </div>
-                        <div>
-                          <span
-                            className="platform-badge"
-                            style={{
-                              color: levelColor(event.threat_level || selected.latest_threat_level, palette),
-                              borderColor: `${levelColor(event.threat_level || selected.latest_threat_level, palette)}33`,
-                              background: `${levelColor(event.threat_level || selected.latest_threat_level, palette)}12`,
-                            }}
-                          >
-                            {event.threat_level || selected.latest_threat_level}
-                          </span>
-                        </div>
-                        <div>
-                          {event.details_path ? <Link className="intel-inline-link" to={event.details_path}>IOC details</Link> : null}
-                        </div>
-                      </article>
-                    )}
-                  />
+                      ) : null}
+                    </div>
+                  ) : null}
                 </>
               ) : (
-                <div className="intel-empty-inline">Select a cluster from the left to inspect the brief.</div>
+                <div style={{ color: 'rgba(148,163,184,.4)', fontSize: 13, paddingTop: 40, textAlign: 'center' }}>
+                  Select a cluster from the left to inspect the brief.
+                </div>
               )}
-            </section>
+            </div>
+
           </div>
-        </>
-      ) : null}
-    </section>
+        ) : null}
+
+      </div>
+    </div>
   )
 }

@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Boxes, FileText, Globe, Hash, Link2, Radar, RotateCcw } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  Activity, AlertTriangle, ArrowLeft, CheckCircle2, ChevronRight,
+  ExternalLink, Eye, FileText, Globe, Hash, Play, Radio,
+  RefreshCw, Search, SlidersHorizontal,
+} from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import ExpandableFeed from '../components/ExpandableFeed'
-import ResultCard from '../components/ResultCard'
-import IntelEmptyState from '../components/IntelEmptyState'
-import PortalHero from '../components/PortalHero'
 import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
@@ -13,611 +13,652 @@ import {
   detectBrandImpersonation,
   buildIpLookupPath,
   buildIocPath,
-  formatRelativeDate,
   getPrimaryIndicator,
 } from '../utils/intelTools'
 
-const tabs = [
-  { id: 'url', label: 'URL', icon: Link2 },
-  { id: 'ip', label: 'IP', icon: Globe },
-  { id: 'hash', label: 'HASH', icon: Hash },
-  { id: 'file', label: 'File', icon: FileText },
-  { id: 'bulk', label: 'Bulk IOC', icon: Boxes },
-]
-
-const initialForm = {
-  url: '',
-  ip: '',
-  hash: '',
-  filename: '',
-  file_size: '',
-  file_hash: '',
-  bulk_input: '',
+// ── Detection ─────────────────────────────────────────────────
+function detectType(raw) {
+  const v = raw.trim()
+  if (!v) return null
+  const lines = v.split('\n').map((l) => l.trim()).filter(Boolean)
+  if (lines.length > 1) return 'bulk'
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(v)) return 'ip'
+  if (/^([0-9a-fA-F]{1,4}:){2,7}[0-9a-fA-F]{0,4}$/.test(v)) return 'ip'
+  if (/^[a-fA-F0-9]{64}$/.test(v)) return 'hash'
+  if (/^[a-fA-F0-9]{40}$/.test(v)) return 'hash'
+  if (/^[a-fA-F0-9]{32}$/.test(v)) return 'hash'
+  if (/^https?:\/\//i.test(v)) return 'url'
+  if (/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/.test(v)) return 'domain'
+  if (/^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\.[a-zA-Z]{2,}$/.test(v) && !v.includes(' ')) return 'domain'
+  if (/^[a-fA-F0-9]{32,64}$/.test(v)) return 'hash'
+  if (v.length > 40 && v.includes(' ')) return 'message'
+  return 'url'
 }
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    text: dark ? '#f8fafc' : '#0f172a',
-    muted: dark ? 'rgba(255,255,255,0.64)' : '#475569',
-    subtle: dark ? 'rgba(255,255,255,0.36)' : '#64748b',
-    blue: '#38bdf8',
-    cyan: '#22d3ee',
-    green: '#22c55e',
-    yellow: '#fbbf24',
-    red: '#fb7185',
-  }
+const DETECT_ROW = ['URL', 'IP', 'DOMAIN', 'HASH', 'FILE']
+function typeToRow(t) {
+  if (t === 'url') return 'URL'
+  if (t === 'ip') return 'IP'
+  if (t === 'domain') return 'DOMAIN'
+  if (t === 'hash') return 'HASH'
+  if (t === 'file') return 'FILE'
+  return null
+}
+function apiType(t) {
+  if (t === 'domain') return 'url'
+  if (t === 'message') return null
+  return t
 }
 
-function tabDescription(tab) {
-  if (tab === 'url') return 'Inspect suspicious links and obvious phishing patterns.'
-  if (tab === 'ip') return 'Check infrastructure reputation with enhanced enrichment.'
-  if (tab === 'hash') return 'Pivot file hashes into VirusTotal detections and original reports.'
-  if (tab === 'file') return 'Run quick metadata triage for suspicious file names and hashes.'
-  return 'Paste one IOC per line and run enrichment in a single batch.'
+// ── Helpers ───────────────────────────────────────────────────
+function timeAgo(val) {
+  if (!val) return ''
+  try {
+    const diff = Date.now() - new Date(val).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 1) return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    return `${Math.floor(h / 24)}d ago`
+  } catch { return '' }
+}
+function formatSource(source) {
+  if (!source) return 'Scanner'
+  if (source.includes('_url')) return 'VirusTotal'
+  if (source.includes('_hash')) return 'Hybrid Analysis'
+  if (source.includes('_file')) return 'MetaDefender'
+  if (source.includes('_ip') || source.includes('enhanced')) return 'AbuseIPDB'
+  return 'Scanner'
+}
+function rowIcon(type) {
+  if (type === 'ip') return Radio
+  if (type === 'hash') return Hash
+  if (type === 'file') return FileText
+  return Globe
 }
 
-function levelColor(level, palette) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return palette.red
-  if (value === 'suspicious') return palette.yellow
-  if (value === 'unknown') return palette.cyan
-  return palette.green
+// ── Verdict helpers ───────────────────────────────────────────
+function getLevel(raw) {
+  const v = String(raw || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return 'threat'
+  if (v === 'suspicious') return 'suspicious'
+  return 'safe'
 }
-
-function currentValueForTab(tab, form) {
-  if (tab === 'url') return form.url
-  if (tab === 'ip') return form.ip
-  if (tab === 'hash') return form.hash
-  if (tab === 'file') return form.filename
-  return form.bulk_input
+const LEVEL = {
+  threat:     { color: '#ef4444', label: 'THREAT',     icon: AlertTriangle,  explainer: 'This indicator is strongly associated with phishing or malicious activity.' },
+  suspicious: { color: '#f59e0b', label: 'SUSPICIOUS', icon: Eye,            explainer: 'Suspicious patterns were detected. Review before trusting this indicator.' },
+  safe:       { color: '#22c55e', label: 'SAFE',        icon: CheckCircle2,   explainer: 'No strong malicious signal was found. Context should still be reviewed.' },
 }
+function verdictColor(raw) { return LEVEL[getLevel(raw)]?.color ?? '#22c55e' }
 
 function actionable(level) {
-  return ['suspicious', 'threat'].includes(String(level || '').toLowerCase())
+  return ['suspicious', 'threat', 'dangerous'].includes(String(level || '').toLowerCase())
 }
 
-function resultExplanation(level) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return 'This scan shows strong phishing indicators and should be treated as high risk.'
-  if (value === 'suspicious') return 'This scan contains warning signals that deserve manual review before you trust the destination.'
-  return 'No strong malicious indicators were detected in this scan, but context should still be reviewed when needed.'
+function getTypeLabel(t) {
+  if (t === 'url') return 'URL Scan'
+  if (t === 'ip') return 'IP Reputation'
+  if (t === 'hash') return 'Hash Analysis'
+  if (t === 'file') return 'File Scan'
+  return 'Scan Result'
+}
+function TypeIcon({ type }) {
+  if (type === 'url') return <Globe size={14} />
+  if (type === 'ip') return <Radio size={14} />
+  if (type === 'hash') return <Hash size={14} />
+  if (type === 'file') return <FileText size={14} />
+  return <Globe size={14} />
 }
 
-function scannerExamplesFor(tab) {
-  if (tab === 'url') {
-    return [{ label: 'http://example-phish.com', value: 'http://example-phish.com' }]
+function getScore(result, type) {
+  if (type === 'ip') return result.aggregated_score ?? result.risk_score ?? 0
+  return result.risk_score ?? result.confidence ?? 0
+}
+function getIdentifier(result, type) {
+  if (type === 'url') return result.url || ''
+  if (type === 'ip') return result.ip || ''
+  if (type === 'hash') return result.hash || ''
+  if (type === 'file') return result.filename || result.file_hash || ''
+  return result.indicator || ''
+}
+function buildDetailRows(result, type) {
+  const rows = []
+  if (result.summary) rows.push(['Summary', result.summary])
+  if (type === 'hash') {
+    if (result.positives != null) rows.push(['Detections', `${result.positives} / ${result.total ?? '?'}`])
+    if (result.recommendation) rows.push(['Recommendation', result.recommendation])
+  } else if (type === 'url') {
+    const conf = result.confidence ?? result.risk_score
+    if (conf != null) rows.push(['Confidence', `${conf}%`])
+    if (result.recommendation) rows.push(['Recommendation', result.recommendation])
+  } else if (type === 'ip') {
+    if (result.recommendation) rows.push(['Recommendation', result.recommendation])
+    const sc = Array.isArray(result.sources) ? result.sources.length : null
+    if (sc) rows.push(['Intelligence sources', String(sc)])
+  } else if (type === 'file') {
+    if (result.recommendation) rows.push(['Recommendation', result.recommendation])
+    const ft = result.file_type || result.detected_type
+    if (ft) rows.push(['Detected type', ft])
   }
-  if (tab === 'ip') {
-    return [{ label: '185.220.101.42', value: '185.220.101.42' }]
-  }
-  if (tab === 'hash') {
-    return [{ label: '44d88612fea8a8f36de82e1278abb02f', value: '44d88612fea8a8f36de82e1278abb02f' }]
-  }
-  if (tab === 'file') {
-    return [{ label: 'invoice-update.docm', value: 'invoice-update.docm' }]
-  }
+  return rows
+}
+function buildGeoRows(geo = {}) {
   return [
-    { label: 'http://example-phish.com', value: 'http://example-phish.com' },
-    { label: '185.220.101.42', value: '185.220.101.42' },
-  ]
+    ['Country', geo.country],
+    ['City / Region', geo.city || geo.region],
+    ['Organization', geo.organization || geo.org || geo.isp],
+    ['ASN', geo.asn],
+  ].filter(([, v]) => v && String(v).toLowerCase() !== 'unknown')
+}
+function buildSignals(result) {
+  return (Array.isArray(result.indicators) ? result.indicators : [])
+    .map((v) => String(v || '').trim()).filter(Boolean).slice(0, 6)
 }
 
-export default function Scanner({ embedded = false }) {
+const EXAMPLE_CHIPS = [
+  { label: 'google-login-check.com', value: 'google-login-check.com' },
+  { label: '185.220.101.45',         value: '185.220.101.45' },
+  { label: 'f3a1d92c0e6b...',        value: 'f3a1d92c0e6b4d8a3c52b1e9f0d7a4c5b8e2f3a1' },
+]
+
+// ── Result Page ───────────────────────────────────────────────
+function ScanResultPage({ result, scanApiType, input, publishState, onNewScan, navigate }) {
+  const level = getLevel(result?.threat_level)
+  const cfg = LEVEL[level]
+  const VerdictIcon = cfg.icon
+  const score = Math.min(100, Math.max(0, Number(getScore(result, scanApiType) || 0)))
+  const identifier = getIdentifier(result, scanApiType) || input.trim()
+  const detailRows = buildDetailRows(result, scanApiType)
+  const geoRows = scanApiType === 'ip' ? buildGeoRows(result?.geo || {}) : []
+  const signals = buildSignals(result)
+  const vtLink = result?.permalink
+  const ipPath = scanApiType === 'ip' ? buildIpLookupPath(identifier) : ''
+  const detailPath = scanApiType !== 'bulk' ? buildIocPath(scanApiType, identifier) : ''
+
+  const brandSignal = useMemo(() => {
+    if (scanApiType !== 'url') return null
+    const c = result?.brand_impersonation || detectBrandImpersonation(result?.domain || result?.url || input)
+    return c?.active ? c : null
+  }, [result, scanApiType, input])
+
+  return (
+    <div className="aip-rp-root fade-in">
+      {/* Top bar */}
+      <div className="aip-rp-topbar">
+        <button type="button" className="aip-rp-back" onClick={onNewScan}>
+          <ArrowLeft size={15} />
+          <span>New Scan</span>
+        </button>
+        <span className="aip-rp-scanned-label" title={identifier}>{identifier}</span>
+      </div>
+
+      <div className="aip-rp-inner">
+        {/* Verdict hero */}
+        <div className={`aip-rp-verdict-card aip-rp-${level}`}>
+          <div className="aip-rp-verdict-accent" style={{ background: cfg.color }} />
+
+          <div className="aip-rp-verdict-body">
+            <div className="aip-rp-type-kicker">
+              <TypeIcon type={scanApiType} />
+              <span>{getTypeLabel(scanApiType)}</span>
+            </div>
+
+            <div className="aip-rp-verdict-row">
+              <div className="aip-rp-verdict-icon" style={{ borderColor: `${cfg.color}40`, color: cfg.color }}>
+                <VerdictIcon size={28} />
+              </div>
+              <div className="aip-rp-verdict-copy">
+                <span className="aip-rp-verdict-badge" style={{ color: cfg.color, borderColor: `${cfg.color}44`, background: `${cfg.color}14` }}>
+                  {cfg.label}
+                </span>
+                <h2 className="aip-rp-indicator">{identifier}</h2>
+                <p className="aip-rp-explainer">{cfg.explainer}</p>
+              </div>
+            </div>
+
+            <div className="aip-rp-score-row">
+              <span className="aip-rp-score-label">Risk Score</span>
+              <div className="aip-rp-score-track">
+                <div className="aip-rp-score-fill" style={{ width: `${score}%`, background: cfg.color }} />
+              </div>
+              <strong className="aip-rp-score-value" style={{ color: cfg.color }}>{score}%</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Details grid */}
+        <div className="aip-rp-details-grid">
+          {/* Technical details */}
+          <div className="aip-rp-section">
+            <div className="aip-rp-section-label">Technical Details</div>
+            <div className="aip-rp-detail-row aip-rp-detail-row-entity">
+              <span>Entity</span>
+              <span className="aip-rp-entity-value">{identifier}</span>
+            </div>
+            {detailRows.map(([key, val]) => (
+              <div key={key} className="aip-rp-detail-row">
+                <span>{key}</span>
+                <span>{val}</span>
+              </div>
+            ))}
+            {vtLink ? (
+              <a href={vtLink} target="_blank" rel="noreferrer" className="aip-rp-source-link">
+                Open source context <ExternalLink size={12} />
+              </a>
+            ) : null}
+          </div>
+
+          {/* Geolocation (IP only) */}
+          {geoRows.length > 0 && (
+            <div className="aip-rp-section">
+              <div className="aip-rp-section-label">Geolocation</div>
+              {geoRows.map(([key, val]) => (
+                <div key={key} className="aip-rp-detail-row">
+                  <span>{key}</span>
+                  <span>{val}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Brand impersonation */}
+          {brandSignal ? (
+            <div className="aip-rp-section aip-rp-section-warn">
+              <div className="aip-rp-section-label">Brand Impersonation</div>
+              <div className="aip-rp-detail-row">
+                <span>Brand</span>
+                <span>{brandSignal.brand || '—'}</span>
+              </div>
+              <p className="aip-rp-brand-copy">
+                {(brandSignal.summary || '').trim() || 'This URL contains typo or lure patterns used in brand impersonation campaigns.'}
+              </p>
+            </div>
+          ) : null}
+        </div>
+
+        {/* Threat signals */}
+        {signals.length > 0 && (
+          <div className="aip-rp-signals">
+            <div className="aip-rp-section-label" style={{ marginBottom: 10 }}>Threat Signals</div>
+            <div className="aip-rp-signal-chips">
+              {signals.map((s, i) => (
+                <span key={i} className="aip-rp-signal-chip">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="aip-rp-actions">
+          {ipPath ? (
+            <button type="button" className="aip-rp-action-btn aip-rp-action-primary" onClick={() => navigate(ipPath)}>
+              Open IP Lookup
+            </button>
+          ) : null}
+          {detailPath ? (
+            <button type="button" className="aip-rp-action-btn" onClick={() => navigate(detailPath)}>
+              Open IOC Details
+            </button>
+          ) : null}
+          {vtLink ? (
+            <a href={vtLink} target="_blank" rel="noreferrer" className="aip-rp-action-btn">
+              View Source <ExternalLink size={12} />
+            </a>
+          ) : null}
+        </div>
+
+        {/* Publish status */}
+        {publishState.message ? (
+          <div className={`aip-rp-pub-status ${publishState.status === 'success' ? 'aip-rp-pub-ok' : 'aip-rp-pub-warn'}`}>
+            {publishState.message}
+          </div>
+        ) : actionable(result.threat_level) && publishState.status === 'idle' ? (
+          <div className="aip-rp-pub-status aip-rp-pub-ok">
+            Suspicious result published automatically to Community and Threat Intel.
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
+// ── Bulk Result Page ──────────────────────────────────────────
+function BulkResultPage({ result, publishState, onNewScan, navigate }) {
+  return (
+    <div className="aip-rp-root fade-in">
+      <div className="aip-rp-topbar">
+        <button type="button" className="aip-rp-back" onClick={onNewScan}>
+          <ArrowLeft size={15} />
+          <span>New Scan</span>
+        </button>
+        <span className="aip-rp-scanned-label">Bulk IOC Scan</span>
+      </div>
+
+      <div className="aip-rp-inner">
+        <div className="aip-rp-bulk-stats">
+          <div className="aip-rp-bulk-stat">
+            <strong style={{ color: '#00E5FF' }}>{result.summary?.processed || 0}</strong>
+            <span>Processed</span>
+            <p>{result.summary?.submitted || 0} lines submitted</p>
+          </div>
+          <div className="aip-rp-bulk-stat">
+            <strong style={{ color: '#f59e0b' }}>{result.summary?.actionable || 0}</strong>
+            <span>Actionable</span>
+            <p>Suspicious or threat findings</p>
+          </div>
+          <div className="aip-rp-bulk-stat">
+            <strong style={{ color: '#22d3ee' }}>
+              {Object.values(result.summary?.by_type || {}).filter(Boolean).length}
+            </strong>
+            <span>Types</span>
+            <p>Unique IOC classes detected</p>
+          </div>
+        </div>
+
+        {publishState.message ? (
+          <div className={`aip-rp-pub-status ${publishState.status === 'success' ? 'aip-rp-pub-ok' : 'aip-rp-pub-warn'}`}>
+            {publishState.message}
+          </div>
+        ) : null}
+
+        <div className="aip-rp-bulk-table">
+          <div className="aip-rp-bulk-head">
+            <span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Actions</span>
+          </div>
+          {(result.items || []).map((item) => {
+            const color = verdictColor(item.threat_level)
+            return (
+              <div key={`${item.ioc_type}-${item.indicator}`} className="aip-rp-bulk-row">
+                <div className="aip-rp-bulk-indicator">
+                  <strong>{item.indicator}</strong>
+                  {item.summary ? <p>{item.summary}</p> : null}
+                </div>
+                <span className="aip-rp-bulk-type">{String(item.ioc_type || '?').toUpperCase()}</span>
+                <span className="aip-rp-bulk-risk">Risk {item.risk_score || 0}</span>
+                <span className="aip-rp-bulk-badge" style={{ color, borderColor: `${color}33`, background: `${color}12` }}>
+                  {String(item.threat_level || '?').toUpperCase()}
+                </span>
+                <div className="aip-rp-bulk-actions">
+                  {item.lookup_path ? <button type="button" onClick={() => navigate(item.lookup_path)} className="aip-rp-tbl-btn">Lookup</button> : null}
+                  {item.details_path ? <button type="button" onClick={() => navigate(item.details_path)} className="aip-rp-tbl-btn">IOC</button> : null}
+                  {item.permalink ? <a href={item.permalink} target="_blank" rel="noreferrer" className="aip-rp-tbl-btn">Source</a> : null}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Scanner ──────────────────────────────────────────────
+export default function Scanner({ onAnalysis }) {
   const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
   const client = useMemo(() => api(), [])
   const navigate = useNavigate()
+  const textareaRef = useRef(null)
 
-  const [activeTab, setActiveTab] = useState('url')
-  const [form, setForm] = useState(initialForm)
+  const [input, setInput] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(true)
   const [error, setError] = useState('')
   const [recentScans, setRecentScans] = useState([])
   const [publishState, setPublishState] = useState({ status: 'idle', message: '' })
-  const [showResultOnly, setShowResultOnly] = useState(false)
+  const [showResult, setShowResult] = useState(false)
 
-  const updateField = (field, value) => setForm((current) => ({ ...current, [field]: value }))
+  const detected = useMemo(() => detectType(input), [input])
+  const scanApiType = apiType(detected)
+  const activeRowType = typeToRow(detected)
 
-  const loadHistory = useCallback(async (scanType = 'all') => {
+  const loadHistory = useCallback(async () => {
     setHistoryLoading(true)
     try {
-      const response = await client.get('/api/intelligence/scan-history', {
-        params: { limit: 8, time_range: '30d', scan_type: scanType === 'bulk' ? 'all' : scanType },
+      const res = await client.get('/api/intelligence/scan-history', {
+        params: { limit: 8, time_range: '30d', scan_type: 'all' },
       })
-      setRecentScans((response.data?.items || []).filter((item) => actionable(item?.threat_level)))
-    } catch {
-      setRecentScans([])
-    } finally {
-      setHistoryLoading(false)
-    }
+      setRecentScans(res.data?.items || [])
+    } catch { setRecentScans([]) }
+    finally { setHistoryLoading(false) }
   }, [client])
 
-  useEffect(() => {
-    setResult(null)
-    setError('')
-    setPublishState({ status: 'idle', message: '' })
-    setShowResultOnly(false)
-    loadHistory(activeTab)
-  }, [activeTab, loadHistory])
+  useEffect(() => { loadHistory() }, [loadHistory])
+
+  const autoGrow = () => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }
+  const handleChange = (e) => { setInput(e.target.value); setTimeout(autoGrow, 0) }
+  const handleKey = (e) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey) && scanApiType && !loading) {
+      e.preventDefault(); runScan()
+    }
+  }
 
   const publishThreat = async (indicator, threatType, payload) => {
     if (!indicator || !threatType || !payload) return { duplicate: false }
-    const response = await client.post(
-      '/api/community/publish-threat',
+    const res = await client.post('/api/community/publish-threat',
       buildCommunityPayload({ indicator, threatType, result: payload })
     )
-    return response.data || { duplicate: false }
+    return res.data || { duplicate: false }
   }
 
   const publishBulk = async (items) => {
-    const actionableItems = (items || []).filter((item) => ['ip', 'url', 'hash', 'domain'].includes(item.ioc_type) && actionable(item.threat_level))
-    if (!actionableItems.length) return
+    const ok = (items || []).filter((item) =>
+      ['ip', 'url', 'hash', 'domain'].includes(item.ioc_type) && actionable(item.threat_level)
+    )
+    if (!ok.length) return
     setPublishState({ status: 'loading', message: '' })
     try {
-      const responses = await Promise.all(actionableItems.slice(0, 12).map((item) => publishThreat(item.indicator, item.ioc_type, item)))
-      const duplicates = responses.filter((item) => item?.duplicate).length
-      const created = responses.length - duplicates
+      const results = await Promise.all(ok.slice(0, 12).map((item) => publishThreat(item.indicator, item.ioc_type, item)))
+      const dupes = results.filter((r) => r?.duplicate).length
+      const created = results.length - dupes
       setPublishState({
         status: 'success',
         message: created > 0
-          ? `${created} actionable indicators were promoted into Community and Threat Intel.${duplicates ? ` ${duplicates} duplicates were skipped.` : ''}`
-          : 'All actionable indicators were already published earlier, so no duplicate entries were created.',
+          ? `${created} actionable indicators promoted to Community and Threat Intel.${dupes ? ` ${dupes} duplicates skipped.` : ''}`
+          : 'All actionable indicators were already published.',
       })
-    } catch (requestError) {
-      setPublishState({ status: 'error', message: getErrorMessage(requestError, 'Unable to publish actionable bulk indicators right now.') })
-    }
+    } catch { setPublishState({ status: 'error', message: 'Unable to publish bulk indicators.' }) }
   }
 
   const runScan = async () => {
+    if (!scanApiType) return
+    const v = input.trim()
     setLoading(true)
     setError('')
     setResult(null)
     setPublishState({ status: 'idle', message: '' })
     try {
-      let response
-      if (activeTab === 'url') response = await client.post('/api/scanner/url', { url: form.url })
-      else if (activeTab === 'ip') response = await client.post('/api/scanner/ip/enhanced', { ip: form.ip })
-      else if (activeTab === 'hash') response = await client.post('/api/scanner/hash', { hash: form.hash })
-      else if (activeTab === 'file') {
-        response = await client.post('/api/scanner/file', {
-          filename: form.filename,
-          file_size: Number(form.file_size || 0),
-          file_hash: form.file_hash,
-        })
-      } else {
-        response = await client.post('/api/scanner/bulk', { input: form.bulk_input })
-      }
+      let res
+      if (scanApiType === 'ip')        res = await client.post('/api/scanner/ip/enhanced', { ip: v })
+      else if (scanApiType === 'hash') res = await client.post('/api/scanner/hash', { hash: v })
+      else if (scanApiType === 'bulk') res = await client.post('/api/scanner/bulk', { input: v })
+      else                             res = await client.post('/api/scanner/url', { url: v })
 
-      setResult(response.data)
-      setShowResultOnly(true)
-      await loadHistory(activeTab)
+      setResult(res.data)
+      setShowResult(true)
+      await loadHistory()
 
-      if (activeTab === 'bulk') {
-        await publishBulk(response.data?.items || [])
-      } else if (actionable(response.data?.threat_level)) {
-        const indicator = getPrimaryIndicator(activeTab, response.data, currentValueForTab(activeTab, form))
-        const publishResponse = await publishThreat(indicator, activeTab === 'file' ? 'file' : activeTab, response.data)
+      if (scanApiType === 'bulk') {
+        await publishBulk(res.data?.items || [])
+      } else if (actionable(res.data?.threat_level)) {
+        const indicator = getPrimaryIndicator(scanApiType, res.data, v)
+        const pub = await publishThreat(indicator, scanApiType, res.data)
         setPublishState({
           status: 'success',
-          message: publishResponse?.duplicate
-            ? 'This suspicious indicator was already published earlier, so no duplicate entry was created.'
+          message: pub?.duplicate
+            ? 'This indicator was already published earlier.'
             : 'Suspicious result published automatically to Community and Threat Intel.',
         })
       }
-    } catch (requestError) {
-      setError(getErrorMessage(requestError, 'Scan failed. Please try again.'))
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) {
+      setError(getErrorMessage(err, 'Scan failed. Please try again.'))
+    } finally { setLoading(false) }
   }
 
-  const loadRecentScan = (entry) => {
-    const nextTab = ['url', 'ip', 'hash', 'file'].includes(entry.scan_type) ? entry.scan_type : 'url'
-    setActiveTab(nextTab)
-    if (entry.scan_type === 'url') updateField('url', entry.indicator)
-    if (entry.scan_type === 'ip') updateField('ip', entry.indicator)
-    if (entry.scan_type === 'hash') updateField('hash', entry.indicator)
-    if (entry.scan_type === 'file') updateField('filename', entry.indicator)
-  }
-
-  const startNewScan = () => {
+  const resetScan = () => {
     setResult(null)
-    setShowResultOnly(false)
+    setShowResult(false)
     setError('')
     setPublishState({ status: 'idle', message: '' })
   }
 
-  const resetCurrentForm = () => {
-    setForm((current) => ({
-      ...current,
-      [activeTab === 'url' ? 'url' : activeTab === 'ip' ? 'ip' : activeTab === 'hash' ? 'hash' : activeTab === 'file' ? 'filename' : 'bulk_input']: '',
-      ...(activeTab === 'file' ? { file_size: '', file_hash: '' } : {}),
-    }))
-    startNewScan()
+  // ── Full-page result ───────────────────────────────────────
+  if (showResult && result) {
+    if (scanApiType === 'bulk') {
+      return (
+        <BulkResultPage
+          result={result}
+          publishState={publishState}
+          onNewScan={resetScan}
+          navigate={navigate}
+        />
+      )
+    }
+    return (
+      <ScanResultPage
+        result={result}
+        scanApiType={scanApiType}
+        input={input}
+        publishState={publishState}
+        onNewScan={resetScan}
+        navigate={navigate}
+      />
+    )
   }
 
-  const singleDetailPath = result && activeTab !== 'bulk'
-    ? buildIocPath(activeTab === 'file' ? 'file' : activeTab, getPrimaryIndicator(activeTab, result, currentValueForTab(activeTab, form)))
-    : ''
-  const ipLookupPath = activeTab === 'ip' && result ? buildIpLookupPath(getPrimaryIndicator('ip', result, form.ip)) : ''
-  const scannerBrandSignal = useMemo(() => {
-    if (!result || activeTab !== 'url') return null
-    const candidate = result?.brand_impersonation || detectBrandImpersonation(result?.domain || result?.url || form.url)
-    if (!candidate || !candidate.active) return null
-    return candidate
-  }, [activeTab, form.url, result])
-  const helperExamples = scannerExamplesFor(activeTab)
-  const simpleTabs = ['url', 'ip', 'hash']
-  const sourceLabelFor = (entry) => entry.country || entry.region || entry.city || 'Trustive Scan'
-
-  const bulkExamples = [
-    {
-      label: 'Mixed phishing set',
-      onClick: () => updateField('bulk_input', 'https://secure-paypaI-login-check.com\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nmicrosoft-billing-center-help.com'),
-    },
-    {
-      label: 'URL heavy list',
-      onClick: () => updateField('bulk_input', 'https://apple-id-review-center.com\nhttps://secure-fedex-delivery-check.net\nhttps://microsoft-billing-update.info'),
-    },
-  ]
-
+  // ── Scanner page ───────────────────────────────────────────
   return (
-    <div className={`scanner-page-minimal${embedded ? ' scanner-page-embedded' : ''}`} style={{ position: 'relative' }}>
-      {!embedded ? <div className="hero-bg" /> : null}
-      {!embedded ? <div className="grid-dots" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 0 }} /> : null}
+    <div className="aip-root">
+      <div className="grid-dots aip-bg-dots" />
+      <div className="aip-inner">
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {!embedded ? (
-          <PortalHero
-            kicker="THREAT ANALYSIS HUB"
-            title="Scanner"
-            eyebrowItems={[]}
-            copy="Investigate indicators across multiple intelligence sources and get real-time verdicts."
-            className="investigation-hero portal-hero-left scanner-standalone-hero fade-in"
-            actions={(
-              <div className="scanner-hero-actions">
-                <button type="button" onClick={runScan} disabled={loading} className="console-cta portal-hero-primary">
-                  {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
-                  <span>Run Scanner</span>
-                </button>
-                <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta">
-                  <span>Scan Again</span>
-                </button>
-              </div>
-            )}
+        {/* Hero */}
+        <header className="aip-hero fade-in">
+          <div className="aip-kicker">
+            <span className="aip-kicker-dot" />
+            <span className="aip-kicker-text">THREAT ANALYSIS HUB</span>
+          </div>
+          <h1 className="aip-title">Scanner - Threat Analysis </h1>
+          <p className="aip-copy">
+            Investigate indicators across multiple intelligence sources<br />and get real-time verdicts.
+          </p>
+        </header>
+
+        {/* Search bar */}
+        <div className={`aip-searchbar fade-in-delay-1${detected && detected !== 'message' ? ' aip-searchbar-lit' : ''}`}>
+          <Search size={20} className="aip-search-icon" />
+          <textarea
+            ref={textareaRef}
+            className="aip-search-input"
+            value={input}
+            onChange={handleChange}
+            onKeyDown={handleKey}
+            placeholder="Paste URL, IP, domain, hash, or file hash..."
+            rows={1}
+            spellCheck={false}
+            autoComplete="off"
           />
+          <div className="aip-search-right">
+            <button type="button" className="aip-filter-btn" title="Options">
+              <SlidersHorizontal size={17} />
+            </button>
+            <span className="aip-vdivider" />
+            <button type="button" className="aip-analyze-btn" onClick={runScan} disabled={loading || !scanApiType}>
+              {loading ? <span className="aip-spin" /> : <Play size={13} fill="currentColor" />}
+              <span>ANALYZE</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Auto-detect row */}
+        <div className="aip-detect-row fade-in-delay-1">
+          <RefreshCw size={13} className="aip-detect-icon" />
+          <span className="aip-detect-label">Auto-detect:</span>
+          {DETECT_ROW.map((t, i) => (
+            <span key={t} className="aip-detect-group">
+              <span className={`aip-detect-type${activeRowType === t ? ' is-active' : (!activeRowType && t === 'URL' ? ' is-default' : '')}`}>{t}</span>
+              {i < DETECT_ROW.length - 1 && <span className="aip-detect-sep">•</span>}
+            </span>
+          ))}
+          {detected === 'message' && (
+            <span className="aip-detect-msg">
+              Looks like a message —&nbsp;
+              <button type="button" className="aip-detect-link" onClick={onAnalysis}>use Message Analysis</button>
+            </span>
+          )}
+        </div>
+
+        {error ? (
+          <div className="console-status aip-error" style={{ borderColor: 'rgba(240,64,64,0.28)', color: '#fca5a5' }}>{error}</div>
         ) : null}
 
-        {!showResultOnly ? (
-          <div className={embedded ? 'investigation-workspace-flow' : 'investigation-centered-flow'}>
-            <section className="console-surface fade-in scanner-console-centered">
-              <div className="console-heading">
-                <h2>Scanner</h2>
-                <p>{tabDescription(activeTab)}</p>
-              </div>
+        {/* Recent Activity */}
+        <div className="aip-activity fade-in-delay-2">
+          <div className="aip-activity-hd">
+            <span className="aip-activity-label">RECENT ACTIVITY</span>
+            <button type="button" className="aip-viewall" onClick={() => navigate('/timeline')}>
+              View all <ChevronRight size={14} />
+            </button>
+          </div>
 
-              <div className="console-tab-grid">
-                {tabs.map((tab) => {
-                  const active = activeTab === tab.id
+          {historyLoading ? (
+            <p className="aip-loading">Loading scan history…</p>
+          ) : recentScans.length > 0 ? (
+            <>
+              <div className="aip-thead">
+                <span>INDICATOR</span><span>TYPE</span><span>VERDICT</span><span>SOURCE</span><span>TIME</span><span />
+              </div>
+              <div className="aip-tbody">
+                {recentScans.map((entry) => {
+                  const Icon = rowIcon(entry.scan_type)
+                  const color = verdictColor(entry.threat_level)
+                  const label = LEVEL[getLevel(entry.threat_level)]?.label ?? 'SAFE'
+                  const dest = entry.details_path || buildIocPath(entry.scan_type, entry.indicator)
                   return (
-                    <button key={tab.id} type="button" onClick={() => setActiveTab(tab.id)} className={`console-tab ${active ? 'is-active' : ''}`}>
-                      {tab.label}
-                    </button>
+                    <div key={entry.id} className="aip-trow" onClick={() => dest && navigate(dest)} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && dest && navigate(dest)}>
+                      <div className="aip-td-indicator">
+                        <Icon size={15} className="aip-trow-icon" />
+                        <span className="aip-trow-text">{entry.indicator}</span>
+                      </div>
+                      <div className="aip-td aip-td-type">{String(entry.scan_type || '').toUpperCase()}</div>
+                      <div className="aip-td aip-td-verdict">
+                        <span className="aip-verdict-dot" style={{ background: color }} />
+                        <span className="aip-verdict-label" style={{ color }}>{label}</span>
+                      </div>
+                      <div className="aip-td aip-td-source">{formatSource(entry.source)}</div>
+                      <div className="aip-td aip-td-time">{timeAgo(entry.created_at)}</div>
+                      <div className="aip-td aip-td-arrow">›</div>
+                    </div>
                   )
                 })}
               </div>
+            </>
+          ) : null}
+        </div>
 
-              <div className="console-form-grid scanner-command-surface">
-                {simpleTabs.includes(activeTab) ? (
-                  <>
-                    <div className="scanner-command-row">
-                      <label className="console-input-group scanner-command-input-group">
-                        <span>{activeTab === 'url' ? 'URL' : activeTab === 'ip' ? 'IP Address' : 'MD5 / SHA1 / SHA256'}</span>
-                        <input
-                          className="analysis-input scanner-command-input"
-                          value={activeTab === 'url' ? form.url : activeTab === 'ip' ? form.ip : form.hash}
-                          onChange={(event) => updateField(activeTab === 'url' ? 'url' : activeTab === 'ip' ? 'ip' : 'hash', event.target.value)}
-                          placeholder={activeTab === 'url' ? 'Paste URL, IP, domain, hash, or file hash…' : activeTab === 'ip' ? '185.220.101.42' : '44d88612fea8a8f36de82e1278abb02f'}
-                        />
-                      </label>
-                      <div className="scanner-command-actions">
-                        <button type="button" onClick={runScan} disabled={loading} className="console-cta scanner-command-primary">
-                          {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
-                          <span>Analyze</span>
-                        </button>
-                        <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta scanner-command-secondary">
-                          <span>Scan Again</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="scanner-command-meta-row">
-                      <div className="scanner-command-types">
-                        <span>URL</span>
-                        <span>IP</span>
-                        <span>DOMAIN</span>
-                        <span>HASH</span>
-                        <span>FILE</span>
-                      </div>
-                      <div className="scanner-helper">
-                        <span className="scanner-helper-label">Try:</span>
-                        {helperExamples.map((example) => (
-                          <button
-                            key={example.value}
-                            type="button"
-                            className="scanner-helper-chip"
-                            onClick={() => updateField(activeTab === 'url' ? 'url' : activeTab === 'ip' ? 'ip' : 'hash', example.value)}
-                          >
-                            {example.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-
-                {activeTab === 'file' ? (
-                  <>
-                    <div className="scanner-command-row scanner-command-row-stack">
-                      <label className="console-input-group scanner-command-input-group">
-                        <span>Filename</span>
-                        <input className="analysis-input scanner-command-input" value={form.filename} onChange={(event) => updateField('filename', event.target.value)} placeholder="Paste URL, IP, domain, hash, or file hash…" />
-                      </label>
-                      <div className="scanner-command-actions">
-                        <button type="button" onClick={runScan} disabled={loading} className="console-cta scanner-command-primary">
-                          {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
-                          <span>Analyze</span>
-                        </button>
-                        <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta scanner-command-secondary">
-                          <span>Scan Again</span>
-                        </button>
-                      </div>
-                    </div>
-                    <div className="field-grid scanner-command-details">
-                      <label className="console-input-group">
-                        <span>File Size</span>
-                        <input className="analysis-input" value={form.file_size} onChange={(event) => updateField('file_size', event.target.value)} placeholder="102400" />
-                      </label>
-                      <label className="console-input-group">
-                        <span>Optional Hash</span>
-                        <input className="analysis-input" value={form.file_hash} onChange={(event) => updateField('file_hash', event.target.value)} placeholder="Optional file hash" />
-                      </label>
-                    </div>
-                    <div className="scanner-command-meta-row">
-                      <div className="scanner-command-types">
-                        <span>URL</span>
-                        <span>IP</span>
-                        <span>DOMAIN</span>
-                        <span>HASH</span>
-                        <span>FILE</span>
-                      </div>
-                      <div className="scanner-helper">
-                        <span className="scanner-helper-label">Try:</span>
-                        {helperExamples.map((example) => (
-                          <button key={example.value} type="button" className="scanner-helper-chip" onClick={() => updateField('filename', example.value)}>
-                            {example.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-
-                {activeTab === 'bulk' ? (
-                  <>
-                    <label className="console-input-group scanner-command-input-group">
-                      <span>Bulk Indicators</span>
-                      <textarea
-                        className="analysis-textarea"
-                        rows={10}
-                        value={form.bulk_input}
-                        onChange={(event) => updateField('bulk_input', event.target.value)}
-                        placeholder={'Paste URL, IP, domain, hash, or file hash…\nhttps://example.test/login\n185.220.101.42\n44d88612fea8a8f36de82e1278abb02f\nsuspicious-domain.example'}
-                        style={{ minHeight: 240 }}
-                      />
-                    </label>
-                    <div className="scanner-command-meta-row scanner-command-meta-row-stack">
-                      <div className="scanner-command-types">
-                        <span>URL</span>
-                        <span>IP</span>
-                        <span>DOMAIN</span>
-                        <span>HASH</span>
-                        <span>FILE</span>
-                      </div>
-                      <div className="scanner-helper">
-                        <span className="scanner-helper-label">Try:</span>
-                        {helperExamples.map((example) => (
-                          <button
-                            key={example.value}
-                            type="button"
-                            className="scanner-helper-chip"
-                            onClick={() => updateField('bulk_input', `${example.value}\nsecure-billing-portal.example`)}
-                          >
-                            {example.label}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="scanner-command-actions scanner-command-actions-inline">
-                        <button type="button" onClick={runScan} disabled={loading} className="console-cta scanner-command-primary">
-                          {loading ? <span className="analysis-spinner scanner-button-spinner" aria-hidden="true" /> : null}
-                          <span>Analyze</span>
-                        </button>
-                        <button type="button" onClick={resetCurrentForm} className="scanner-secondary-cta scanner-command-secondary">
-                          <span>Scan Again</span>
-                        </button>
-                      </div>
-                    </div>
-                  </>
-                ) : null}
-
-                {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
-              </div>
-            </section>
-
-              <div className="feed-surface investigation-feed-centered scanner-history-panel" style={{ padding: 16 }}>
-                <div className="scanner-section-head">
-                  <span className="analysis-meta-label">Recent Activity</span>
-                  <h3 className="scanner-section-title">Recent Activity</h3>
-                </div>
-
-              {historyLoading ? (
-                <p style={{ margin: 0, color: palette.muted, lineHeight: 1.7 }}>Loading recent scan history...</p>
-              ) : !recentScans.length ? (
-                <IntelEmptyState
-                  title="No actionable scans yet"
-                  copy="Only suspicious and threat findings are shown here."
-                  examples={activeTab === 'bulk' ? bulkExamples : [
-                    { label: 'Try suspicious URL', onClick: () => { setActiveTab('url'); updateField('url', 'https://secure-paypaI-login-check.com') } },
-                    { label: 'Try abuse IP', onClick: () => { setActiveTab('ip'); updateField('ip', '185.220.101.42') } },
-                  ]}
-                />
-              ) : (
-                <div className="scanner-history-scroll">
-                  <div className="scanner-history-table-head">
-                    <span>Indicator</span>
-                    <span>Type</span>
-                    <span>Verdict</span>
-                    <span>Source</span>
-                    <span>Timestamp</span>
-                  </div>
-                  <ExpandableFeed
-                    items={recentScans}
-                    initialCount={6}
-                    className="scanner-history-table-surface"
-                    renderItem={(entry) => (
-                      <article key={entry.id} className={`scanner-history-row scanner-history-${String(entry.threat_level || 'safe').toLowerCase()}`}>
-                        <div className="scanner-history-cell scanner-history-cell-indicator">
-                          <strong className="scanner-history-url">{entry.indicator}</strong>
-                          <div className="scanner-history-copy">{entry.summary || 'Actionable scan retained in recent history.'}</div>
-                          <div className="scanner-history-actions">
-                            <button type="button" onClick={() => loadRecentScan(entry)} className="scanner-inline-button">Reuse</button>
-                            <button type="button" onClick={() => navigate(entry.details_path)} className="scanner-inline-button scanner-inline-button-primary">Details</button>
-                          </div>
-                        </div>
-                        <div className="scanner-history-cell">
-                          <span className="scanner-history-kind">{String(entry.scan_type || '').toUpperCase()}</span>
-                        </div>
-                        <div className="scanner-history-cell">
-                          <span className="scanner-history-verdict">
-                            <span className="scanner-history-verdict-dot" aria-hidden="true" />
-                            {String(entry.threat_level || 'unknown').toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="scanner-history-cell">
-                          <div className="scanner-history-meta">{sourceLabelFor(entry)}</div>
-                        </div>
-                        <div className="scanner-history-cell">
-                          <div className="scanner-history-meta">{formatRelativeDate(entry.created_at)}</div>
-                        </div>
-                      </article>
-                    )}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div style={{ maxWidth: embedded ? '100%' : activeTab === 'bulk' ? 1120 : 900, margin: embedded ? 0 : '0 auto', width: '100%' }}>
-            <div style={{ marginBottom: 24 }}>
-              <button type="button" onClick={startNewScan} className="console-cta" style={{ marginBottom: 20 }}>
-                <RotateCcw size={16} />
-                <span>Scan Again</span>
+        {/* Empty / CTA */}
+        <div className="aip-empty fade-in-delay-2">
+          <Activity size={30} className="aip-empty-icon" strokeWidth={1.5} />
+          <p className="aip-empty-title">No investigations yet</p>
+          <p className="aip-empty-copy">Paste an indicator above to start your first analysis.</p>
+          <div className="aip-empty-chips">
+            {EXAMPLE_CHIPS.map((ex) => (
+              <button key={ex.value} type="button" className="aip-chip" onClick={() => { setInput(ex.value); textareaRef.current?.focus() }}>
+                {ex.label}
               </button>
-            </div>
-
-            {activeTab === 'bulk' ? (
-              <div style={{ display: 'grid', gap: 18 }}>
-                <div className="scanner-bulk-grid">
-                  <article className="brief-panel">
-                    <span className="analysis-meta-label">Processed</span>
-                    <strong style={{ fontSize: 26, color: palette.blue }}>{result.summary?.processed || 0}</strong>
-                    <p>{`${result.summary?.submitted || 0} lines submitted after normalization.`}</p>
-                  </article>
-                  <article className="brief-panel">
-                    <span className="analysis-meta-label">Actionable</span>
-                    <strong style={{ fontSize: 26, color: palette.yellow }}>{result.summary?.actionable || 0}</strong>
-                    <p>Only suspicious and threat findings are promoted.</p>
-                  </article>
-                  <article className="brief-panel">
-                    <span className="analysis-meta-label">Types Seen</span>
-                    <strong style={{ fontSize: 26, color: palette.cyan }}>{Object.values(result.summary?.by_type || {}).filter(Boolean).length}</strong>
-                    <p>Unique IOC classes detected in the batch.</p>
-                  </article>
-                </div>
-
-                {publishState.message ? <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : palette.yellow }}>{publishState.message}</div> : null}
-
-                <div className="scanner-bulk-table">
-                  <div className="scanner-bulk-table-head"><span>Indicator</span><span>Type</span><span>Risk</span><span>Verdict</span><span>Next Step</span></div>
-                  {(result.items || []).map((item) => (
-                    <article key={`${item.ioc_type}-${item.indicator}`} className="scanner-bulk-row">
-                      <div className="scanner-bulk-main">
-                        <strong>{item.indicator}</strong>
-                        <p>{item.summary}</p>
-                      </div>
-                      <div>{String(item.ioc_type || 'unknown').toUpperCase()}</div>
-                      <div>Risk {item.risk_score || 0}</div>
-                      <div>
-                        <span className="platform-badge" style={{ color: levelColor(item.threat_level, palette), borderColor: `${levelColor(item.threat_level, palette)}33`, background: `${levelColor(item.threat_level, palette)}12` }}>
-                          {item.threat_level}
-                        </span>
-                      </div>
-                      <div className="scanner-bulk-actions">
-                        {item.lookup_path ? <button type="button" onClick={() => navigate(item.lookup_path)} className="scanner-inline-button">Lookup</button> : null}
-                        {item.details_path ? <button type="button" onClick={() => navigate(item.details_path)} className="scanner-inline-button">IOC</button> : null}
-                        {item.permalink ? <a href={item.permalink} target="_blank" rel="noreferrer" className="scanner-inline-button">Source</a> : null}
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="scanner-result-stack">
-                <ResultCard result={result} type={activeTab} theme={theme} />
-
-                {scannerBrandSignal ? (
-                  <div className="brief-panel scanner-result-support" style={{ borderColor: 'rgba(251,191,36,0.28)' }}>
-                    <strong>
-                      Possible brand impersonation detected{scannerBrandSignal.brand ? `: ${scannerBrandSignal.brand}` : ''}
-                    </strong>
-                    <span style={{ color: palette.muted, lineHeight: 1.6 }}>
-                      {(scannerBrandSignal.summary || '').trim() || 'This URL contains typo or lure patterns commonly used in brand impersonation campaigns.'}
-                    </span>
-                  </div>
-                ) : null}
-
-                <div className="brief-panel scanner-result-support">
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
-                      <Radar size={16} color={palette.blue} />
-                      <span className="analysis-meta-label">Next Actions</span>
-                    </div>
-                    <div className="investigation-actions">
-                      {ipLookupPath ? <button type="button" onClick={() => navigate(ipLookupPath)} className="report-action-button report-action-button-primary">Open IP lookup</button> : null}
-                      {singleDetailPath ? <button type="button" onClick={() => navigate(singleDetailPath)} className="report-action-button">Open IOC details</button> : null}
-                    </div>
-                  </div>
-
-                  <p className="scanner-status-copy" style={{ marginTop: 10 }}>
-                    {resultExplanation(result.threat_level)}
-                  </p>
-
-                  {publishState.message ? (
-                    <div className="console-status" style={{ color: publishState.status === 'success' ? palette.green : levelColor(result.threat_level, palette) }}>
-                      {publishState.message}
-                    </div>
-                  ) : actionable(result.threat_level) ? (
-                    <div className="console-status" style={{ color: levelColor(result.threat_level, palette), borderColor: `${levelColor(result.threat_level, palette)}28` }}>
-                      This suspicious result is published automatically into the Community and Threat Intel flow and becomes available in the unified timeline.
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-            )}
+            ))}
+            <button type="button" className="aip-chip aip-chip-browse" onClick={() => navigate('/community')}>
+              Browse examples ›
+            </button>
           </div>
-        )}
+        </div>
+
       </div>
     </div>
   )

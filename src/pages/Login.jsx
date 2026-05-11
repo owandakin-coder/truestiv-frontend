@@ -1,6 +1,15 @@
 import { useNavigate } from 'react-router-dom'
-import { ArrowRight, Shield, Sparkles, Waves } from 'lucide-react'
+import { ArrowRight, Globe, Hash, Link2, Radio, Shield, Sparkles } from 'lucide-react'
 import { prewarmGuestSession } from '../services/api'
+
+const FEATURES = [
+  { icon: Link2,  title: 'Threat Scanner',    copy: 'URL, IP, hash, and domain triage from one AI console' },
+  { icon: Shield, title: 'Message Analysis',  copy: 'AI verdicts, IOC extraction, and enrichment pivots' },
+  { icon: Globe,  title: 'Geo Threat Map',    copy: 'Live propagation visualization across global infrastructure' },
+  { icon: Radio,  title: 'Lookup Center',     copy: 'Deep IP, domain, and email-header pivot workspace' },
+  { icon: Hash,   title: 'Threat Intel Hub',  copy: 'Structured briefs, trending IOCs, and community signals' },
+  { icon: Sparkles, title: 'Campaign Clusters', copy: 'Attack cluster correlation with timeline and graph view' },
+]
 
 export default function Login() {
   const navigate = useNavigate()
@@ -11,86 +20,75 @@ export default function Login() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        padding: 28,
-        background:
-          'radial-gradient(circle at 82% 20%, rgba(37,99,235,0.3), transparent 24%), radial-gradient(circle at 18% 18%, rgba(8,47,73,0.46), transparent 24%), linear-gradient(180deg, #071120 0%, #030712 100%)',
-        color: '#eff6ff',
-      }}
-    >
-      <div style={{ width: 'min(1080px, 100%)', display: 'grid', gridTemplateColumns: '1.05fr 0.95fr', gap: 28 }}>
-        <section className="card" style={{ padding: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 34 }}>
-            <div style={{ width: 50, height: 50, borderRadius: 16, background: 'linear-gradient(135deg, #2563eb, #0ea5e9)', display: 'grid', placeItems: 'center' }}>
-              <Waves size={20} color="#fff" />
+    <div className="login-root">
+      <div className="grid-dots login-dots" />
+
+      <div className="login-inner">
+        {/* Left — hero */}
+        <div className="login-hero">
+          <div className="login-brand">
+            <div className="login-brand-mark">
+              <Shield size={20} color="#3b82f6" />
             </div>
             <div>
-              <div style={{ fontSize: 12, letterSpacing: '0.24em', textTransform: 'uppercase', color: '#7dd3fc' }}>Trustive AI</div>
-              <div style={{ fontSize: 22, fontWeight: 900 }}>Open Access</div>
+              <div className="login-brand-label">Trustive AI</div>
+              <div className="login-brand-sub">Open Access Platform</div>
             </div>
           </div>
 
-          <div style={{ fontSize: 12, color: '#7dd3fc', fontWeight: 800, letterSpacing: '0.18em', textTransform: 'uppercase', marginBottom: 16 }}>
-            No registration required
+          <div className="login-kicker">
+            <span className="login-kicker-dot" />
+            <span>NO REGISTRATION REQUIRED</span>
           </div>
-          <h1 style={{ fontSize: 'clamp(1.95rem, 3.75vw, 3.3rem)', lineHeight: 1.02, fontWeight: 900, marginBottom: 18 }}>
-            Enter the platform
-            <br />
-            <span className="gradient-text">without an account.</span>
+
+          <h1 className="login-title">
+            Enter the platform<br />
+            <span className="login-title-accent">without an account.</span>
           </h1>
-          <p style={{ color: 'rgba(191,219,254,0.74)', lineHeight: 1.8, maxWidth: 560, marginBottom: 26 }}>
-            Trustive now creates a free guest workspace automatically. Launch the scanner,
-            run scans, analyze messages, and inspect intelligence feeds instantly.
+
+          <p className="login-copy">
+            Trustive creates a free guest workspace automatically. Launch the scanner,
+            analyze threats, and inspect intelligence feeds — instantly.
           </p>
 
-          <div style={{ display: 'grid', gap: 14, marginBottom: 28 }}>
+          <ul className="login-checklist">
             {[
-              'Guest token is created automatically',
-              'Analysis and scanner workflows are immediately available',
-              'No signup wall and no pricing gate',
+              'Guest token created automatically on entry',
+              'Full scanner and analysis workflows available',
+              'No signup wall, no pricing gate',
             ].map((line) => (
-              <div key={line} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <Shield size={16} color="#7dd3fc" />
-                <span style={{ color: 'rgba(191,219,254,0.76)' }}>{line}</span>
-              </div>
+              <li key={line} className="login-check-item">
+                <span className="login-check-icon">✓</span>
+                <span>{line}</span>
+              </li>
             ))}
-          </div>
+          </ul>
 
-          <button className="btn btn-primary" onClick={enterWorkspace} style={{ padding: '16px 26px', fontSize: 15 }}>
-            Launch free workspace
+          <button className="login-cta" onClick={enterWorkspace} type="button">
+            <span>Launch free workspace</span>
             <ArrowRight size={16} />
           </button>
-        </section>
+        </div>
 
-        <section className="card" style={{ padding: 32, display: 'grid', alignContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderRadius: 999, background: 'rgba(37,99,235,0.12)', border: '1px solid rgba(56,189,248,0.18)', color: '#bae6fd', marginBottom: 20 }}>
-              <Sparkles size={15} />
-              Blue dark experience
-            </div>
-            <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 14 }}>What changed</h2>
-            <p style={{ color: 'rgba(191,219,254,0.72)', lineHeight: 1.8, marginBottom: 20 }}>
-              The product now opens directly into an open workspace model. The interface was redesigned around a deeper blue palette with cinematic lighting, tighter chrome, and analyst-first flows.
-            </p>
+        {/* Right — feature grid */}
+        <div className="login-features">
+          <div className="login-features-hd">
+            <span className="login-features-label">Platform capabilities</span>
           </div>
-
-          <div style={{ display: 'grid', gap: 16 }}>
-            {[
-              ['Analysis', 'AI verdicts, IOC extraction, enrichment pivots'],
-              ['Scanner', 'URL, IP, hash, and file triage from one console'],
-              ['Lookup Center', 'IP, domain, and header pivots from one place'],
-            ].map(([title, copy]) => (
-              <div key={title} className="card" style={{ padding: 18, background: 'rgba(8,15,30,0.88)' }}>
-                <div style={{ fontWeight: 900, marginBottom: 6 }}>{title}</div>
-                <div style={{ color: 'rgba(191,219,254,0.68)', lineHeight: 1.6 }}>{copy}</div>
+          <div className="login-feature-grid">
+            {FEATURES.map(({ icon: Icon, title, copy }) => (
+              <div key={title} className="login-feature-card">
+                <div className="login-feature-icon">
+                  <Icon size={16} />
+                </div>
+                <div>
+                  <div className="login-feature-title">{title}</div>
+                  <div className="login-feature-copy">{copy}</div>
+                </div>
               </div>
             ))}
           </div>
-        </section>
+        </div>
       </div>
     </div>
   )

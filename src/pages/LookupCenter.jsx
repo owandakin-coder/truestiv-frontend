@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Globe2, ScanSearch, Waypoints } from 'lucide-react'
+import { Globe2, Play, ScanSearch, Waypoints } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
-import PortalHero from '../components/PortalHero'
 import Seo from '../components/Seo'
-import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import {
   buildDomainLookupPath,
@@ -16,627 +14,498 @@ import {
   normalizeThreatLevel,
 } from '../utils/intelTools'
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    text: dark ? '#eff6ff' : '#0f172a',
-    muted: dark ? 'rgba(191,219,254,0.72)' : '#475569',
-    subtle: dark ? 'rgba(191,219,254,0.5)' : '#64748b',
-    blue: '#38bdf8',
-    cyan: '#22d3ee',
-    green: '#22c55e',
-    yellow: '#fbbf24',
-    red: '#fb7185',
-  }
+// ── Colors ─────────────────────────────────────────────────────
+function levelColor(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return '#ef4444'
+  if (v === 'suspicious') return '#f59e0b'
+  if (v === 'safe') return '#22c55e'
+  return '#60a5fa'
 }
 
-function levelColor(level, palette) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return palette.red
-  if (value === 'suspicious') return palette.yellow
-  if (value === 'safe') return palette.green
-  return palette.blue
-}
-
+// ── Shared sub-components ───────────────────────────────────────
 function RowTag({ value }) {
-  return <span className="intel-actor-tag">{value}</span>
+  return <span className="lc-tag">{value}</span>
 }
 
-function LookupTabs({ activeMode, navigate }) {
-  const tabs = [
-    { id: 'ip', label: 'IP Lookup', path: buildIpLookupPath('') },
-    { id: 'domain', label: 'Domain Lookup', path: buildDomainLookupPath('') },
-    { id: 'email-header', label: 'Email Header', path: buildHeaderAnalyzerPath() },
-  ]
-
+function DetailTable({ rows }) {
   return (
-    <div className="lookup-tab-row">
-      {tabs.map((tab) => {
-        const active = activeMode === tab.id
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => navigate(tab.path)}
-            className={`lookup-tab-button ${active ? 'is-active' : ''}`}
-          >
-            {tab.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-function DossierTable({ rows }) {
-  return (
-    <div className="dossier-table">
+    <div className="lc-detail-table">
       {rows.map(([label, value]) => (
-        <div key={label} className="dossier-row">
-          <div className="dossier-key">{label}</div>
-          <div className="dossier-value">{value}</div>
+        <div key={label} className="lc-detail-row">
+          <span className="lc-detail-key">{label}</span>
+          <span className="lc-detail-val">{value}</span>
         </div>
       ))}
     </div>
   )
 }
 
-function DossierSidePanel({ verdict, recommendation, copy, accent, children }) {
+function VerdictSide({ verdict, recommendation, copy, accent, children }) {
   return (
-    <aside className="dossier-sidepanel">
-      <div className="signal-strip-label">Verdict</div>
-      <div className="dossier-verdict" style={{ color: accent }}>{verdict}</div>
-      <div className="intel-reading-block">{copy}</div>
-      <div className="signal-strip-label">Recommendation</div>
-      <div className="dossier-value">{recommendation}</div>
+    <aside className="lc-verdict-aside">
+      <div className="lc-verdict-badge" style={{ color: accent, borderColor: `${accent}33`, background: `${accent}10` }}>
+        {verdict}
+      </div>
+      <p className="lc-verdict-copy">{copy}</p>
+      <div className="lc-verdict-rec-label">Recommendation</div>
+      <div className="lc-verdict-rec">{recommendation}</div>
       {children}
     </aside>
   )
 }
 
-function RecentSignalSection({ title, eyebrow, items, palette }) {
+function SignalsTable({ items }) {
   if (!items?.length) return null
-
   return (
-    <section className="intel-section-card lookup-support-panel">
-      <div className="intel-section-head">
-        <div className="intel-eyebrow">{eyebrow}</div>
-        <h2 className="intel-section-title">{title}</h2>
+    <div className="aip-activity" style={{ marginTop: 32 }}>
+      <div className="aip-activity-hd">
+        <span className="aip-activity-label">RECENT SIGNALS</span>
+        <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 10, color: 'rgba(148,163,184,.4)' }}>
+          {items.length} events
+        </span>
       </div>
-      <div className="lookup-signal-feed">
-        {items.map((item, index) => (
-          <article key={`${item.event_type}-${item.path || item.title}-${index}`} className="lookup-signal-result">
-            <div className="lookup-signal-main">
-              <div className="intel-row-title">{item.title || 'Collected signal'}</div>
-              <div className="lookup-signal-meta">
-                {String(item.event_type || 'signal').replace(/_/g, ' ')} | {formatRelativeDate(item.created_at)}
-              </div>
-              <div className="intel-row-copy">{item.summary || 'Signal captured by Trustive intelligence.'}</div>
-            </div>
-            <div className="lookup-signal-side">
-              <div className="intel-row-badge" style={{ color: levelColor(item.threat_level, palette) }}>
-                {normalizeThreatLevel(item.threat_level)}
-              </div>
-            </div>
-          </article>
-        ))}
+      <div className="aip-thead" style={{ gridTemplateColumns: 'minmax(0,2fr) 120px 140px 90px 20px' }}>
+        <span>SIGNAL</span><span>TYPE</span><span>LEVEL</span><span>TIME</span><span />
       </div>
-    </section>
+      <div className="aip-tbody">
+        {items.map((item, i) => {
+          const color = levelColor(item.threat_level)
+          const label = normalizeThreatLevel(item.threat_level).toUpperCase()
+          return (
+            <div key={`${item.event_type}-${i}`} className="aip-trow" style={{ cursor: 'default' }}>
+              <div className="aip-td-indicator">
+                <span className="aip-trow-text">{item.title || 'Collected signal'}</span>
+              </div>
+              <div className="aip-td aip-td-type">{String(item.event_type || 'signal').replace(/_/g, ' ').toUpperCase()}</div>
+              <div className="aip-td aip-td-verdict">
+                <span className="aip-verdict-dot" style={{ background: color }} />
+                <span className="aip-verdict-label" style={{ color }}>{label}</span>
+              </div>
+              <div className="aip-td aip-td-time">{formatRelativeDate(item.created_at)}</div>
+              <div className="aip-td aip-td-arrow" />
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 
+// ── Main page ───────────────────────────────────────────────────
 function LookupCenter() {
-  const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
   const navigate = useNavigate()
   const { mode = 'ip', indicator = '' } = useParams()
-
   const activeMode = ['ip', 'domain', 'email-header'].includes(mode) ? mode : 'ip'
 
-  const [ipQuery, setIpQuery] = useState(indicator)
-  const [domainQuery, setDomainQuery] = useState(indicator)
-  const [headerInput, setHeaderInput] = useState('')
-  const [ipPayload, setIpPayload] = useState(null)
+  const [ipQuery,      setIpQuery]      = useState(indicator)
+  const [domainQuery,  setDomainQuery]  = useState(indicator)
+  const [headerInput,  setHeaderInput]  = useState('')
+  const [ipPayload,    setIpPayload]    = useState(null)
   const [domainPayload, setDomainPayload] = useState(null)
   const [headerPayload, setHeaderPayload] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [error,   setError]   = useState('')
 
   useEffect(() => {
-    if (activeMode === 'ip') setIpQuery(indicator || '')
+    if (activeMode === 'ip')     setIpQuery(indicator || '')
     if (activeMode === 'domain') setDomainQuery(indicator || '')
   }, [activeMode, indicator])
 
   useEffect(() => {
     setError('')
-    if (activeMode !== 'ip') setIpPayload(null)
-    if (activeMode !== 'domain') setDomainPayload(null)
+    if (activeMode !== 'ip')           setIpPayload(null)
+    if (activeMode !== 'domain')       setDomainPayload(null)
     if (activeMode !== 'email-header') setHeaderPayload(null)
-    if (activeMode === 'email-header' || !indicator) {
-      setLoading(false)
-    }
+    if (activeMode === 'email-header' || !indicator) setLoading(false)
   }, [activeMode, indicator])
 
   useEffect(() => {
-    if (activeMode !== 'ip' || !indicator) {
-      if (activeMode === 'ip') setIpPayload(null)
-      return
-    }
+    if (activeMode !== 'ip' || !indicator) { if (activeMode === 'ip') setIpPayload(null); return }
     let active = true
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     apiRequest(`/api/intelligence/ip-lookup/${encodeURIComponent(indicator)}`)
-      .then((response) => {
-        if (active) setIpPayload(response)
-      })
-      .catch((requestError) => {
-        if (active) setError(requestError.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
+      .then((r) => { if (active) setIpPayload(r) })
+      .catch((e) => { if (active) setError(e.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [activeMode, indicator])
 
   useEffect(() => {
-    if (activeMode !== 'domain' || !indicator) {
-      if (activeMode === 'domain') setDomainPayload(null)
-      return
-    }
+    if (activeMode !== 'domain' || !indicator) { if (activeMode === 'domain') setDomainPayload(null); return }
     let active = true
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     apiRequest(`/api/intelligence/domain-lookup/${encodeURIComponent(indicator)}`)
-      .then((response) => {
-        if (active) setDomainPayload(response)
-      })
-      .catch((requestError) => {
-        if (active) setError(requestError.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
+      .then((r) => { if (active) setDomainPayload(r) })
+      .catch((e) => { if (active) setError(e.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [activeMode, indicator])
 
-  const runIpLookup = (event) => {
-    event.preventDefault()
-    const normalized = ipQuery.trim()
-    if (!normalized) return
-    navigate(buildIpLookupPath(normalized))
-  }
-
-  const runDomainLookup = (event) => {
-    event.preventDefault()
-    const normalized = domainQuery.trim()
-    if (!normalized) return
-    navigate(buildDomainLookupPath(normalized))
-  }
-
-  const runHeaderAnalysis = async (event) => {
-    event.preventDefault()
-    const normalized = headerInput.trim()
-    if (!normalized) return
-    setLoading(true)
-    setError('')
-    setHeaderPayload(null)
+  const runIpLookup = (e) => { e.preventDefault(); const v = ipQuery.trim(); if (v) navigate(buildIpLookupPath(v)) }
+  const runDomainLookup = (e) => { e.preventDefault(); const v = domainQuery.trim(); if (v) navigate(buildDomainLookupPath(v)) }
+  const runHeaderAnalysis = async (e) => {
+    e.preventDefault()
+    const v = headerInput.trim()
+    if (!v) return
+    setLoading(true); setError(''); setHeaderPayload(null)
     try {
-      const response = await apiRequest('/api/intelligence/email-header/analyze', {
+      const r = await apiRequest('/api/intelligence/email-header/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ headers: normalized }),
+        body: JSON.stringify({ headers: v }),
       })
-      setHeaderPayload(response)
-    } catch (requestError) {
-      setError(requestError.message)
-    } finally {
-      setLoading(false)
-    }
+      setHeaderPayload(r)
+    } catch (err) { setError(err.message) }
+    finally { setLoading(false) }
   }
 
-  const ipLookup = ipPayload?.lookup
+  const ipLookup     = ipPayload?.lookup
   const domainLookup = domainPayload?.lookup
   const domainBrandSignal = useMemo(() => {
     if (!domainLookup?.domain) return null
     return domainPayload?.brand_impersonation || domainLookup?.brand_impersonation || detectBrandImpersonation(domainLookup.domain, domainLookup.age_days)
   }, [domainLookup, domainPayload])
   const headerAnalysis = headerPayload?.analysis
+
+  const tabs = [
+    { id: 'ip',           label: 'IP Lookup',     path: buildIpLookupPath('') },
+    { id: 'domain',       label: 'Domain Lookup',  path: buildDomainLookupPath('') },
+    { id: 'email-header', label: 'Email Header',   path: buildHeaderAnalyzerPath() },
+  ]
+
+  const placeholder = activeMode === 'ip'     ? 'Enter an IPv4 or IPv6 address…'
+    : activeMode === 'domain' ? 'Enter a domain like suspicious-example.com…'
+    : 'Paste raw email headers here…'
+
   return (
-    <section className="intel-shell zone-lookup">
+    <div className="aip-root">
       <Seo
         title={`Trustive AI | ${activeMode === 'domain' ? 'Domain Lookup' : activeMode === 'email-header' ? 'Email Header Analysis' : 'IP Lookup'}`}
         description="Investigate IPs, domains, and email headers with enrichment, recent signals, and linked intelligence context."
         path={indicator ? `/lookup-center/${activeMode}/${encodeURIComponent(indicator)}` : `/lookup-center/${activeMode}`}
       />
+      <div className="grid-dots aip-bg-dots" />
+      <div className="aip-inner">
 
-      <PortalHero
-        kicker="Lookup Center"
-        title="Lookup Center"
-        copy="Move between IP, domain, and header enrichment from one desk."
-        className="lookup-hero portal-hero-left fade-in"
-      />
+        {/* Hero */}
+        <header className="aip-hero fade-in">
+          <div className="aip-kicker">
+            <span className="aip-kicker-dot" />
+            <span className="aip-kicker-text">LOOKUP CENTER</span>
+          </div>
+          <h1 className="aip-title">
+            {activeMode === 'ip'           ? <>IP Lookup.</> :
+             activeMode === 'domain'       ? <>Domain Lookup.</> :
+                                             <>Email Header Analysis.</>}
+          </h1>
+          <p className="aip-copy">
+            {activeMode === 'ip'           ? 'Inspect geolocation, ASN, sightings, and linked intelligence for any IP.' :
+             activeMode === 'domain'       ? 'Inspect DNS, registration age, reputation, and brand impersonation.' :
+                                             'Parse transport hops, auth failures, and extract pivot artifacts.'}
+          </p>
+        </header>
 
-      <section className="intel-section-card lookup-intake-panel fade-in-delay-1">
-        <LookupTabs activeMode={activeMode} navigate={navigate} />
-
-        {activeMode === 'ip' ? (
-          <form onSubmit={runIpLookup} className="intel-search-row lookup-run-form">
-            <input
-              className="analysis-input"
-              value={ipQuery}
-              onChange={(event) => setIpQuery(event.target.value)}
-              placeholder="Enter an IPv4 or IPv6 address"
-              style={{ flex: 1, minWidth: 220 }}
-            />
-            <button type="submit" className="intel-button primary">
-              Run IP Lookup
+        {/* Tab bar */}
+        <div className="aip-filter-bar fade-in-delay-1">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className={`aip-tab-btn${activeMode === tab.id ? ' is-active' : ''}`}
+              onClick={() => navigate(tab.path)}
+            >
+              {tab.label}
             </button>
-          </form>
-        ) : null}
+          ))}
+        </div>
 
-        {activeMode === 'domain' ? (
-          <form onSubmit={runDomainLookup} className="intel-search-row lookup-run-form">
+        {/* Search bar */}
+        {activeMode !== 'email-header' ? (
+          <form
+            className={`aip-searchbar fade-in-delay-1${(activeMode === 'ip' ? ipQuery : domainQuery) ? ' aip-searchbar-lit' : ''}`}
+            onSubmit={activeMode === 'ip' ? runIpLookup : runDomainLookup}
+          >
             <input
-              className="analysis-input"
-              value={domainQuery}
-              onChange={(event) => setDomainQuery(event.target.value)}
-              placeholder="Enter a domain like suspicious-example.com"
-              style={{ flex: 1, minWidth: 220 }}
+              className="aip-search-input"
+              style={{ fontFamily: 'var(--i-mono)', border: 'none', background: 'none', outline: 'none', flex: 1, color: 'inherit', fontSize: 14 }}
+              value={activeMode === 'ip' ? ipQuery : domainQuery}
+              onChange={(e) => activeMode === 'ip' ? setIpQuery(e.target.value) : setDomainQuery(e.target.value)}
+              placeholder={placeholder}
+              spellCheck={false}
+              autoComplete="off"
             />
-            <button type="submit" className="intel-button primary">
-              Run Domain Lookup
-            </button>
+            <div className="aip-search-right">
+              <button type="submit" className="aip-analyze-btn" disabled={loading}>
+                {loading ? <span className="aip-spin" /> : <Play size={13} fill="currentColor" />}
+                <span>LOOKUP</span>
+              </button>
+            </div>
           </form>
-        ) : null}
-
-        {activeMode === 'email-header' ? (
-          <form onSubmit={runHeaderAnalysis} className="lookup-header-form">
+        ) : (
+          <form className="lc-header-form fade-in-delay-1" onSubmit={runHeaderAnalysis}>
             <textarea
-              className="analysis-textarea"
-              rows={10}
+              className="aip-search-input lc-header-textarea"
+              rows={8}
               value={headerInput}
-              onChange={(event) => setHeaderInput(event.target.value)}
-              placeholder={'Paste raw email headers here, including Received, Authentication-Results, Return-Path, Reply-To, and Message-ID.'}
+              onChange={(e) => setHeaderInput(e.target.value)}
+              placeholder={placeholder}
             />
-            <button type="submit" className="intel-button primary" style={{ justifySelf: 'center', minWidth: 220 }}>
-              Analyze Email Header
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" className="aip-analyze-btn" disabled={loading}>
+                {loading ? <span className="aip-spin" /> : <Play size={13} fill="currentColor" />}
+                <span>ANALYZE</span>
+              </button>
+            </div>
           </form>
+        )}
+
+        {error   ? <p className="aip-error fade-in" style={{ borderColor: 'rgba(240,64,64,.28)', color: '#fca5a5' }}>{error}</p> : null}
+        {loading ? <p className="aip-loading">Running lookup…</p> : null}
+
+        {/* Empty states */}
+        {!loading && !error && activeMode === 'ip' && !ipLookup ? (
+          <IntelEmptyState
+            title="Start with an IP address"
+            copy="Inspect location, sightings, and pivots from one place."
+            examples={[{ label: '185.220.101.42', onClick: () => navigate(buildIpLookupPath('185.220.101.42')) }]}
+          />
         ) : null}
-      </section>
+        {!loading && !error && activeMode === 'domain' && !domainLookup ? (
+          <IntelEmptyState
+            title="Start with a domain"
+            copy="Inspect DNS, infrastructure, and brand impersonation in one place."
+            examples={[{ label: 'secure-paypaI-login-check.com', onClick: () => navigate(buildDomainLookupPath('secure-paypaI-login-check.com')) }]}
+          />
+        ) : null}
+        {!loading && !error && activeMode === 'email-header' && !headerAnalysis ? (
+          <IntelEmptyState
+            title="Paste raw email headers"
+            copy="Parse transport hops, auth checks, and pivots."
+            examples={[{ label: 'Insert sample header', onClick: () => setHeaderInput('Received: from suspicious-mail.example (185.220.101.42) by mx.google.com;\nAuthentication-Results: spf=fail dkim=none dmarc=fail;\nReply-To: support@secure-paypaI-login-check.com') }]}
+          />
+        ) : null}
 
-      {error ? <div className="intel-empty-card">{error}</div> : null}
-      {loading ? <div className="intel-empty-card">Running lookup...</div> : null}
-
-      {!loading && !error && activeMode === 'ip' && !ipLookup ? (
-        <IntelEmptyState
-          title="Start with an IP address"
-          copy="Inspect location, sightings, and pivots from one place."
-          examples={[
-            { label: '185.220.101.42', onClick: () => navigate(buildIpLookupPath('185.220.101.42')) },
-          ]}
-        />
-      ) : null}
-
-      {!loading && !error && activeMode === 'domain' && !domainLookup ? (
-        <IntelEmptyState
-          title="Start with a domain"
-          copy="Inspect DNS, infrastructure, and brand impersonation in one place."
-          examples={[
-            { label: 'secure-paypaI-login-check.com', onClick: () => navigate(buildDomainLookupPath('secure-paypaI-login-check.com')) },
-          ]}
-        />
-      ) : null}
-
-      {!loading && !error && activeMode === 'email-header' && !headerAnalysis ? (
-        <IntelEmptyState
-          title="Paste raw email headers"
-          copy="Parse transport hops, auth checks, and pivots."
-          examples={[
-            { label: 'Insert sample header', onClick: () => setHeaderInput('Received: from suspicious-mail.example (185.220.101.42) by mx.google.com;\nAuthentication-Results: spf=fail dkim=none dmarc=fail;\nReply-To: support@secure-paypaI-login-check.com') },
-          ]}
-        />
-      ) : null}
-
-      {!loading && activeMode === 'ip' && ipLookup ? (
-        <>
-          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Infrastructure</div>
-                <h2 className="intel-section-title">{ipLookup.ip}</h2>
-                <p className="intel-section-copy intel-reading-block">Confidence {ipLookup.source_confidence_label || 'moderate'} across aggregated enrichment.</p>
-              </div>
-              <DossierTable
-                rows={[
-                  ['Country', ipLookup.geo?.country || 'Unknown'],
-                  ['Region', ipLookup.geo?.region || 'Unknown'],
-                  ['City', ipLookup.geo?.city || 'Unknown'],
-                  ['ASN', ipLookup.geo?.asn || 'Unknown'],
-                  ['ISP', ipLookup.geo?.isp || 'Unknown'],
+        {/* ── IP result ── */}
+        {!loading && activeMode === 'ip' && ipLookup ? (
+          <>
+            <div className="lc-result-grid fade-in">
+              {/* Left: details */}
+              <div className="lc-result-main">
+                <div className="lc-section-label">INFRASTRUCTURE</div>
+                <div className="lc-section-title">{ipLookup.ip}</div>
+                <DetailTable rows={[
+                  ['Country',      ipLookup.geo?.country      || 'Unknown'],
+                  ['Region',       ipLookup.geo?.region       || 'Unknown'],
+                  ['City',         ipLookup.geo?.city         || 'Unknown'],
+                  ['ASN',          ipLookup.geo?.asn          || 'Unknown'],
+                  ['ISP',          ipLookup.geo?.isp          || 'Unknown'],
                   ['Organization', ipLookup.geo?.organization || 'Unknown'],
-                  ['Sightings', String(ipPayload?.sightings?.total || 0)],
-                  ['Confidence', `${Math.round(Number(ipLookup.source_confidence || 0) * 100)}%`],
-                ]}
-              />
-              {(ipLookup.threat_actor_tags || []).length ? (
-                <div style={{ marginTop: 18 }}>
-                  <div className="intel-meta-label" style={{ marginBottom: 10 }}>Threat actor tags</div>
-                  <div className="intel-tag-row">
+                  ['Sightings',    String(ipPayload?.sightings?.total || 0)],
+                  ['Confidence',   `${Math.round(Number(ipLookup.source_confidence || 0) * 100)}%`],
+                ]} />
+                {(ipLookup.threat_actor_tags || []).length ? (
+                  <div className="lc-tags-row">
+                    <div className="lc-section-label" style={{ marginBottom: 8 }}>THREAT ACTOR TAGS</div>
                     {ipLookup.threat_actor_tags.map((tag) => (
                       <RowTag key={tag.tag} value={`${tag.tag} ${(tag.confidence * 100).toFixed(0)}%`} />
                     ))}
                   </div>
+                ) : null}
+              </div>
+
+              {/* Right: verdict + pivots */}
+              <VerdictSide
+                verdict={normalizeThreatLevel(ipLookup.threat_level)}
+                recommendation={ipLookup.recommendation || 'allow'}
+                copy={ipLookup.summary || ipLookup.geo?.organization || 'Infrastructure details resolved from active providers.'}
+                accent={levelColor(ipLookup.threat_level)}
+              >
+                <div className="lc-verdict-rec-label" style={{ marginTop: 20 }}>PIVOT</div>
+                <div className="lc-pivot-list">
+                  <Link to="/investigation-center/scanner" className="lc-pivot-btn">
+                    <ScanSearch size={15} />Open Scanner
+                  </Link>
+                  <Link to={ipPayload?.pivots?.correlation_path || '#'} className="lc-pivot-btn">
+                    <Waypoints size={15} />Correlation Graph
+                  </Link>
+                  <Link to="/propagation" className="lc-pivot-btn">
+                    <Globe2 size={15} />Threat Map
+                  </Link>
                 </div>
-              ) : null}
-            </section>
+              </VerdictSide>
+            </div>
 
-            <DossierSidePanel
-              verdict={normalizeThreatLevel(ipLookup.threat_level)}
-              recommendation={ipLookup.recommendation || 'allow'}
-              copy={ipLookup.summary || ipLookup.geo?.organization || 'Infrastructure details resolved from active providers.'}
-              accent={levelColor(ipLookup.threat_level, palette)}
-            >
-              <div className="signal-strip-label">Continue</div>
-              <div className="intel-action-grid ip-lookup-action-grid">
-                <Link to="/investigation-center/scanner" className="intel-action-card ip-lookup-action-card">
-                  <div className="ip-lookup-action-icon" style={{ background: 'rgba(37,99,235,0.12)' }}>
-                    <ScanSearch size={18} color={palette.blue} />
-                  </div>
-                  <div className="ip-lookup-action-body">
-                    <strong>Open Scanner</strong>
-                    <p>Run a fresh IP scan from the investigation workspace.</p>
-                  </div>
-                </Link>
-                <Link to={ipPayload?.pivots?.correlation_path || '#'} className="intel-action-card ip-lookup-action-card">
-                  <div className="ip-lookup-action-icon" style={{ background: 'rgba(34,211,238,0.12)' }}>
-                    <Waypoints size={18} color={palette.cyan} />
-                  </div>
-                  <div className="ip-lookup-action-body">
-                    <strong>Open Correlation Graph</strong>
-                    <p>Trace how this IP connects across the intel graph.</p>
-                  </div>
-                </Link>
-                <Link to="/propagation" className="intel-action-card ip-lookup-action-card">
-                  <div className="ip-lookup-action-icon" style={{ background: 'rgba(34,197,94,0.12)' }}>
-                    <Globe2 size={18} color={palette.green} />
-                  </div>
-                  <div className="ip-lookup-action-body">
-                    <strong>Open Threat Map</strong>
-                    <p>Compare this IP with active infrastructure markers.</p>
-                  </div>
-                </Link>
-              </div>
-            </DossierSidePanel>
-          </div>
+            <SignalsTable items={ipPayload?.recent_events || []} />
+          </>
+        ) : null}
 
-          <RecentSignalSection
-            title="Recent signals"
-            eyebrow="Collection and sightings"
-            items={ipPayload?.recent_events || []}
-            palette={palette}
-          />
-        </>
-      ) : null}
-
-      {!loading && activeMode === 'domain' && domainLookup ? (
-        <>
-          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Domain dossier</div>
-                <h2 className="intel-section-title">{domainLookup.domain}</h2>
-                <p className="intel-section-copy intel-reading-block">DNS, registration age, reputation, and infrastructure.</p>
-              </div>
-              <DossierTable
-                rows={[
-                  ['Registrar', domainLookup.registrar || 'Unknown'],
-                  ['Age', domainLookup.age_days != null ? `${domainLookup.age_days} days` : 'Unknown'],
-                  ['A Records', (domainPayload?.dns?.a || []).join(', ') || 'None'],
-                  ['MX Records', (domainPayload?.dns?.mx || []).join(', ') || 'None'],
-                  ['NS Records', (domainPayload?.dns?.ns || []).join(', ') || 'None'],
+        {/* ── Domain result ── */}
+        {!loading && activeMode === 'domain' && domainLookup ? (
+          <>
+            <div className="lc-result-grid fade-in">
+              <div className="lc-result-main">
+                <div className="lc-section-label">DOMAIN DOSSIER</div>
+                <div className="lc-section-title">{domainLookup.domain}</div>
+                <DetailTable rows={[
+                  ['Registrar',   domainLookup.registrar || 'Unknown'],
+                  ['Age',         domainLookup.age_days != null ? `${domainLookup.age_days} days` : 'Unknown'],
+                  ['A Records',   (domainPayload?.dns?.a  || []).join(', ')  || 'None'],
+                  ['MX Records',  (domainPayload?.dns?.mx || []).join(', ')  || 'None'],
+                  ['NS Records',  (domainPayload?.dns?.ns || []).join(', ')  || 'None'],
                   ['TXT Records', (domainPayload?.dns?.txt || []).slice(0, 2).join(' | ') || 'None'],
-                  ['Sightings', String(domainPayload?.sightings?.total || 0)],
-                  ['Confidence', `${Math.round(Number(domainLookup.source_confidence || 0) * 100)}%`],
-                ]}
-              />
-              {(domainLookup.threat_actor_tags || []).length ? (
-                <div style={{ marginTop: 18 }}>
-                  <div className="intel-meta-label" style={{ marginBottom: 10 }}>Threat actor tags</div>
-                  <div className="intel-tag-row">
+                  ['Sightings',   String(domainPayload?.sightings?.total || 0)],
+                  ['Confidence',  `${Math.round(Number(domainLookup.source_confidence || 0) * 100)}%`],
+                ]} />
+                {(domainLookup.threat_actor_tags || []).length ? (
+                  <div className="lc-tags-row">
+                    <div className="lc-section-label" style={{ marginBottom: 8 }}>THREAT ACTOR TAGS</div>
                     {domainLookup.threat_actor_tags.map((tag) => (
                       <RowTag key={tag.tag} value={`${tag.tag} ${(tag.confidence * 100).toFixed(0)}%`} />
                     ))}
                   </div>
-                </div>
-              ) : null}
-              {domainBrandSignal ? (
-                <div
-                  style={{
-                    marginTop: 18,
-                    borderRadius: 18,
-                    border: domainBrandSignal.active
-                      ? '1px solid rgba(251,191,36,0.3)'
-                      : '1px solid rgba(148,163,184,0.2)',
-                    background: domainBrandSignal.active
-                      ? 'rgba(251,191,36,0.12)'
-                      : 'rgba(255,255,255,0.03)',
-                    padding: 16,
-                    display: 'grid',
-                    gap: 8,
-                  }}
-                >
-                  <span className="intel-meta-label">Brand Impersonation</span>
-                  <strong style={{ color: domainBrandSignal.active ? palette.yellow : palette.muted }}>
-                    {domainBrandSignal.active
-                      ? `Possible brand impersonation detected${domainBrandSignal.brand ? `: ${domainBrandSignal.brand}` : ''}`
-                      : 'No high-risk brand impersonation pattern was detected.'}
-                  </strong>
-                  {domainBrandSignal.active ? (
-                    <>
-                      <div style={{ color: palette.muted, lineHeight: 1.6 }}>
-                        {(domainBrandSignal.summary || '').trim() || 'This domain matches typo and lure patterns that are common in phishing operations.'}
-                      </div>
-                      {(domainBrandSignal.reasons || []).length ? (
-                        <div style={{ color: palette.subtle, lineHeight: 1.6 }}>
-                          {(domainBrandSignal.reasons || []).slice(0, 3).join(' ')}
-                        </div>
-                      ) : null}
-                      <div style={{ color: palette.subtle }}>
-                        Score: {domainBrandSignal.score || 0}
-                      </div>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
-            </section>
+                ) : null}
+                {domainBrandSignal ? (
+                  <div className={`lc-brand-signal${domainBrandSignal.active ? ' is-active' : ''}`}>
+                    <div className="lc-section-label">BRAND IMPERSONATION</div>
+                    <strong style={{ color: domainBrandSignal.active ? '#f59e0b' : 'rgba(148,163,184,.6)', display: 'block', margin: '6px 0' }}>
+                      {domainBrandSignal.active
+                        ? `Detected${domainBrandSignal.brand ? `: ${domainBrandSignal.brand}` : ''}`
+                        : 'No high-risk pattern detected.'}
+                    </strong>
+                    {domainBrandSignal.active ? (
+                      <p style={{ color: 'rgba(148,163,184,.6)', lineHeight: 1.6, fontSize: 13, margin: 0 }}>
+                        {(domainBrandSignal.summary || '').trim() || 'Matches typo and lure patterns common in phishing.'}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
 
-            <DossierSidePanel
-              verdict={normalizeThreatLevel(domainLookup.threat_level)}
-              recommendation={domainLookup.recommendation || 'allow'}
-              copy={domainBrandSignal?.summary || 'Move from the domain into IP enrichment, IOC details, and correlation workflows.'}
-              accent={levelColor(domainLookup.threat_level, palette)}
-            >
-              <div className="signal-strip-label">Infrastructure pivots</div>
-              <div className="intel-mini-list">
+              <VerdictSide
+                verdict={normalizeThreatLevel(domainLookup.threat_level)}
+                recommendation={domainLookup.recommendation || 'allow'}
+                copy={domainBrandSignal?.summary || 'Pivot from this domain into IP enrichment, IOC details, and correlation.'}
+                accent={levelColor(domainLookup.threat_level)}
+              >
+                <div className="lc-verdict-rec-label" style={{ marginTop: 20 }}>RELATED IPs</div>
                 {(domainPayload?.related_ips || []).length ? (
-                  domainPayload.related_ips.map((item) => (
-                    <div key={item.ip} className="intel-mini-item">
-                      <strong>{item.ip}</strong>
-                      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                        <Link className="intel-inline-link" to={item.lookup_path}>IP lookup</Link>
-                        <Link className="intel-inline-link" to={item.ioc_path}>IOC details</Link>
-                      </div>
-                    </div>
-                  ))
+                  <div className="lc-pivot-list">
+                    {domainPayload.related_ips.map((item) => (
+                      <Link key={item.ip} to={item.lookup_path} className="lc-pivot-btn">
+                        {item.ip}
+                      </Link>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="intel-empty-inline">No A record IPs were returned for this domain.</div>
+                  <p style={{ color: 'rgba(148,163,184,.4)', fontSize: 12 }}>No A record IPs returned.</p>
                 )}
-              </div>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link className="intel-pill-button" to={domainPayload?.pivots?.ioc_details_path || '#'}>
-                  Open IOC Details
-                </Link>
-                <Link className="intel-pill-button" to={domainPayload?.pivots?.correlation_path || '#'}>
-                  Open Correlation Graph
-                </Link>
-              </div>
-            </DossierSidePanel>
-          </div>
+                <div className="lc-verdict-rec-label" style={{ marginTop: 14 }}>PIVOT</div>
+                <div className="lc-pivot-list">
+                  <Link to={domainPayload?.pivots?.ioc_details_path || '#'} className="lc-pivot-btn">IOC Details</Link>
+                  <Link to={domainPayload?.pivots?.correlation_path  || '#'} className="lc-pivot-btn">Correlation Graph</Link>
+                </div>
+              </VerdictSide>
+            </div>
 
-          <RecentSignalSection
-            title="Recent signals"
-            eyebrow="Collection and sightings"
-            items={domainPayload?.recent_events || []}
-            palette={palette}
-          />
-        </>
-      ) : null}
+            <SignalsTable items={domainPayload?.recent_events || []} />
+          </>
+        ) : null}
 
-      {!loading && activeMode === 'email-header' && headerAnalysis ? (
-        <>
-          <div className="dossier-layout lookup-flagship-layout fade-in-delay-1">
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Authentication</div>
-                <h2 className="intel-section-title">SPF, DKIM, and DMARC</h2>
-                <p className="intel-section-copy intel-reading-block">Sender alignment, auth failures, and origin IP.</p>
-              </div>
-              <DossierTable
-                rows={[
-                  ['SPF', headerPayload?.authentication?.spf || 'unknown'],
-                  ['DKIM', headerPayload?.authentication?.dkim || 'unknown'],
-                  ['DMARC', headerPayload?.authentication?.dmarc || 'unknown'],
-                  ['Origin IP', headerAnalysis.origin_ip || 'Unknown'],
-                  ['Reply-To', headerAnalysis.reply_to_domain || 'Unknown'],
-                  ['Return-Path', headerAnalysis.return_path_domain || 'Unknown'],
-                  ['Message-ID', headerAnalysis.message_id || 'Unknown'],
-                  ['From Domain', headerAnalysis.from_domain || 'Unknown'],
-                ]}
-              />
-              <div className="intel-mini-list">
+        {/* ── Email header result ── */}
+        {!loading && activeMode === 'email-header' && headerAnalysis ? (
+          <>
+            <div className="lc-result-grid fade-in">
+              <div className="lc-result-main">
+                <div className="lc-section-label">AUTHENTICATION</div>
+                <div className="lc-section-title">SPF · DKIM · DMARC</div>
+                <DetailTable rows={[
+                  ['SPF',          headerPayload?.authentication?.spf  || 'unknown'],
+                  ['DKIM',         headerPayload?.authentication?.dkim || 'unknown'],
+                  ['DMARC',        headerPayload?.authentication?.dmarc || 'unknown'],
+                  ['Origin IP',    headerAnalysis.origin_ip            || 'Unknown'],
+                  ['Reply-To',     headerAnalysis.reply_to_domain      || 'Unknown'],
+                  ['Return-Path',  headerAnalysis.return_path_domain   || 'Unknown'],
+                  ['Message-ID',   headerAnalysis.message_id           || 'Unknown'],
+                  ['From Domain',  headerAnalysis.from_domain          || 'Unknown'],
+                ]} />
                 {(headerPayload?.findings || []).length ? (
-                  headerPayload.findings.map((item, index) => (
-                    <div key={`${item}-${index}`} className="intel-mini-item">
-                      <strong>Finding {index + 1}</strong>
-                      <p style={{ color: palette.muted, lineHeight: 1.7 }}>{item}</p>
-                    </div>
-                  ))
+                  <div style={{ marginTop: 16 }}>
+                    <div className="lc-section-label" style={{ marginBottom: 10 }}>FINDINGS</div>
+                    {headerPayload.findings.map((item, i) => (
+                      <div key={i} className="lc-finding-row">
+                        <span className="lc-finding-num">{i + 1}</span>
+                        <p style={{ color: 'rgba(226,232,240,.75)', lineHeight: 1.65, fontSize: 13, margin: 0 }}>{item}</p>
+                      </div>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="intel-empty-inline">No high-risk mismatches were detected in these headers.</div>
+                  <p style={{ color: 'rgba(148,163,184,.4)', fontSize: 13, marginTop: 16 }}>No high-risk mismatches were detected.</p>
                 )}
               </div>
-            </section>
 
-            <DossierSidePanel
-              verdict={normalizeThreatLevel(headerAnalysis.threat_level)}
-              recommendation={headerAnalysis.recommendation || 'review'}
-              copy={headerAnalysis.summary || 'Jump directly into domain and IP investigation from the extracted header artifacts.'}
-              accent={levelColor(headerAnalysis.threat_level, palette)}
-            >
-              <div className="signal-strip-label">Continue</div>
-              <div className="intel-mini-list">
-                <div className="intel-mini-item">
-                  <span className="intel-meta-label">Domains</span>
-                  <div className="intel-tag-row">
-                    {(headerPayload?.pivot_domains || []).length ? (
-                      headerPayload.pivot_domains.map((item) => (
-                        <Link key={item.domain} className="intel-inline-link" to={item.lookup_path}>
-                          {item.domain}
-                        </Link>
-                      ))
-                    ) : (
-                      <span style={{ color: palette.muted }}>No domains extracted from these headers.</span>
-                    )}
-                  </div>
-                </div>
-                <div className="intel-mini-item">
-                  <span className="intel-meta-label">IPs</span>
-                  <div className="intel-tag-row">
-                    {(headerPayload?.pivot_ips || []).length ? (
-                      headerPayload.pivot_ips.map((item) => (
-                        <Link key={item.ip} className="intel-inline-link" to={item.lookup_path}>
-                          {item.ip}
-                        </Link>
-                      ))
-                    ) : (
-                      <span style={{ color: palette.muted }}>No IPs extracted from the Received chain.</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </DossierSidePanel>
-          </div>
+              <VerdictSide
+                verdict={normalizeThreatLevel(headerAnalysis.threat_level)}
+                recommendation={headerAnalysis.recommendation || 'review'}
+                copy={headerAnalysis.summary || 'Jump into domain and IP investigation from the extracted artifacts.'}
+                accent={levelColor(headerAnalysis.threat_level)}
+              >
+                {(headerPayload?.pivot_domains || []).length ? (
+                  <>
+                    <div className="lc-verdict-rec-label" style={{ marginTop: 20 }}>DOMAINS</div>
+                    <div className="lc-pivot-list">
+                      {headerPayload.pivot_domains.map((item) => (
+                        <Link key={item.domain} to={item.lookup_path} className="lc-pivot-btn">{item.domain}</Link>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+                {(headerPayload?.pivot_ips || []).length ? (
+                  <>
+                    <div className="lc-verdict-rec-label" style={{ marginTop: 14 }}>IPs</div>
+                    <div className="lc-pivot-list">
+                      {headerPayload.pivot_ips.map((item) => (
+                        <Link key={item.ip} to={item.lookup_path} className="lc-pivot-btn">{item.ip}</Link>
+                      ))}
+                    </div>
+                  </>
+                ) : null}
+              </VerdictSide>
+            </div>
 
-          {(headerPayload?.related_analyses || []).length ? (
-            <section className="intel-section-card">
-              <div className="intel-section-head">
-                <div className="intel-eyebrow">Related analyses</div>
-                <h2 className="intel-section-title">Recent message analysis matches</h2>
+            {(headerPayload?.related_analyses || []).length ? (
+              <div className="aip-activity" style={{ marginTop: 32 }}>
+                <div className="aip-activity-hd">
+                  <span className="aip-activity-label">RELATED ANALYSES</span>
+                </div>
+                <div className="aip-thead" style={{ gridTemplateColumns: 'minmax(0,2fr) 140px 90px 20px' }}>
+                  <span>SUBJECT / SENDER</span><span>LEVEL</span><span>TIME</span><span />
+                </div>
+                <div className="aip-tbody">
+                  {headerPayload.related_analyses.map((item) => {
+                    const color = levelColor(item.threat_level)
+                    return (
+                      <div key={item.id} className="aip-trow" style={{ cursor: 'default' }}>
+                        <div className="aip-td-indicator">
+                          <span className="aip-trow-text">{item.subject || item.sender || 'Analysis match'}</span>
+                        </div>
+                        <div className="aip-td aip-td-verdict">
+                          <span className="aip-verdict-dot" style={{ background: color }} />
+                          <span className="aip-verdict-label" style={{ color }}>{normalizeThreatLevel(item.threat_level).toUpperCase()}</span>
+                        </div>
+                        <div className="aip-td aip-td-time">{formatRelativeDate(item.created_at)}</div>
+                        <div className="aip-td aip-td-arrow" />
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
-              <div className="intel-row-feed">
-                {headerPayload.related_analyses.map((item) => (
-                  <div key={item.id} className="intel-row-item">
-                    <div>
-                      <div className="intel-row-title">{item.subject || item.sender || 'Analysis match'}</div>
-                      <div className="intel-row-copy">{item.summary}</div>
-                    </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="intel-row-badge">{normalizeThreatLevel(item.threat_level)}</div>
-                      <div className="intel-row-date">{formatRelativeDate(item.created_at)}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          ) : null}
-        </>
-      ) : null}
-    </section>
+            ) : null}
+          </>
+        ) : null}
+
+      </div>
+    </div>
   )
 }
 

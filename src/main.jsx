@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import ThemeProvider from './components/ThemeProvider'
 import App from './App.jsx'
 import './index.css'
+import './investigation-override.css'
 
 
 const queryClient = new QueryClient({

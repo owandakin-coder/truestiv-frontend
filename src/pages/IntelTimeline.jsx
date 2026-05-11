@@ -1,230 +1,224 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Activity, Clock3, Waves } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FileText, Globe, Hash, Radio } from 'lucide-react'
 
-import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import PortalHero from '../components/PortalHero'
 import Seo from '../components/Seo'
-import { useTheme } from '../components/ThemeProvider'
 import { apiRequest } from '../services/api'
 import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    dark,
-    text: dark ? '#eff6ff' : '#0f172a',
-    muted: dark ? 'rgba(191,219,254,0.72)' : '#475569',
-    subtle: dark ? 'rgba(191,219,254,0.5)' : '#64748b',
-    blue: '#38bdf8',
-    green: '#22c55e',
-    yellow: '#fbbf24',
-    red: '#fb7185',
-    border: dark ? '1px solid rgba(148,163,184,0.14)' : '1px solid rgba(15,23,42,0.08)',
-    card: dark ? 'rgba(255,255,255,0.03)' : '#ffffff',
-  }
-}
-
-function levelColor(level, palette) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return palette.red
-  if (value === 'suspicious') return palette.yellow
-  if (value === 'safe') return palette.green
-  return palette.blue
-}
-
-const timeRanges = ['24h', '7d', '30d', '90d', 'all']
+const timeRanges    = ['24h', '7d', '30d', '90d', 'all']
 const sourceOptions = ['all', 'scan', 'community', 'analysis', 'media']
-const levelOptions = ['all', 'threat', 'suspicious', 'safe']
+const levelOptions  = ['all', 'threat', 'suspicious', 'safe']
+
+function levelColor(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return '#ef4444'
+  if (v === 'suspicious') return '#f59e0b'
+  if (v === 'safe') return '#22c55e'
+  return '#60a5fa'
+}
+function levelLabel(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return 'THREAT'
+  if (v === 'suspicious') return 'SUSPICIOUS'
+  if (v === 'safe') return 'SAFE'
+  return 'UNKNOWN'
+}
+function rowIcon(type) {
+  const t = String(type || '').toLowerCase()
+  if (t === 'ip')   return Radio
+  if (t === 'hash') return Hash
+  if (t === 'file') return FileText
+  return Globe
+}
+
+const INITIAL_COUNT = 15
 
 export default function IntelTimeline() {
-  const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
+  const navigate = useNavigate()
 
-  const [items, setItems] = useState([])
-  const [stats, setStats] = useState({ total: 0, high_attention: 0, sources: [] })
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [live, setLive] = useState(true)
-  const [filters, setFilters] = useState({
-    source: 'all',
-    threat_level: 'all',
-    time_range: '30d',
-  })
+  const [items,    setItems]    = useState([])
+  const [stats,    setStats]    = useState({ total: 0, high_attention: 0, sources: [] })
+  const [loading,  setLoading]  = useState(true)
+  const [error,    setError]    = useState('')
+  const [live,     setLive]     = useState(true)
+  const [expanded, setExpanded] = useState(false)
+  const [filters,  setFilters]  = useState({ source: 'all', threat_level: 'all', time_range: '30d' })
 
   const loadTimeline = useCallback(() => {
     let active = true
     setLoading(true)
     setError('')
-
     const params = new URLSearchParams({
-      source: filters.source,
+      source:       filters.source,
       threat_level: filters.threat_level,
-      time_range: filters.time_range,
+      time_range:   filters.time_range,
       limit: '80',
     })
-
     apiRequest(`/api/intelligence/timeline?${params.toString()}`)
       .then((payload) => {
         if (!active) return
         setItems(payload.items || [])
         setStats(payload.stats || { total: 0, high_attention: 0, sources: [] })
       })
-      .catch((requestError) => {
-        if (active) setError(requestError.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
+      .catch((err) => { if (active) setError(err.message) })
+      .finally(()  => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [filters])
 
-  useEffect(() => {
-    return loadTimeline()
-  }, [loadTimeline])
-
+  useEffect(() => loadTimeline(), [loadTimeline])
   useEffect(() => {
     if (!live) return undefined
-    const interval = setInterval(() => {
-      loadTimeline()
-    }, 30000)
-    return () => clearInterval(interval)
+    const id = setInterval(loadTimeline, 30000)
+    return () => clearInterval(id)
   }, [live, loadTimeline])
+
+  function setFilter(key, val) {
+    setFilters((f) => ({ ...f, [key]: val }))
+    setExpanded(false)
+  }
+
+  const visible = expanded ? items : items.slice(0, INITIAL_COUNT)
+
   return (
-    <section className="intel-shell zone-timeline">
+    <div className="aip-root">
       <Seo
         title="Trustive AI | Unified Intel Timeline"
         description="Follow the unified timeline of suspicious and threat events across scans, community activity, and collected intelligence."
         path="/timeline"
       />
+      <div className="grid-dots aip-bg-dots" />
+      <div className="aip-inner">
 
-      <PortalHero
-        kicker="Unified Intel Timeline"
-        title="Unified Intel Timeline"
-        copy="The shortest path from a new event to its IOC context."
-        className="timeline-hero portal-hero-left fade-in"
-        actions={(
-          <button className={`intel-button ${live ? 'primary' : 'ghost'}`} type="button" onClick={() => setLive((current) => !current)}>
-            {live ? 'Live refresh on' : 'Live refresh off'}
-          </button>
-        )}
-      />
-
-
-      <section className="intel-section-card timeline-filter-panel fade-in-delay-2">
-        <div className="intel-section-head">
-          <div className="intel-eyebrow">
-            <Clock3 size={14} />
-            Filters
+        {/* Hero */}
+        <header className="aip-hero fade-in">
+          <div className="aip-kicker">
+            <span className="aip-kicker-dot" />
+            <span className="aip-kicker-text">UNIFIED INTEL TIMELINE</span>
           </div>
-          <h2 className="intel-section-title">Focus the timeline</h2>
-        </div>
-
-        <div className="intel-filter-grid">
-          <label className="intel-filter-field">
-            <span>Source</span>
-            <select value={filters.source} onChange={(event) => setFilters((current) => ({ ...current, source: event.target.value }))}>
-              {sourceOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="intel-filter-field">
-            <span>Threat Level</span>
-            <select value={filters.threat_level} onChange={(event) => setFilters((current) => ({ ...current, threat_level: event.target.value }))}>
-              {levelOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="intel-filter-field">
-            <span>Time Range</span>
-            <select value={filters.time_range} onChange={(event) => setFilters((current) => ({ ...current, time_range: event.target.value }))}>
-              {timeRanges.map((option) => (
-                <option key={option} value={option}>
-                  {option.toUpperCase()}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      </section>
-
-      {error ? <div className="intel-empty-card">{error}</div> : null}
-      {loading ? <div className="intel-empty-card">Loading unified intelligence timeline...</div> : null}
-
-      {!loading && !items.length ? (
-        <IntelEmptyState
-          title="No timeline events match these filters"
-          copy="The timeline keeps only suspicious and threat activity. Relax the filters or run a fresh scan."
-          actionLabel="Open Threat Intel"
-          actionTo="/threat-intel"
-        />
-      ) : null}
-
-      {!loading && items.length ? (
-        <section className="intel-section-card timeline-feed-panel fade-in-delay-3">
-          <div className="intel-section-head">
-          <div className="intel-eyebrow">
-            <Waves size={14} />
-            Live Feed
-          </div>
-          <h2 className="intel-section-title">Newest intelligence and scan activity</h2>
-          <p className="intel-section-copy">
-            {stats.total || items.length} events in view, {stats.high_attention || 0} high-attention signals, {stats.sources?.length || 0} contributing sources.
+          <h1 className="aip-title">Intelligence in real time.</h1>
+          <p className="aip-copy">
+            The shortest path from a new event to its IOC context.
+            {stats.total ? ` ${stats.total} events · ${stats.high_attention || 0} high-attention.` : ''}
           </p>
+        </header>
+
+        {/* Filter bar — flat, no card */}
+        <div className="aip-filter-bar fade-in-delay-1">
+          <div className="aip-filter-group">
+            <span className="aip-filter-label">SOURCE</span>
+            <select
+              className="aip-filter-select"
+              value={filters.source}
+              onChange={(e) => setFilter('source', e.target.value)}
+            >
+              {sourceOptions.map((o) => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <div className="aip-filter-group">
+            <span className="aip-filter-label">LEVEL</span>
+            <select
+              className="aip-filter-select"
+              value={filters.threat_level}
+              onChange={(e) => setFilter('threat_level', e.target.value)}
+            >
+              {levelOptions.map((o) => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <div className="aip-filter-group">
+            <span className="aip-filter-label">RANGE</span>
+            <select
+              className="aip-filter-select"
+              value={filters.time_range}
+              onChange={(e) => setFilter('time_range', e.target.value)}
+            >
+              {timeRanges.map((o) => <option key={o} value={o}>{o.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <button
+            type="button"
+            className={`aip-live-btn${live ? ' is-live' : ''}`}
+            onClick={() => setLive((v) => !v)}
+          >
+            <span className="aip-live-dot" />
+            {live ? 'LIVE' : 'PAUSED'}
+          </button>
         </div>
 
-          <ExpandableFeed
-            items={items}
-            initialCount={6}
-            className="timeline-rail"
-            renderItem={(item) => {
-              const path =
-                item.details_path ||
-                (item.ioc_type && item.indicator ? buildIocPath(item.ioc_type, item.indicator) : '')
-              const accent = levelColor(item.threat_level, palette)
-              return (
-                <article key={item.id} className={`timeline-row ${String(item.threat_level || 'info').toLowerCase()}`}>
-                  <div className="timeline-time">{formatRelativeDate(item.created_at)}</div>
-                  <div className="timeline-connector">
-                    <div className="timeline-track" />
-                    <div className="timeline-dot" />
-                  </div>
-                  <div className="timeline-card">
-                    <div className="timeline-card-title">{item.indicator || item.title}</div>
-                    <div className="timeline-card-meta">
-                      {item.title} | source {String(item.event_type || item.source || 'intel').toUpperCase()} | {item.ioc_type || item.event_type} | risk {item.risk_score || 0}
-                    </div>
-                    <p className="intel-reading-block" style={{ marginTop: 10 }}>
-                      {item.summary}
-                    </p>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, flexWrap: 'wrap' }}>
-                      <div className="intel-tag-wrap">
-                        {item.actor_tags?.slice(0, 3).map((tag) => (
-                          <span key={tag.tag} className="intel-tag-chip">{tag.tag}</span>
-                        ))}
-                        <span className="platform-badge" style={{ color: accent, borderColor: `${accent}33`, background: `${accent}12` }}>
-                          {item.threat_level || 'unknown'}
-                        </span>
-                      </div>
-                      {path ? <Link className="intel-inline-link" to={path}>IOC details</Link> : <span className="intel-inline-link intel-inline-link-disabled">Context only</span>}
-                    </div>
-                  </div>
-                </article>
-              )
-            }}
+        {error   ? <p className="aip-error fade-in" style={{ borderColor: 'rgba(240,64,64,.28)', color: '#fca5a5' }}>{error}</p> : null}
+        {loading ? <p className="aip-loading">Loading timeline…</p> : null}
+
+        {!loading && !items.length && !error ? (
+          <IntelEmptyState
+            title="No timeline events match these filters"
+            copy="The timeline keeps only suspicious and threat activity. Relax the filters or run a fresh scan."
+            actionLabel="Open Threat Intel"
+            actionTo="/threat-intel"
           />
-        </section>
-      ) : null}
-    </section>
+        ) : null}
+
+        {/* Activity table — flat, no card frame */}
+        {!loading && items.length ? (
+          <div className="aip-activity fade-in-delay-2">
+            <div className="aip-activity-hd">
+              <span className="aip-activity-label">TIMELINE EVENTS</span>
+              <span style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 10, color: 'rgba(148,163,184,.4)' }}>
+                {items.length} events
+              </span>
+            </div>
+            <div className="aip-thead">
+              <span>INDICATOR</span>
+              <span>TYPE</span>
+              <span>LEVEL</span>
+              <span>SOURCE</span>
+              <span>TIME</span>
+              <span />
+            </div>
+            <div className="aip-tbody">
+              {visible.map((item) => {
+                const path  = item.details_path || (item.ioc_type && item.indicator ? buildIocPath(item.ioc_type, item.indicator) : null)
+                const color = levelColor(item.threat_level)
+                const label = levelLabel(item.threat_level)
+                const Icon  = rowIcon(item.ioc_type)
+                const src   = String(item.event_type || item.source || 'intel').toUpperCase()
+                return (
+                  <div
+                    key={item.id}
+                    className="aip-trow"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => path && navigate(path)}
+                    onKeyDown={(e) => e.key === 'Enter' && path && navigate(path)}
+                    style={{ cursor: path ? 'pointer' : 'default' }}
+                  >
+                    <div className="aip-td-indicator">
+                      <Icon size={15} className="aip-trow-icon" />
+                      <span className="aip-trow-text">{item.indicator || item.title}</span>
+                    </div>
+                    <div className="aip-td aip-td-type">{String(item.ioc_type || item.event_type || '—').toUpperCase()}</div>
+                    <div className="aip-td aip-td-verdict">
+                      <span className="aip-verdict-dot" style={{ background: color }} />
+                      <span className="aip-verdict-label" style={{ color }}>{label}</span>
+                    </div>
+                    <div className="aip-td aip-td-source">{src}</div>
+                    <div className="aip-td aip-td-time">{formatRelativeDate(item.created_at)}</div>
+                    <div className="aip-td aip-td-arrow">›</div>
+                  </div>
+                )
+              })}
+            </div>
+            {items.length > INITIAL_COUNT ? (
+              <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 20 }}>
+                <button type="button" className="aip-viewall" onClick={() => setExpanded((v) => !v)}>
+                  {expanded ? 'Show less' : `Show ${items.length - INITIAL_COUNT} more`}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+      </div>
+    </div>
   )
 }

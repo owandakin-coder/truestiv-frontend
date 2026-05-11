@@ -1,361 +1,325 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { DatabaseZap, Globe2, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { DatabaseZap, FileText, Globe, Globe2, Hash, Radio, Radar, ScanSearch, ShieldAlert, Waves } from 'lucide-react'
 
-import { useTheme } from '../components/ThemeProvider'
+import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
 import { buildIpLookupPath, formatRelativeDate } from '../utils/intelTools'
 
-function paletteFor(theme) {
-  const dark = theme !== 'light'
-  return {
-    dark,
-    text: dark ? '#eff6ff' : '#0f172a',
-    muted: dark ? 'rgba(191,219,254,0.72)' : '#475569',
-    subtle: dark ? 'rgba(191,219,254,0.5)' : '#64748b',
-    blue: '#38bdf8',
-    green: '#22c55e',
-    yellow: '#fbbf24',
-    red: '#fb7185',
-    border: dark ? '1px solid rgba(148,163,184,0.14)' : '1px solid rgba(15,23,42,0.08)',
-  }
+// ── Helpers ────────────────────────────────────────────────────
+function levelColor(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return '#ef4444'
+  if (v === 'suspicious') return '#f59e0b'
+  if (v === 'safe') return '#22c55e'
+  return '#60a5fa'
 }
-
-function levelColor(level, palette) {
-  const value = String(level || '').toLowerCase()
-  if (value === 'threat') return palette.red
-  if (value === 'suspicious') return palette.yellow
-  if (value === 'safe') return palette.green
-  return palette.blue
+function levelLabel(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return 'THREAT'
+  if (v === 'suspicious') return 'SUSPICIOUS'
+  if (v === 'safe') return 'SAFE'
+  return 'UNKNOWN'
 }
+function rowIcon(type) {
+  const t = String(type || '').toLowerCase()
+  if (t === 'ip')   return Radio
+  if (t === 'hash') return Hash
+  if (t === 'file') return FileText
+  return Globe
+}
+function truncate(value = '', max = 40) {
+  const s = String(value || '')
+  if (s.length <= max) return s
+  return `${s.slice(0, 22)}…${s.slice(-10)}`
+}
+function inferType(row, fallback) {
+  const c = row?.indicator_type || row?.threat_type || row?.scan_type || row?.channel || fallback || 'indicator'
+  return ['ip','url','hash','file','domain','email','phone','cve'].includes(String(c).toLowerCase())
+    ? String(c).toLowerCase() : (fallback || 'indicator')
+}
+function inferSource(row, fallback) {
+  if (Array.isArray(row?.sources) && row.sources.length) return row.sources.join(', ')
+  return row?.source || fallback || 'Trustive AI'
+}
+function risk(val) { return Math.max(0, Math.min(100, Number(val || 0))) }
 
-function Section({ title, eyebrow, copy, children }) {
+const INITIAL = 8
+
+// ── Signal table (aip style) ───────────────────────────────────
+function SignalRows({ rows, fallbackType, navigate, onCopy, sectionKey }) {
+  const [exp, setExp] = useState(false)
+  const visible = exp ? rows : rows.slice(0, INITIAL)
   return (
-    <section className="intel-section-card">
-      <div className="intel-section-head">
-        <div className="intel-eyebrow">{eyebrow}</div>
-        <h2 className="intel-section-title">{title}</h2>
-        {copy ? <p className="intel-section-copy">{copy}</p> : null}
+    <>
+      <div className="aip-tbody">
+        {visible.map((row) => {
+          const indicator = row.indicator || row.ip || ''
+          const type      = inferType(row, fallbackType)
+          const source    = inferSource(row, 'Trustive AI')
+          const time      = formatRelativeDate(row.last_seen_at || row.published_at || row.created_at || row.first_seen_at)
+          const riskVal   = risk(row.risk_score)
+          const color     = levelColor(row.threat_level)
+          const label     = levelLabel(row.threat_level)
+          const Icon      = rowIcon(type)
+          const path      = row.details_path || null
+
+          return (
+            <div
+              key={row.id || `${type}-${indicator}-${time}`}
+              className="aip-trow"
+              role="button"
+              tabIndex={0}
+              onClick={() => path && navigate(path)}
+              onKeyDown={(e) => e.key === 'Enter' && path && navigate(path)}
+              style={{ cursor: path ? 'pointer' : 'default' }}
+            >
+              <div className="aip-td-indicator">
+                <Icon size={14} className="aip-trow-icon" />
+                <span className="aip-trow-text" title={indicator}>{truncate(indicator)}</span>
+                <button
+                  type="button"
+                  className="ioc-copy-btn"
+                  onClick={(e) => { e.stopPropagation(); onCopy(indicator) }}
+                  tabIndex={-1}
+                >
+                  copy
+                </button>
+              </div>
+              <div className="aip-td aip-td-type">{String(type).toUpperCase()}</div>
+              <div className="aip-td aip-td-verdict">
+                <span className="aip-verdict-dot" style={{ background: color }} />
+                <span className="aip-verdict-label" style={{ color }}>{label}</span>
+              </div>
+              <div className="aip-td aip-td-source" style={{ color: '#60a5fa' }}>{riskVal}%</div>
+              <div className="aip-td aip-td-source">{source}</div>
+              <div className="aip-td aip-td-time">{time}</div>
+              <div className="aip-td aip-td-arrow">›</div>
+            </div>
+          )
+        })}
       </div>
-      {children}
-    </section>
+      {rows.length > INITIAL ? (
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 16 }}>
+          <button type="button" className="aip-viewall" onClick={() => setExp((v) => !v)}>
+            {exp ? 'Show less' : `Show ${rows.length - INITIAL} more`}
+          </button>
+        </div>
+      ) : null}
+    </>
   )
 }
 
-function truncateIndicator(value = '') {
-  const normalized = String(value || '')
-  if (normalized.length <= 48) return normalized
-  return `${normalized.slice(0, 24)}...${normalized.slice(-12)}`
-}
-
-function inferIndicatorType(item, fallbackType) {
-  const candidate = item?.indicator_type || item?.threat_type || item?.scan_type || item?.channel || fallbackType || 'indicator'
-  return ['ip', 'url', 'hash', 'file', 'domain', 'email', 'phone', 'cve'].includes(String(candidate).toLowerCase())
-    ? String(candidate).toLowerCase()
-    : fallbackType || 'indicator'
-}
-
-function inferSource(item, fallback) {
-  if (Array.isArray(item?.sources) && item.sources.length) return item.sources.join(', ')
-  return item?.source || fallback || 'Trustive AI'
-}
-
-function riskPercent(value) {
-  return Math.max(0, Math.min(100, Number(value || 0)))
-}
-
-function SignalTable({ title, rows, fallbackType, palette, onCopy }) {
+// ── Table section wrapper ───────────────────────────────────────
+function TableSection({ label, icon: Icon, rows, fallbackType, navigate, onCopy, sectionKey }) {
+  if (!rows?.length) return (
+    <div className="aip-activity">
+      <div className="aip-activity-hd">
+        <span className="aip-activity-label" style={{ display:'flex', alignItems:'center', gap:6 }}>
+          {Icon && <Icon size={12} />}{label}
+        </span>
+        <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(148,163,184,.35)' }}>0</span>
+      </div>
+      <p style={{ color:'rgba(148,163,184,.3)', fontSize:13 }}>No records found for this section.</p>
+    </div>
+  )
   return (
-    <div className="soc-table-surface">
-      <div className="soc-table-title-row">
-        <strong className="soc-table-title">{title}</strong>
+    <div className="aip-activity">
+      <div className="aip-activity-hd">
+        <span className="aip-activity-label" style={{ display:'flex', alignItems:'center', gap:6 }}>
+          {Icon && <Icon size={12} />}{label}
+        </span>
+        <span style={{ fontFamily:'JetBrains Mono,monospace', fontSize:10, color:'rgba(148,163,184,.4)' }}>
+          {rows.length}
+        </span>
       </div>
-      <div className="soc-table-scroll">
-        <div className="soc-table soc-table-four">
-          <div className="soc-table-head">
-            <span>Indicator</span>
-            <span>Risk</span>
-            <span>Sector &amp; Category</span>
-            <span>Source &amp; Date</span>
-          </div>
-          {rows.map((row) => {
-            const indicator = row.indicator || row.ip || ''
-            const rowType = inferIndicatorType(row, fallbackType)
-            const source = inferSource(row, 'Trustive AI')
-            const freshness = formatRelativeDate(
-              row.last_seen_at || row.published_at || row.created_at || row.first_seen_at
-            )
-            const risk = riskPercent(row.risk_score)
-            const level = String(row.threat_level || 'unknown').toLowerCase()
-            const accent = levelColor(level, palette)
-            const locationHint = [row.country, row.city, row.region].filter(Boolean).join(' / ')
-            const categoryHint = row.summary || row.subject || row.sender || row.source || 'Recorded indicator context.'
-
-            return (
-              <div key={row.id || `${rowType}-${indicator}-${freshness}`} className="soc-table-row">
-                <div className="soc-table-cell">
-                  <div className="soc-indicator-stack">
-                    <strong className="soc-indicator-value" title={indicator}>{truncateIndicator(indicator)}</strong>
-                    <button type="button" className="soc-copy-button" onClick={() => onCopy(indicator)}>
-                      Copy
-                    </button>
-                  </div>
-                  {locationHint ? <div className="soc-indicator-meta">{locationHint}</div> : null}
-                </div>
-                <div className="soc-table-cell">
-                  <div className="soc-risk-stack">
-                    <div className="soc-risk-topline">
-                      <strong>{risk}%</strong>
-                      <span style={{ color: accent }}>{level}</span>
-                    </div>
-                    <div className="soc-risk-bar">
-                      <div className="soc-risk-bar-fill" style={{ width: `${risk}%`, background: accent }} />
-                    </div>
-                  </div>
-                </div>
-                <div className="soc-table-cell">
-                  <div className="soc-table-primary">{String(rowType || 'indicator').toUpperCase()}</div>
-                  <div className="soc-table-secondary">{categoryHint}</div>
-                </div>
-                <div className="soc-table-cell">
-                  <div className="soc-table-primary">{source}</div>
-                  <div className="soc-table-secondary">{freshness}</div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
+      <div className="aip-thead" style={{ gridTemplateColumns:'minmax(0,2fr) 72px 140px 64px minmax(80px,.8fr) 72px 20px' }}>
+        <span>INDICATOR</span><span>TYPE</span><span>LEVEL</span><span>RISK</span><span>SOURCE</span><span>TIME</span><span />
       </div>
+      <SignalRows rows={rows} fallbackType={fallbackType} navigate={navigate} onCopy={onCopy} sectionKey={sectionKey} />
     </div>
   )
 }
 
+// ── Main page ───────────────────────────────────────────────────
 export default function IOCDetails() {
-  const { theme } = useTheme()
-  const palette = useMemo(() => paletteFor(theme), [theme])
+  const navigate = useNavigate()
   const { iocType = '', indicator = '' } = useParams()
-  const [copiedIndicator, setCopiedIndicator] = useState('')
-
+  const [copied,  setCopied]  = useState('')
   const [payload, setPayload] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [error,   setError]   = useState('')
 
   useEffect(() => {
     let active = true
-    setLoading(true)
-    setError('')
-
+    setLoading(true); setError('')
     apiRequest(`/api/intelligence/ioc/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`)
-      .then((response) => {
-        if (active) setPayload(response)
-      })
-      .catch((requestError) => {
-        if (active) setError(requestError.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-
-    return () => {
-      active = false
-    }
+      .then((r) => { if (active) setPayload(r) })
+      .catch((e) => { if (active) setError(e.message) })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [iocType, indicator])
 
-  const ioc = payload?.ioc || null
-  const accent = levelColor(ioc?.latest_threat_level, palette)
+  const ioc    = payload?.ioc || null
+  const accent = levelColor(ioc?.latest_threat_level)
 
   const copyIndicator = async (value) => {
     if (!value) return
     try {
       await navigator.clipboard.writeText(String(value))
-      setCopiedIndicator(String(value))
-      window.setTimeout(() => {
-        setCopiedIndicator((current) => (current === String(value) ? '' : current))
-      }, 1800)
-    } catch {
-      setCopiedIndicator('')
-    }
+      setCopied(String(value))
+      setTimeout(() => setCopied((c) => c === String(value) ? '' : c), 1800)
+    } catch { setCopied('') }
   }
 
+  const totalContexts = ioc
+    ? Object.values(ioc.source_breakdown || {}).reduce((t, c) => t + Number(c || 0), 0)
+    : 0
+
   return (
-    <section className="intel-shell">
-      <div className="intel-hero-card fade-in">
-        <div className="intel-hero-content">
-          <div className="intel-eyebrow">
-            <span className="intel-eyebrow-dot" />
-            IOC Details
+    <div className="aip-root">
+      <Seo
+        title={`Trustive AI | IOC — ${indicator}`}
+        description={`Full context for ${iocType?.toUpperCase()} indicator ${indicator} across scan history, intel, community, and analysis.`}
+        path={`/ioc/${iocType}/${indicator}`}
+      />
+      <div className="grid-dots aip-bg-dots" />
+      <div className="aip-inner">
+
+        {/* Hero */}
+        <header className="aip-hero fade-in">
+          <div className="aip-kicker">
+            <span className="aip-kicker-dot" />
+            <span className="aip-kicker-text">IOC DETAILS · {String(iocType).toUpperCase()}</span>
           </div>
-          <h1 className="intel-title">{indicator}</h1>
-          <p className="intel-copy">
-            Full context for this {iocType?.toUpperCase()} across scan history, collected intelligence, community sightings, analysis matches, and infrastructure observations.
+          <h1 className="aip-title" style={{ fontSize: 'clamp(20px,3.5vw,34px)', wordBreak: 'break-all' }}>
+            {truncate(indicator, 60)}
+          </h1>
+          <p className="aip-copy">
+            Full context across scan history, collected intelligence, community sightings, and analysis matches.
           </p>
-        </div>
-      </div>
+        </header>
 
-      {error ? <div className="intel-empty-card">{error}</div> : null}
-      {loading ? <div className="intel-empty-card">Loading indicator context...</div> : null}
-      {copiedIndicator ? <div className="console-status" style={{ color: palette.green }}>Copied {truncateIndicator(copiedIndicator)} to clipboard.</div> : null}
+        {error   ? <p className="aip-error fade-in" style={{ borderColor:'rgba(240,64,64,.28)', color:'#fca5a5' }}>{error}</p> : null}
+        {loading ? <p className="aip-loading">Loading indicator context…</p> : null}
+        {copied  ? <p style={{ fontFamily:'JetBrains Mono,monospace', fontSize:11, color:'#4ade80', paddingBottom:8 }}>✓ Copied {truncate(copied)}</p> : null}
 
-      {!loading && ioc ? (
-        <>
-          <div className="intel-stat-grid fade-in-delay-1">
-            <article className="intel-stat-card">
-              <ShieldAlert size={20} color={accent} />
-              <div className="intel-stat-value">{ioc.latest_threat_level || 'unknown'}</div>
-              <div className="intel-stat-label">Latest Level</div>
-              <p className="intel-stat-copy">Most recent verdict visible for this indicator.</p>
-            </article>
-            <article className="intel-stat-card">
-              <Radar size={20} color={palette.blue} />
-              <div className="intel-stat-value">{ioc.average_risk_score || 0}</div>
-              <div className="intel-stat-label">Average Risk</div>
-              <p className="intel-stat-copy">Average risk score across the collected contexts.</p>
-            </article>
-            <article className="intel-stat-card">
-              <ScanSearch size={20} color={palette.green} />
-              <div className="intel-stat-value">
-                {Object.values(ioc.source_breakdown || {}).reduce((total, count) => total + Number(count || 0), 0)}
+        {!loading && ioc ? (
+          <>
+            {/* Stat row */}
+            <div className="cc-stats-row fade-in-delay-1" style={{ borderTop:'1px solid rgba(255,255,255,.06)', borderBottom:'1px solid rgba(255,255,255,.06)', paddingTop:18, paddingBottom:18 }}>
+              <div className="cc-stat">
+                <strong className="cc-stat-val" style={{ color: accent }}>{ioc.latest_threat_level || 'unknown'}</strong>
+                <span className="cc-stat-label">Level</span>
               </div>
-              <div className="intel-stat-label">Matched Contexts</div>
-              <p className="intel-stat-copy">Total findings tied to this indicator across Trustive AI.</p>
-            </article>
-            <article className="intel-stat-card">
-              <Globe2 size={20} color={palette.blue} />
-              <div className="intel-stat-value">{Math.round(Number(ioc.source_confidence || 0) * 100)}%</div>
-              <div className="intel-stat-label">Source Confidence</div>
-              <p className="intel-stat-copy">Weighted reliability score derived from the contributing intelligence sources.</p>
-            </article>
-          </div>
+              <div className="cc-stat">
+                <strong className="cc-stat-val" style={{ color:'#60a5fa' }}>{ioc.average_risk_score || 0}</strong>
+                <span className="cc-stat-label">Avg Risk</span>
+              </div>
+              <div className="cc-stat">
+                <strong className="cc-stat-val">{totalContexts}</strong>
+                <span className="cc-stat-label">Contexts</span>
+              </div>
+              <div className="cc-stat">
+                <strong className="cc-stat-val">{Math.round(Number(ioc.source_confidence || 0) * 100)}%</strong>
+                <span className="cc-stat-label">Confidence</span>
+              </div>
+              <div className="cc-stat">
+                <strong className="cc-stat-val">{(ioc.threat_actor_tags || []).length}</strong>
+                <span className="cc-stat-label">Actor Tags</span>
+              </div>
+            </div>
 
-          <Section
-            title="Confidence and tagging"
-            eyebrow={<><ShieldAlert size={14} /> Source confidence</>}
-            copy="Trustive AI weights different sources differently so risk is not treated as equally reliable in every context."
-          >
-            <div className="intel-grid-two">
-              <article className="intel-detail-card">
-                <div className="intel-detail-label">Confidence Model</div>
-                <div className="intel-detail-value">{ioc.source_confidence_label || 'moderate'}</div>
-                <p className="intel-detail-copy">
-                  Composite source confidence: {Math.round(Number(ioc.source_confidence || 0) * 100)}%
-                </p>
-              </article>
-              <article className="intel-detail-card">
-                <div className="intel-detail-label">Threat Actor Tags</div>
-                <div className="intel-tag-wrap">
-                  {(ioc.threat_actor_tags || []).map((item) => (
-                    <span key={item.tag} className="intel-tag-chip">
-                      {item.tag} {Math.round(Number(item.confidence || 0) * 100)}%
-                    </span>
-                  ))}
-                  {!ioc.threat_actor_tags?.length ? <span className="intel-detail-copy">No actor tags inferred yet.</span> : null}
+            {/* Confidence + tags — flat detail rows */}
+            <div className="aip-activity fade-in-delay-1">
+              <div className="aip-activity-hd">
+                <span className="aip-activity-label" style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <ShieldAlert size={12} />CONFIDENCE &amp; TAGGING
+                </span>
+              </div>
+              <div className="lc-detail-table">
+                <div className="lc-detail-row">
+                  <span className="lc-detail-key">Confidence model</span>
+                  <span className="lc-detail-val">{ioc.source_confidence_label || 'moderate'} · {Math.round(Number(ioc.source_confidence || 0) * 100)}%</span>
                 </div>
-              </article>
-            </div>
-            <div style={{ marginTop: 20 }}>
-              <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-                <Link className="intel-inline-link" to={`/correlation/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`}>
-                  Open correlation graph
-                </Link>
-                {iocType === 'ip' ? (
-                  <Link className="intel-inline-link" to={buildIpLookupPath(indicator)}>
-                    Open IP lookup
-                  </Link>
-                ) : null}
+                <div className="lc-detail-row">
+                  <span className="lc-detail-key">Threat actor tags</span>
+                  <span className="lc-detail-val">
+                    {(ioc.threat_actor_tags || []).length ? (
+                      <span style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                        {ioc.threat_actor_tags.map((t) => (
+                          <span key={t.tag} className="lc-tag">{t.tag} {Math.round(Number(t.confidence || 0) * 100)}%</span>
+                        ))}
+                      </span>
+                    ) : <span style={{ color:'rgba(148,163,184,.4)' }}>No actor tags inferred yet.</span>}
+                  </span>
+                </div>
+                <div className="lc-detail-row">
+                  <span className="lc-detail-key">Pivots</span>
+                  <span className="lc-detail-val" style={{ display:'flex', gap:14, flexWrap:'wrap' }}>
+                    <Link className="aip-viewall" to={`/correlation/${encodeURIComponent(iocType)}/${encodeURIComponent(indicator)}`}>
+                      Correlation graph ›
+                    </Link>
+                    {iocType === 'ip' ? (
+                      <Link className="aip-viewall" to={buildIpLookupPath(indicator)}>IP lookup ›</Link>
+                    ) : null}
+                    <Link className="aip-viewall" to="/investigation-center/scanner">
+                      Open scanner ›
+                    </Link>
+                  </span>
+                </div>
               </div>
             </div>
-          </Section>
 
-          {ioc.geo ? (
-            <Section
-              title="Geographic context"
-              eyebrow={<><Globe2 size={14} /> Geo intelligence</>}
-              copy="Latest known location and network details for this IP indicator."
-            >
-              <div className="intel-grid-two">
-                <article className="intel-detail-card">
-                  <div className="intel-detail-label">Location</div>
-                  <div className="intel-detail-value">{ioc.geo.location_name || 'Unknown location'}</div>
-                  <p className="intel-detail-copy">
-                    {ioc.geo.region || 'Region unavailable'} | {ioc.geo.country || 'Unknown country'}
-                  </p>
-                </article>
-                <article className="intel-detail-card">
-                  <div className="intel-detail-label">Network</div>
-                  <div className="intel-detail-value">{ioc.geo.organization || ioc.geo.isp || 'Unknown network'}</div>
-                  <p className="intel-detail-copy">
-                    Latitude {ioc.geo.latitude}, Longitude {ioc.geo.longitude}
-                  </p>
-                </article>
+            {/* Geo — only for IP */}
+            {ioc.geo ? (
+              <div className="aip-activity fade-in-delay-1">
+                <div className="aip-activity-hd">
+                  <span className="aip-activity-label" style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <Globe2 size={12} />GEO INTELLIGENCE
+                  </span>
+                </div>
+                <div className="lc-detail-table">
+                  <div className="lc-detail-row">
+                    <span className="lc-detail-key">Location</span>
+                    <span className="lc-detail-val">{ioc.geo.location_name || 'Unknown'}</span>
+                  </div>
+                  <div className="lc-detail-row">
+                    <span className="lc-detail-key">Region / Country</span>
+                    <span className="lc-detail-val">{ioc.geo.region || '—'} / {ioc.geo.country || '—'}</span>
+                  </div>
+                  <div className="lc-detail-row">
+                    <span className="lc-detail-key">Network</span>
+                    <span className="lc-detail-val">{ioc.geo.organization || ioc.geo.isp || '—'}</span>
+                  </div>
+                  <div className="lc-detail-row">
+                    <span className="lc-detail-key">Coordinates</span>
+                    <span className="lc-detail-val">{ioc.geo.latitude}, {ioc.geo.longitude}</span>
+                  </div>
+                </div>
               </div>
-            </Section>
-          ) : null}
+            ) : null}
 
-          <Section
-            title="Server-side scan history"
-            eyebrow={<><Waves size={14} /> Scan history</>}
-            copy="Every matching scanner execution recorded by the backend for this indicator."
-          >
-            {!payload.scan_history?.length ? (
-              <div className="intel-empty-card">No server-side scan history is available for this indicator yet.</div>
-            ) : (
-              <SignalTable title="Server-side scan history" rows={payload.scan_history} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
-            )}
-          </Section>
+            {/* Signal tables */}
+            <TableSection label="SCAN HISTORY"              icon={Waves}       rows={payload.scan_history}    fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="scan" />
+            <TableSection label="COLLECTED INTELLIGENCE"   icon={DatabaseZap} rows={payload.collected_signals} fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="intel" />
+            <TableSection label="COMMUNITY VISIBILITY"     icon={Radar}       rows={payload.community}       fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="community" />
+            <TableSection label="ANALYSIS MATCHES"         icon={ShieldAlert} rows={payload.analyses}        fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="analyses" />
+            {payload.observations?.length ? (
+              <TableSection
+                label="INFRASTRUCTURE OBSERVATIONS"
+                icon={Globe2}
+                rows={payload.observations.map((o) => ({ ...o, indicator: o.ip, indicator_type: 'ip' }))}
+                fallbackType="ip"
+                navigate={navigate}
+                onCopy={copyIndicator}
+                sectionKey="observations"
+              />
+            ) : null}
+          </>
+        ) : null}
 
-          <Section
-            title="Collected intelligence"
-            eyebrow={<><DatabaseZap size={14} /> Collection pipeline</>}
-            copy="Signals gathered by the Trustive collection engine before or beyond direct community publication."
-          >
-            {!payload.collected_signals?.length ? (
-              <div className="intel-empty-card">No collected pipeline signals are attached to this indicator yet.</div>
-            ) : (
-              <SignalTable title="Collection pipeline" rows={payload.collected_signals} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
-            )}
-          </Section>
-
-          <Section
-            title="Community visibility"
-            eyebrow={<><Radar size={14} /> Community</>}
-            copy="Where this indicator has already been surfaced to the community feed."
-          >
-            {!payload.community?.length ? (
-              <div className="intel-empty-card">This indicator has not been published to the community feed yet.</div>
-            ) : (
-              <SignalTable title="Community" rows={payload.community} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
-            )}
-          </Section>
-
-          <Section
-            title="Analysis matches"
-            eyebrow={<><ShieldAlert size={14} /> Message analysis</>}
-            copy="Message analyses where the indicator appeared in the analyzed content."
-          >
-            {!payload.analyses?.length ? (
-              <div className="intel-empty-card">No analysis matches were found for this indicator.</div>
-            ) : (
-              <SignalTable title="Message analysis" rows={payload.analyses} fallbackType={iocType} palette={palette} onCopy={copyIndicator} />
-            )}
-          </Section>
-
-          {payload.observations?.length ? (
-            <Section
-              title="Infrastructure observations"
-              eyebrow={<><Globe2 size={14} /> Threat map</>}
-              copy="Recent IP observations that can feed the geographic threat map."
-            >
-              <SignalTable title="Threat map" rows={payload.observations.map((item) => ({ ...item, indicator: item.ip, indicator_type: 'ip' }))} fallbackType="ip" palette={palette} onCopy={copyIndicator} />
-            </Section>
-          ) : null}
-
-          {iocType === 'url' || iocType === 'domain' ? (
-            <div className="intel-empty-card">
-              Need another pivot? Open the scanner with this value prefilled in spirit: this IOC is now preserved in server-side history and will keep reappearing in the timeline when scanned again.
-            </div>
-          ) : null}
-        </>
-      ) : null}
-    </section>
+      </div>
+    </div>
   )
 }

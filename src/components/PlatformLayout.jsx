@@ -5,21 +5,24 @@ import {
   Search,
   Shield,
   Eye,
-  ScanSearch,
+  Globe2,
   MapPinned,
-  ShieldAlert,
   Radar,
-  Braces,
+  ScanSearch,
+  Activity,
+  ShieldAlert,
+  GitBranch,
   X,
 } from 'lucide-react'
-import { API_BASE_URL } from '../services/api'
 
 const navItems = [
-  { label: 'Investigation', path: '/investigation-center', icon: ScanSearch },
-  { label: 'Lookup', path: '/lookup-center', icon: MapPinned },
-  { label: 'Intel', path: '/threat-intel', icon: ShieldAlert },
-  { label: 'API', path: `${API_BASE_URL}/api/docs`, icon: Braces, external: true },
+  { label: 'Investigation Center', path: '/investigation-center', icon: ScanSearch },
+  { label: 'Timeline', path: '/timeline', icon: Activity },
+  { label: 'Threat Map', path: '/propagation', icon: Globe2 },
+  { label: 'Lookup Center', path: '/lookup-center', icon: MapPinned },
   { label: 'Community', path: '/community', icon: Radar },
+  { label: 'Threat Intel', path: '/threat-intel', icon: ShieldAlert },
+  { label: 'Campaigns', path: '/campaign-clusters', icon: GitBranch },
 ]
 
 function PlatformLayout() {
@@ -33,7 +36,7 @@ function PlatformLayout() {
   }, [location.pathname, location.search])
 
   const pageTitle = useMemo(() => {
-    const active = navItems.find((item) => !item.external && location.pathname.startsWith(item.path))
+    const active = navItems.find((item) => location.pathname.startsWith(item.path))
     if (active) return active.label
     if (location.pathname.startsWith('/search')) return 'Search'
     return 'Trustive AI'
@@ -75,7 +78,7 @@ function PlatformLayout() {
             <Eye size={12} color="#0A0F1A" className="platform-topbar-brand-eye" />
           </div>
           <div className="platform-topbar-brand-copy">
-            <div className="platform-topbar-brand-label">Trustive AI</div>
+            <div className="platform-topbar-brand-label">TRUSTIVE AI</div>
             <div className="platform-topbar-brand-title">{pageTitle}</div>
           </div>
         </div>
@@ -93,21 +96,6 @@ function PlatformLayout() {
         <div className="platform-topbar-nav">
           {navItems.map((item) => {
             const Icon = item.icon
-            if (item.external) {
-              return (
-                <a
-                  key={item.path}
-                  href={item.path}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="platform-nav-link"
-                >
-                  <Icon size={15} />
-                  <span>{item.label}</span>
-                </a>
-              )
-            }
-
             return (
               <NavLink
                 key={item.path}
@@ -164,23 +152,7 @@ function PlatformLayout() {
         <div className="platform-mobile-nav-list">
           {navItems.map((item) => {
             const Icon = item.icon
-            const active = !item.external && location.pathname.startsWith(item.path)
-            if (item.external) {
-              return (
-                <a
-                  key={`mobile-${item.path}`}
-                  href={item.path}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="platform-mobile-nav-item"
-                  data-active="false"
-                >
-                  <Icon size={17} />
-                  <span>{item.label}</span>
-                </a>
-              )
-            }
-
+            const active = location.pathname.startsWith(item.path)
             return (
               <NavLink
                 key={`mobile-${item.path}`}

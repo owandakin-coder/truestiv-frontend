@@ -25,17 +25,21 @@ function getOrCreateGuestBrowserId() {
 }
 
 function getStoredToken() {
-  return localStorage.getItem('token') || localStorage.getItem('access_token')
+  return getStoredTokenCompat()
 }
 
 function storeToken(token) {
   localStorage.setItem('token', token)
-  localStorage.setItem('access_token', token)
 }
 
 function clearToken() {
   localStorage.removeItem('token')
+  // also clear legacy key written by older versions
   localStorage.removeItem('access_token')
+}
+
+function getStoredTokenCompat() {
+  return localStorage.getItem('token') || localStorage.getItem('access_token')
 }
 
 function buildHeaders(extraHeaders = {}) {
@@ -131,14 +135,8 @@ export function api(extraConfig = {}) {
   return client
 }
 
-export async function apiRequest(path, options = {}) {
-  await ensureGuestSession()
-
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: buildHeaders(options.headers),
-  })
-
+async function fetchWithParse(url, opts) {
+  const response = await fetch(url, opts)
   if (!response.ok) {
     let detail = `Request failed with status ${response.status}`
     try {
@@ -148,14 +146,31 @@ export async function apiRequest(path, options = {}) {
       const text = await response.text()
       if (text) detail = text
     }
-    throw new Error(detail)
+    const err = new Error(detail)
+    err.status = response.status
+    throw err
   }
-
   const contentType = response.headers.get('content-type') || ''
-  if (contentType.includes('application/json')) {
-    return response.json()
+  return contentType.includes('application/json') ? response.json() : response.text()
+}
+
+export async function apiRequest(path, options = {}) {
+  await ensureGuestSession()
+
+  const url = `${API_BASE_URL}${path}`
+  try {
+    return await fetchWithParse(url, { ...options, headers: buildHeaders(options.headers) })
+  } catch (err) {
+    // On 401 — refresh guest token and retry once
+    if (err.status === 401) {
+      const token = await ensureGuestSession(true)
+      return fetchWithParse(url, {
+        ...options,
+        headers: buildHeaders({ ...(options.headers || {}), Authorization: `Bearer ${token}` }),
+      })
+    }
+    throw err
   }
-  return response.text()
 }
 
 export { API_BASE_URL, clearToken, getStoredToken, storeToken }

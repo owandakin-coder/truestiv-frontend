@@ -112,13 +112,41 @@ export function buildHeaderAnalyzerPath() {
   return '/lookup-center/email-header'
 }
 
-export function formatRelativeDate(value) {
-  if (!value) return 'Unknown time'
+// ── Shared display helpers (imported by all intel pages) ────────
+export function timeAgo(val) {
+  if (!val) return '—'
   try {
-    return new Date(value).toLocaleString()
-  } catch {
-    return String(value)
-  }
+    const diff = Date.now() - new Date(val).getTime()
+    const m = Math.floor(diff / 60000)
+    if (m < 1)  return 'just now'
+    if (m < 60) return `${m}m ago`
+    const h = Math.floor(m / 60)
+    if (h < 24) return `${h}h ago`
+    const d = Math.floor(h / 24)
+    if (d < 30) return `${d}d ago`
+    return new Date(val).toLocaleDateString()
+  } catch { return '—' }
+}
+
+/** Returns a relative time string ("2h ago").  Alias kept for back-compat. */
+export function formatRelativeDate(value) {
+  return timeAgo(value)
+}
+
+export function levelColor(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return '#ef4444'
+  if (v === 'suspicious') return '#f59e0b'
+  if (v === 'safe') return '#22c55e'
+  return '#60a5fa'
+}
+
+export function levelLabel(level) {
+  const v = String(level || '').toLowerCase()
+  if (v === 'threat' || v === 'dangerous') return 'THREAT'
+  if (v === 'suspicious') return 'SUSPICIOUS'
+  if (v === 'safe') return 'SAFE'
+  return 'UNKNOWN'
 }
 
 const BRAND_CATALOG = [

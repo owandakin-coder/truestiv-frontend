@@ -6,7 +6,6 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
@@ -282,8 +281,8 @@ function ScanResultPage({ result, scanApiType, input, publishState, onNewScan, n
           <div className="aip-rp-signals">
             <div className="aip-rp-section-label" style={{ marginBottom: 10 }}>Threat Signals</div>
             <div className="aip-rp-signal-chips">
-              {signals.map((s, i) => (
-                <span key={i} className="aip-rp-signal-chip">{s}</span>
+              {signals.map((s) => (
+                <span key={s} className="aip-rp-signal-chip">{s}</span>
               ))}
             </div>
           </div>
@@ -395,7 +394,7 @@ function BulkResultPage({ result, publishState, onNewScan, navigate }) {
 
 // ── Main Scanner ──────────────────────────────────────────────
 export default function Scanner({ onAnalysis }) {
-  const { theme } = useTheme()
+  // Stable axios client — created once, never changes identity
   const client = useMemo(() => api(), [])
   const navigate = useNavigate()
   const textareaRef = useRef(null)

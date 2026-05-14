@@ -5,39 +5,14 @@ import { FileText, Globe, GitBranch, Hash, Radio } from 'lucide-react'
 import IntelEmptyState from '../components/IntelEmptyState'
 import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
+import { levelColor, levelLabel, timeAgo } from '../utils/intelTools'
 
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return '#ef4444'
-  if (v === 'suspicious') return '#f59e0b'
-  if (v === 'safe') return '#22c55e'
-  return '#60a5fa'
-}
-function levelLabel(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return 'THREAT'
-  if (v === 'suspicious') return 'SUSPICIOUS'
-  if (v === 'safe') return 'SAFE'
-  return 'UNKNOWN'
-}
 function rowIcon(type) {
   const t = String(type || '').toLowerCase()
   if (t === 'ip')   return Radio
   if (t === 'hash') return Hash
   if (t === 'file') return FileText
   return Globe
-}
-function timeAgo(val) {
-  if (!val) return '—'
-  try {
-    const diff = Date.now() - new Date(val).getTime()
-    const m = Math.floor(diff / 60000)
-    if (m < 1)  return 'just now'
-    if (m < 60) return `${m}m ago`
-    const h = Math.floor(m / 60)
-    if (h < 24) return `${h}h ago`
-    return `${Math.floor(h / 24)}d ago`
-  } catch { return '—' }
 }
 
 export default function CampaignClusters() {

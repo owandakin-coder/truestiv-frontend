@@ -76,10 +76,10 @@ export default function Login() {
             <span className="login-features-label">Platform capabilities</span>
           </div>
           <div className="login-feature-grid">
-            {FEATURES.map(({ icon: Icon, title, copy }) => (
+            {FEATURES.map(({ icon: FeatureIcon, title, copy }) => (
               <div key={title} className="login-feature-card">
                 <div className="login-feature-icon">
-                  <Icon size={16} />
+                  <FeatureIcon size={16} />
                 </div>
                 <div>
                   <div className="login-feature-title">{title}</div>

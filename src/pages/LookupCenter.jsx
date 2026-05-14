@@ -11,17 +11,9 @@ import {
   buildIpLookupPath,
   detectBrandImpersonation,
   formatRelativeDate,
+  levelColor,
   normalizeThreatLevel,
 } from '../utils/intelTools'
-
-// ── Colors ─────────────────────────────────────────────────────
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return '#ef4444'
-  if (v === 'suspicious') return '#f59e0b'
-  if (v === 'safe') return '#22c55e'
-  return '#60a5fa'
-}
 
 // ── Shared sub-components ───────────────────────────────────────
 function RowTag({ value }) {
@@ -326,9 +318,11 @@ function LookupCenter() {
                   <Link to="/investigation-center/scanner" className="lc-pivot-btn">
                     <ScanSearch size={15} />Open Scanner
                   </Link>
-                  <Link to={ipPayload?.pivots?.correlation_path || '#'} className="lc-pivot-btn">
-                    <Waypoints size={15} />Correlation Graph
-                  </Link>
+                  {ipPayload?.pivots?.correlation_path ? (
+                    <Link to={ipPayload.pivots.correlation_path} className="lc-pivot-btn">
+                      <Waypoints size={15} />Correlation Graph
+                    </Link>
+                  ) : null}
                   <Link to="/propagation" className="lc-pivot-btn">
                     <Globe2 size={15} />Threat Map
                   </Link>
@@ -402,8 +396,12 @@ function LookupCenter() {
                 )}
                 <div className="lc-verdict-rec-label" style={{ marginTop: 14 }}>PIVOT</div>
                 <div className="lc-pivot-list">
-                  <Link to={domainPayload?.pivots?.ioc_details_path || '#'} className="lc-pivot-btn">IOC Details</Link>
-                  <Link to={domainPayload?.pivots?.correlation_path  || '#'} className="lc-pivot-btn">Correlation Graph</Link>
+                  {domainPayload?.pivots?.ioc_details_path ? (
+                    <Link to={domainPayload.pivots.ioc_details_path} className="lc-pivot-btn">IOC Details</Link>
+                  ) : null}
+                  {domainPayload?.pivots?.correlation_path ? (
+                    <Link to={domainPayload.pivots.correlation_path} className="lc-pivot-btn">Correlation Graph</Link>
+                  ) : null}
                 </div>
               </VerdictSide>
             </div>
@@ -433,7 +431,7 @@ function LookupCenter() {
                   <div style={{ marginTop: 16 }}>
                     <div className="lc-section-label" style={{ marginBottom: 10 }}>FINDINGS</div>
                     {headerPayload.findings.map((item, i) => (
-                      <div key={i} className="lc-finding-row">
+                      <div key={`finding-${i}-${String(item).slice(0, 20)}`} className="lc-finding-row">
                         <span className="lc-finding-num">{i + 1}</span>
                         <p style={{ color: 'rgba(226,232,240,.75)', lineHeight: 1.65, fontSize: 13, margin: 0 }}>{item}</p>
                       </div>

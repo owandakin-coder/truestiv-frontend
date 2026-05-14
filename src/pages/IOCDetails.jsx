@@ -4,23 +4,10 @@ import { DatabaseZap, FileText, Globe, Globe2, Hash, Radio, Radar, ScanSearch, S
 
 import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
-import { buildIpLookupPath, formatRelativeDate } from '../utils/intelTools'
+import { buildIpLookupPath, formatRelativeDate, levelColor, levelLabel } from '../utils/intelTools'
 
 // ── Helpers ────────────────────────────────────────────────────
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return '#ef4444'
-  if (v === 'suspicious') return '#f59e0b'
-  if (v === 'safe') return '#22c55e'
-  return '#60a5fa'
-}
-function levelLabel(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return 'THREAT'
-  if (v === 'suspicious') return 'SUSPICIOUS'
-  if (v === 'safe') return 'SAFE'
-  return 'UNKNOWN'
-}
+// levelColor / levelLabel imported from intelTools
 function rowIcon(type) {
   const t = String(type || '').toLowerCase()
   if (t === 'ip')   return Radio
@@ -47,7 +34,7 @@ function risk(val) { return Math.max(0, Math.min(100, Number(val || 0))) }
 const INITIAL = 8
 
 // ── Signal table (aip style) ───────────────────────────────────
-function SignalRows({ rows, fallbackType, navigate, onCopy, sectionKey }) {
+function SignalRows({ rows, fallbackType, navigate, onCopy }) {
   const [exp, setExp] = useState(false)
   const visible = exp ? rows : rows.slice(0, INITIAL)
   return (
@@ -111,7 +98,7 @@ function SignalRows({ rows, fallbackType, navigate, onCopy, sectionKey }) {
 }
 
 // ── Table section wrapper ───────────────────────────────────────
-function TableSection({ label, icon: Icon, rows, fallbackType, navigate, onCopy, sectionKey }) {
+function TableSection({ label, icon: Icon, rows, fallbackType, navigate, onCopy }) {
   if (!rows?.length) return (
     <div className="aip-activity">
       <div className="aip-activity-hd">
@@ -136,7 +123,7 @@ function TableSection({ label, icon: Icon, rows, fallbackType, navigate, onCopy,
       <div className="aip-thead" style={{ gridTemplateColumns:'minmax(0,2fr) 72px 140px 64px minmax(80px,.8fr) 72px 20px' }}>
         <span>INDICATOR</span><span>TYPE</span><span>LEVEL</span><span>RISK</span><span>SOURCE</span><span>TIME</span><span />
       </div>
-      <SignalRows rows={rows} fallbackType={fallbackType} navigate={navigate} onCopy={onCopy} sectionKey={sectionKey} />
+      <SignalRows rows={rows} fallbackType={fallbackType} navigate={navigate} onCopy={onCopy} />
     </div>
   )
 }
@@ -301,10 +288,10 @@ export default function IOCDetails() {
             ) : null}
 
             {/* Signal tables */}
-            <TableSection label="SCAN HISTORY"              icon={Waves}       rows={payload.scan_history}    fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="scan" />
-            <TableSection label="COLLECTED INTELLIGENCE"   icon={DatabaseZap} rows={payload.collected_signals} fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="intel" />
-            <TableSection label="COMMUNITY VISIBILITY"     icon={Radar}       rows={payload.community}       fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="community" />
-            <TableSection label="ANALYSIS MATCHES"         icon={ShieldAlert} rows={payload.analyses}        fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} sectionKey="analyses" />
+            <TableSection label="SCAN HISTORY"              icon={Waves}       rows={payload.scan_history}      fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} />
+            <TableSection label="COLLECTED INTELLIGENCE"   icon={DatabaseZap} rows={payload.collected_signals}  fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} />
+            <TableSection label="COMMUNITY VISIBILITY"     icon={Radar}       rows={payload.community}          fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} />
+            <TableSection label="ANALYSIS MATCHES"         icon={ShieldAlert} rows={payload.analyses}           fallbackType={iocType} navigate={navigate} onCopy={copyIndicator} />
             {payload.observations?.length ? (
               <TableSection
                 label="INFRASTRUCTURE OBSERVATIONS"
@@ -313,7 +300,6 @@ export default function IOCDetails() {
                 fallbackType="ip"
                 navigate={navigate}
                 onCopy={copyIndicator}
-                sectionKey="observations"
               />
             ) : null}
           </>

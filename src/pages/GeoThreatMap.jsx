@@ -6,26 +6,7 @@ import 'leaflet/dist/leaflet.css'
 
 import Seo from '../components/Seo'
 import { api, getErrorMessage } from '../services/api'
-import { buildIocPath } from '../utils/intelTools'
-
-const PALETTE = {
-  threat:     '#ef4444',
-  suspicious: '#f59e0b',
-  safe:       '#22c55e',
-  default:    '#60a5fa',
-}
-
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  return PALETTE[v] || PALETTE.default
-}
-function levelLabel(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat')     return 'THREAT'
-  if (v === 'suspicious') return 'SUSPICIOUS'
-  if (v === 'safe')       return 'SAFE'
-  return 'UNKNOWN'
-}
+import { buildIocPath, levelColor, levelLabel } from '../utils/intelTools'
 
 function clusterMarkers(markers) {
   if (!markers.length) return []
@@ -55,6 +36,9 @@ const timeRanges = ['24h', '7d', '30d', '90d', 'all']
 
 export default function GeoThreatMap() {
   const navigate = useNavigate()
+  // Stable axios client — created once, never changes identity
+  const client = useMemo(() => api(), [])
+
   const [markers,        setMarkers]        = useState([])
   const [feedMarkers,    setFeedMarkers]    = useState([])
   const [facets,         setFacets]         = useState({ sources: [], countries: [], threat_levels: [] })
@@ -75,7 +59,7 @@ export default function GeoThreatMap() {
     let active = true
     setLoading(true)
     setError('')
-    api().get('/api/intelligence/geo-map', { params: filters })
+    client.get('/api/intelligence/geo-map', { params: filters })
       .then(({ data }) => {
         if (!active) return
         setMarkers(data.markers || [])
@@ -85,19 +69,19 @@ export default function GeoThreatMap() {
       .catch((err) => { if (active) setError(getErrorMessage(err, 'Failed to load geo map')) })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [filters])
+  }, [client, filters])
 
   useEffect(() => loadMap(), [loadMap])
 
   useEffect(() => {
     let active = true
-    api().get('/api/intelligence/geo-map', {
+    client.get('/api/intelligence/geo-map', {
       params: { source: 'all', country: 'all', threat_level: 'all', time_range: filters.time_range, limit: 120 },
     })
       .then(({ data }) => { if (active) setFeedMarkers(data.markers || []) })
       .catch(() => { if (active) setFeedMarkers([]) })
     return () => { active = false }
-  }, [filters.time_range, live])
+  }, [client, filters.time_range, live])
 
   useEffect(() => {
     if (!live) return undefined
@@ -124,7 +108,7 @@ export default function GeoThreatMap() {
 
   const openCountry = async (country) => {
     try {
-      const { data } = await api().get('/api/intelligence/geo-map/country-drilldown', {
+      const { data } = await client.get('/api/intelligence/geo-map/country-drilldown', {
         params: { country, time_range: filters.time_range },
       })
       setCountryDetails({ country, items: data.items || [] })

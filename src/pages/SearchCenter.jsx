@@ -1,27 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { DatabaseZap, GitBranch, Radar, Search, ShieldAlert, Users } from 'lucide-react'
 
 import IntelEmptyState from '../components/IntelEmptyState'
 import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
-import { formatRelativeDate } from '../utils/intelTools'
+import { formatRelativeDate, levelColor, levelLabel } from '../utils/intelTools'
 
 // ── Helpers ────────────────────────────────────────────────────
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return '#ef4444'
-  if (v === 'suspicious') return '#f59e0b'
-  if (v === 'safe') return '#22c55e'
-  return '#60a5fa'
-}
-function levelLabel(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return 'THREAT'
-  if (v === 'suspicious') return 'SUSPICIOUS'
-  if (v === 'safe') return 'SAFE'
-  return 'UNKNOWN'
-}
+// levelColor / levelLabel imported from intelTools
 function kindLabel(kind) {
   const v = String(kind || '').toLowerCase()
   if (v.includes('collection')) return 'COLLECTION'
@@ -46,6 +33,7 @@ const GROUP_ORDER = [
 
 // ── Main page ───────────────────────────────────────────────────
 export default function SearchCenter() {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const [query,   setQuery]   = useState(searchParams.get('q') || '')
   const [items,   setItems]   = useState([])
@@ -135,14 +123,14 @@ export default function SearchCenter() {
         {/* Results grouped by kind */}
         {!loading && !!items.length ? (
           <div className="fade-in-delay-2">
-            {GROUP_ORDER.map(({ key, label, icon: Icon }) => {
+            {GROUP_ORDER.map(({ key, label, icon: GroupIcon }) => {
               const groupItems = groupedItems[key] || []
               if (!groupItems.length) return null
               return (
                 <div key={key} className="aip-activity" style={{ marginBottom: 20 }}>
                   <div className="aip-activity-hd">
                     <span className="aip-activity-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      <Icon size={12} />{label}
+                      <GroupIcon size={12} />{label}
                     </span>
                     <span style={{ fontFamily: 'JetBrains Mono,monospace', fontSize: 10, color: 'rgba(148,163,184,.4)' }}>
                       {groupItems.length}
@@ -163,8 +151,8 @@ export default function SearchCenter() {
                           style={{ gridTemplateColumns: 'minmax(0,2.5fr) 100px 140px 80px 20px', cursor: item.details_path ? 'pointer' : 'default' }}
                           role={item.details_path ? 'button' : undefined}
                           tabIndex={item.details_path ? 0 : undefined}
-                          onClick={item.details_path ? () => window.location.assign(item.details_path) : undefined}
-                          onKeyDown={item.details_path ? (e) => e.key === 'Enter' && window.location.assign(item.details_path) : undefined}
+                          onClick={item.details_path ? () => navigate(item.details_path) : undefined}
+                          onKeyDown={item.details_path ? (e) => e.key === 'Enter' && navigate(item.details_path) : undefined}
                         >
                           <div className="aip-td-indicator">
                             <KIcon size={14} className="aip-trow-icon" />

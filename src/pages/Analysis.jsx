@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
-  ExternalLink,
   Loader2,
   Mail,
   MessageSquareText,
@@ -14,8 +13,6 @@ import {
 
 import ExpandableFeed from '../components/ExpandableFeed'
 import IntelEmptyState from '../components/IntelEmptyState'
-import PortalHero from '../components/PortalHero'
-import { useTheme } from '../components/ThemeProvider'
 import { api, getErrorMessage } from '../services/api'
 import {
   buildCommunityPayload,
@@ -95,7 +92,13 @@ function channelMeta(channel, form) {
   }
 }
 
-function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
+// Dark-only hardcoded palette (app is always dark)
+const TEXT_COLOR   = '#f8fafc'
+const MUTED_COLOR  = 'rgba(226,232,240,0.74)'
+const BORDER_COLOR = 'rgba(255,255,255,0.08)'
+const INPUT_COLOR  = 'rgba(12,12,16,0.82)'
+
+function HistoryButton({ entry, onClick }) {
   const tone = toneFor(entry.threat_level)
   return (
     <button
@@ -106,9 +109,9 @@ function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
         textAlign: 'left',
         padding: '12px 14px',
         borderRadius: 18,
-        border: `1px solid ${borderColor}`,
+        border: `1px solid ${BORDER_COLOR}`,
         background: 'transparent',
-        color: textColor,
+        color: TEXT_COLOR,
         cursor: 'pointer',
         display: 'grid',
         gap: 6,
@@ -130,15 +133,120 @@ function HistoryButton({ entry, onClick, borderColor, textColor, mutedColor }) {
           {normalizeThreatLevel(entry.threat_level)}
         </span>
       </div>
-      <div style={{ color: mutedColor, lineHeight: 1.6 }}>
+      <div style={{ color: MUTED_COLOR, lineHeight: 1.6 }}>
         {(entry.subject || entry.sender || entry.summary || 'Open analysis').slice(0, 120)}
       </div>
     </button>
   )
 }
 
+// ── Result card — extracted as top-level component to avoid re-mount on parent renders ──
+function AnalysisResultCard({
+  result, tone, channel, form, analysisRows, brandSignals, publishState, onPublish,
+}) {
+  const ToneIcon = tone.icon
+  const riskScore = Math.max(0, Math.min(100, Number(result.risk_score || 0)))
+  return (
+    <div className="split-dossier">
+      <article className="result-report-card fade-in">
+        <div className="result-report-progress-track" aria-hidden="true">
+          <div className="result-report-progress-fill" style={{ width: `${riskScore}%`, background: tone.color }} />
+        </div>
+
+        <header className="result-report-header">
+          <div className="result-report-summary">
+            <div className="result-report-kicker">
+              <Mail size={16} color={tone.color} />
+              <span>{channelMeta(channel, form).label}</span>
+            </div>
+            <div className="result-report-status-line">
+              <div className="result-report-status-icon" style={{ color: tone.color, borderColor: `${tone.color}55` }}>
+                <ToneIcon size={26} />
+              </div>
+              <div className="result-report-status-copy">
+                <span className="result-report-status-badge" style={{ color: tone.color, borderColor: `${tone.color}55`, background: `${tone.color}14` }}>
+                  {tone.label}
+                </span>
+                <h3 className="result-report-title">{channelMeta(channel, form).heading}</h3>
+                <p className="result-report-description">{result.summary || emptyResultText}</p>
+              </div>
+            </div>
+          </div>
+
+          <aside className="result-report-score-card">
+            <div className="result-report-score-topline">
+              <span>Risk Score</span>
+              <strong style={{ color: tone.color }}>{riskScore}%</strong>
+            </div>
+            <div className="result-report-score-bar">
+              <div className="result-report-score-bar-fill" style={{ width: `${riskScore}%`, background: tone.color }} />
+            </div>
+            <p className="result-report-score-copy">
+              {result.related_threats_count > 0
+                ? `${result.related_threats_count} related threat matches found in the intelligence graph.`
+                : 'Verdict reflects the strongest phishing and impersonation signals found.'}
+            </p>
+          </aside>
+        </header>
+
+        <section className="result-report-table-surface result-report-table-surface-grid">
+          <div className="result-report-panel-label">Message analysis report</div>
+          <div className="result-report-table">
+            {analysisRows.map(([label, value]) => (
+              <div key={label} className="result-report-row result-report-row-surface">
+                <div className="result-report-key">{label}</div>
+                <div className="result-report-value">{value}</div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </article>
+
+      {brandSignals.length ? (
+        <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)', color: '#fde68a' }}>
+          <strong style={{ color: '#fef3c7' }}>Possible brand impersonation detected</strong>
+          {brandSignals.map((signal) => (
+            <div key={`${signal.domain}-${signal.brand}`} style={{ color: MUTED_COLOR, lineHeight: 1.6 }}>
+              <span style={{ color: TEXT_COLOR, fontWeight: 700 }}>{signal.domain}</span>
+              {signal.brand ? ` may be impersonating ${signal.brand}.` : ' shows typo/lure patterns.'}{' '}
+              Score: {signal.score || 0}
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      <div className="brief-panel">
+        <div className="analysis-meta-label">Next Actions</div>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 8 }}>
+          <button
+            type="button"
+            onClick={onPublish}
+            disabled={publishState.status === 'loading'}
+            className="report-action-button report-action-button-primary"
+            style={{ cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}
+          >
+            {publishState.status === 'loading' ? 'Publishing…' : 'Promote to Community'}
+          </button>
+        </div>
+        {publishState.message ? (
+          <div style={{
+            marginTop: 10,
+            padding: '12px 14px',
+            borderRadius: 16,
+            color: publishState.status === 'success' ? '#86efac' : '#bae6fd',
+            background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)',
+            border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)',
+          }}>
+            {publishState.message}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}
+
 export default function Analysis({ embedded = false }) {
-  const { theme } = useTheme()
+  // Stable axios client — created once, never changes identity
   const client = useMemo(() => api(), [])
   const [channel, setChannel] = useState('email')
   const [form, setForm] = useState({ sender: '', subject: '', phone: '', content: '' })
@@ -161,19 +269,13 @@ export default function Analysis({ embedded = false }) {
     loadHistory()
   }, [client])
 
-  const dark = theme !== 'light'
-  const textColor = dark ? '#f8fafc' : '#0f172a'
-  const mutedColor = dark ? 'rgba(226,232,240,0.74)' : '#475569'
-  const borderColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'
-  const inputColor = dark ? 'rgba(12,12,16,0.82)' : 'rgba(255,255,255,0.86)'
   const tone = toneFor(result?.threatLevel)
-  const ToneIcon = tone.icon
   const inputStyle = {
     width: '100%',
     borderRadius: 18,
-    border: `1px solid ${borderColor}`,
-    background: inputColor,
-    color: textColor,
+    border: `1px solid ${BORDER_COLOR}`,
+    background: INPUT_COLOR,
+    color: TEXT_COLOR,
     padding: '14px 16px',
     outline: 'none',
     fontSize: 15,
@@ -293,115 +395,20 @@ export default function Analysis({ embedded = false }) {
     })
   }
 
-  // Reusable result content component (used in both modes)
-  const ResultContent = () => (
-    <div className="split-dossier">
-      <article className="result-report-card fade-in">
-        <div className="result-report-progress-track" aria-hidden="true">
-          <div
-            className="result-report-progress-fill"
-            style={{ width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`, background: tone.color }}
-          />
-        </div>
-
-        <header className="result-report-header">
-          <div className="result-report-summary">
-            <div className="result-report-kicker">
-              <Mail size={16} color={tone.color} />
-              <span>{channelMeta(channel, form).label}</span>
-            </div>
-
-            <div className="result-report-status-line">
-              <div className="result-report-status-icon" style={{ color: tone.color, borderColor: `${tone.color}55` }}>
-                <ToneIcon size={26} />
-              </div>
-              <div className="result-report-status-copy">
-                <span className="result-report-status-badge" style={{ color: tone.color, borderColor: `${tone.color}55`, background: `${tone.color}14` }}>
-                  {tone.label}
-                </span>
-                <h3 className="result-report-title">{channelMeta(channel, form).heading}</h3>
-                <p className="result-report-description">{result.summary || emptyResultText}</p>
-              </div>
-            </div>
-          </div>
-
-          <aside className="result-report-score-card">
-            <div className="result-report-score-topline">
-              <span>Risk Score</span>
-              <strong style={{ color: tone.color }}>{Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%</strong>
-            </div>
-            <div className="result-report-score-bar">
-              <div
-                className="result-report-score-bar-fill"
-                style={{ width: `${Math.max(0, Math.min(100, Number(result.risk_score || 0)))}%`, background: tone.color }}
-              />
-            </div>
-            <p className="result-report-score-copy">
-              {result.related_threats_count > 0
-                ? `${result.related_threats_count} related threat matches were found in the wider intelligence graph.`
-                : 'Verdict reflects the strongest phishing and impersonation signals found in the submitted message.'}
-            </p>
-          </aside>
-        </header>
-
-        <section className="result-report-table-surface result-report-table-surface-grid">
-          <div className="result-report-panel-label">Message analysis report</div>
-          <div className="result-report-table">
-            {analysisRows.map(([label, value]) => (
-              <div key={label} className="result-report-row result-report-row-surface">
-                <div className="result-report-key">{label}</div>
-                <div className="result-report-value">{value}</div>
-              </div>
-            ))}
-          </div>
-        </section>
-      </article>
-
-      {brandSignals.length ? (
-        <div className="brief-panel" style={{ borderColor: 'rgba(251,191,36,0.28)', color: '#fde68a' }}>
-          <strong style={{ color: '#fef3c7' }}>Possible brand impersonation detected</strong>
-          {brandSignals.map((signal) => (
-            <div key={`${signal.domain}-${signal.brand}`} style={{ color: mutedColor, lineHeight: 1.6 }}>
-              <span style={{ color: textColor, fontWeight: 700 }}>
-                {signal.domain}
-              </span>
-              {signal.brand ? ` may be impersonating ${signal.brand}.` : ' shows typo/lure patterns.'}{' '}
-              Score: {signal.score || 0}
-            </div>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="brief-panel">
-        <div>
-          <div className="analysis-meta-label">Next Actions</div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <button type="button" onClick={publishThreat} disabled={publishState.status === 'loading'} className="report-action-button report-action-button-primary" style={{ cursor: publishState.status === 'loading' ? 'wait' : 'pointer' }}>
-            {publishState.status === 'loading' ? 'Publishing...' : 'Promote to Community'}
-          </button>
-        </div>
-        {publishState.message ? (
-          <div style={{ padding: '12px 14px', borderRadius: 16, color: publishState.status === 'success' ? '#86efac' : '#bae6fd', background: publishState.status === 'success' ? 'rgba(74,222,128,0.12)' : 'rgba(37,99,235,0.12)', border: publishState.status === 'success' ? '1px solid rgba(74,222,128,0.2)' : '1px solid rgba(56,189,248,0.2)' }}>
-            {publishState.message}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  )
-
   return (
-    <section style={{ minHeight: embedded ? 'auto' : 'calc(100vh - 140px)', position: 'relative', color: textColor }}>
+    <section style={{ minHeight: embedded ? 'auto' : 'calc(100vh - 140px)', position: 'relative', color: TEXT_COLOR }}>
       {!embedded ? <div className="hero-bg" /> : null}
       {!embedded ? <div className="grid-dots" /> : null}
       <div style={{ position: 'relative', zIndex: 1, display: 'grid', gap: 24 }}>
         {!embedded ? (
-          <PortalHero
-            kicker="Analysis Studio"
-            title="Message Analysis"
-            copy="Submit suspicious email, SMS, or WhatsApp content and get a clear verdict."
-            className="investigation-hero fade-in"
-          />
+          <header className="aip-hero fade-in">
+            <div className="aip-kicker">
+              <span className="aip-kicker-dot" />
+              <span className="aip-kicker-text">ANALYSIS STUDIO</span>
+            </div>
+            <h1 className="aip-title">Message Analysis.</h1>
+            <p className="aip-copy">Submit suspicious email, SMS, or WhatsApp content and get a clear verdict.</p>
+          </header>
         ) : null}
 
         {!showResultOnly ? (
@@ -434,23 +441,23 @@ export default function Analysis({ embedded = false }) {
                 <form onSubmit={runAnalysis} className="console-form-grid">
                   {channel === 'email' ? (
                     <>
-                      <label className="console-input-group"><span>Sender</span><input value={form.sender} onChange={(event) => setField('sender', event.target.value)} placeholder="alerts@company-security.com" style={inputStyle} /></label>
-                      <label className="console-input-group"><span>Subject</span><input value={form.subject} onChange={(event) => setField('subject', event.target.value)} placeholder="Urgent payment request" style={inputStyle} /></label>
+                      <label className="console-input-group"><span>Sender</span><input value={form.sender} onChange={(e) => setField('sender', e.target.value)} placeholder="alerts@company-security.com" style={inputStyle} /></label>
+                      <label className="console-input-group"><span>Subject</span><input value={form.subject} onChange={(e) => setField('subject', e.target.value)} placeholder="Urgent payment request" style={inputStyle} /></label>
                     </>
                   ) : (
-                    <label className="console-input-group"><span>Phone Number</span><input value={form.phone} onChange={(event) => setField('phone', event.target.value)} placeholder="+1 202 555 0172" style={inputStyle} /></label>
+                    <label className="console-input-group"><span>Phone Number</span><input value={form.phone} onChange={(e) => setField('phone', e.target.value)} placeholder="+1 202 555 0172" style={inputStyle} /></label>
                   )}
 
                   <label className="console-input-group">
                     <span>Content</span>
-                    <textarea value={form.content} onChange={(event) => setField('content', event.target.value)} placeholder="Paste the message content here." rows={10} style={{ ...inputStyle, minHeight: 220, resize: 'vertical', fontFamily: 'inherit' }} />
+                    <textarea value={form.content} onChange={(e) => setField('content', e.target.value)} placeholder="Paste the message content here." rows={10} style={{ ...inputStyle, minHeight: 220, resize: 'vertical', fontFamily: 'inherit' }} />
                   </label>
 
                   {error ? <div className="console-status" style={{ borderColor: 'rgba(240,64,64,0.3)', color: '#fecaca' }}>{error}</div> : null}
 
                   <button type="submit" disabled={loading} className="console-cta">
                     {loading ? <Loader2 size={18} className="analysis-spinner" /> : <Sparkles size={18} />}
-                    {loading ? 'Analyzing...' : 'Run Analysis'}
+                    {loading ? 'Analyzing…' : 'Run Analysis'}
                   </button>
                 </form>
               </div>
@@ -465,8 +472,8 @@ export default function Analysis({ embedded = false }) {
                     title="No recent high-signal analyses yet"
                     copy="Only suspicious and threat verdicts are kept here."
                     examples={[
-                      { label: 'Urgent payroll verification', onClick: () => setForm((current) => ({ ...current, subject: 'Urgent payroll verification request' })) },
-                      { label: 'Paste suspicious login URL', onClick: () => setForm((current) => ({ ...current, content: 'Please verify your account at https://secure-paypaI-login-check.com immediately.' })) },
+                      { label: 'Urgent payroll verification', onClick: () => setForm((c) => ({ ...c, subject: 'Urgent payroll verification request' })) },
+                      { label: 'Paste suspicious login URL', onClick: () => setForm((c) => ({ ...c, content: 'Please verify your account at https://secure-paypaI-login-check.com immediately.' })) },
                     ]}
                   />
                 ) : (
@@ -476,7 +483,7 @@ export default function Analysis({ embedded = false }) {
                     className="recent-rail"
                     renderItem={(entry) => (
                       <div className="recent-rail-item" key={`${entry.id}-${entry.created_at || ''}`}>
-                        <HistoryButton entry={entry} onClick={applyHistory} borderColor="transparent" textColor={textColor} mutedColor={mutedColor} />
+                        <HistoryButton entry={entry} onClick={applyHistory} />
                       </div>
                     )}
                   />
@@ -485,22 +492,30 @@ export default function Analysis({ embedded = false }) {
             </div>
           </div>
         ) : (
-          // Modern centered result view – no headings, only result card + New Analysis button
           <div className="fade-in" style={{ maxWidth: embedded ? '100%' : 900, margin: embedded ? 0 : '0 auto', padding: embedded ? 0 : '20px' }}>
             <div style={{ marginBottom: 24, textAlign: 'center' }}>
-              <button onClick={startNewAnalysis} className="console-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <button type="button" onClick={startNewAnalysis} className="console-cta" style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                 ← New Analysis
               </button>
             </div>
             <div style={{
-              background: dark ? 'rgba(255,255,255,0.03)' : '#fff',
-              border: `1px solid ${borderColor}`,
+              background: 'rgba(255,255,255,0.03)',
+              border: `1px solid ${BORDER_COLOR}`,
               borderRadius: 28,
               padding: '32px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(56,189,248,0.1)',
               backdropFilter: 'blur(8px)',
             }}>
-              <ResultContent />
+              <AnalysisResultCard
+                result={result}
+                tone={tone}
+                channel={channel}
+                form={form}
+                analysisRows={analysisRows}
+                brandSignals={brandSignals}
+                publishState={publishState}
+                onPublish={publishThreat}
+              />
             </div>
           </div>
         )}

@@ -5,26 +5,13 @@ import { FileText, Globe, Hash, Radio } from 'lucide-react'
 import IntelEmptyState from '../components/IntelEmptyState'
 import Seo from '../components/Seo'
 import { apiRequest } from '../services/api'
-import { buildIocPath, formatRelativeDate } from '../utils/intelTools'
+import { buildIocPath, formatRelativeDate, levelColor, levelLabel } from '../utils/intelTools'
 
 const timeRanges    = ['24h', '7d', '30d', '90d', 'all']
 const sourceOptions = ['all', 'scan', 'community', 'analysis', 'media']
 const levelOptions  = ['all', 'threat', 'suspicious', 'safe']
 
-function levelColor(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return '#ef4444'
-  if (v === 'suspicious') return '#f59e0b'
-  if (v === 'safe') return '#22c55e'
-  return '#60a5fa'
-}
-function levelLabel(level) {
-  const v = String(level || '').toLowerCase()
-  if (v === 'threat' || v === 'dangerous') return 'THREAT'
-  if (v === 'suspicious') return 'SUSPICIOUS'
-  if (v === 'safe') return 'SAFE'
-  return 'UNKNOWN'
-}
+// levelColor / levelLabel imported from intelTools
 function rowIcon(type) {
   const t = String(type || '').toLowerCase()
   if (t === 'ip')   return Radio
